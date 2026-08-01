@@ -45,4 +45,8 @@ ungranted, and browser roles receive no additional access.
 
 Content and moderation tables remain future work. Define ownership, lifecycle, evidence handling, and retention before adding them. Development preview selectors never authorize database access and are ignored in production.
 
-`202608010005_account_security_audit_action.sql` is a pending review artifact. It adds only the allowlisted `account.email_change_requested` action and a no-argument, authenticated function that derives its actor from `auth.uid()`. It stores no old or new email, accepts no identifier, and changes no Auth, role, restriction, verification, subscription, or profile state. It must not be applied until the required explicit approval is received.
+`202608010005_account_security_audit_action.sql` is applied. It adds only the allowlisted `account.email_change_requested` action and a no-argument, authenticated function that derives its actor from `auth.uid()`. It stores no old or new email, accepts no identifier, and changes no Auth, role, restriction, verification, subscription, or profile state.
+
+## Hosted authentication URLs
+
+The hosted Supabase project uses the canonical Vercel origin as its production Site URL. Its redirect allowlist contains exact production and localhost URLs for `/auth/confirm` and `/auth/recovery`. These dashboard settings are maintained deliberately rather than by pushing the complete local `config.toml`, which could overwrite unrelated hosted Auth defaults. Custom SMTP, a verified sending domain, and an editable token-hash email template remain required production email work; Resend is the likely future provider and is not integrated.

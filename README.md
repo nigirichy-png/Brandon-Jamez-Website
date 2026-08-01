@@ -193,11 +193,26 @@ Copy `.env.example` to the Git-ignored `.env.local` only when an integration is 
 
 ## Integration and deployment direction
 
-Supabase Auth and the first four reviewed migrations are applied to the dedicated Brandon Jamez Website project. Confirmation supports hosted, token-hash, and authorization-code flows. Server Actions implement signup, login, logout, account security, display-name updates, role changes, and restrictions. The account-security audit migration remains local until explicitly approved. CLI-generated database types live in `src/lib/supabase/database.types.ts`.
+Supabase Auth and all five reviewed migrations are applied to the dedicated Brandon Jamez Website project. Confirmation supports hosted, token-hash, and authorization-code flows. Server Actions implement signup, login, logout, account security, display-name updates, role changes, and restrictions. CLI-generated database types live in `src/lib/supabase/database.types.ts`.
 
 Professional external providers will be selected later for age verification, payments, and private streaming. None has been chosen or integrated.
 
-Vercel is the initial likely hosting target. Cloudflare may be evaluated later for hosting or video capabilities. Deployment must not begin until environment, security, privacy, and legal requirements have been reviewed.
+## Production deployment
+
+The application is deployed from the dedicated Vercel project `brandon-jamez-website` at [https://brandon-jamez-website.vercel.app](https://brandon-jamez-website.vercel.app). The repository-local `.vercel` directory is ignored. Deploy from this repository root with:
+
+```powershell
+npx vercel@latest
+npx vercel@latest --prod
+```
+
+Vercel Production contains only these application variables: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and the server-only `SUPABASE_SECRET_KEY`. Preview has no Supabase server secret and is not an authenticated staging environment. Never copy the secret into a `NEXT_PUBLIC_` variable or expose it through a Client Component, response, log, or build artifact.
+
+Supabase Authentication URL Configuration must use the production origin as its Site URL and allow the exact `/auth/confirm` and `/auth/recovery` production callbacks. Keep the equivalent localhost callbacks for development. Callback code accepts only fixed or validated same-origin paths.
+
+The Vercel project is not connected to GitHub because the Vercel GitHub integration does not currently have access to this repository. CLI deployments work; automatic deployments require a future repository-permission review. Before each production deployment, run the local quality commands, review the diff, confirm the Production/Preview environment scopes, and rerun guest, protected-route, callback, mock-bypass, responsive, and secret-leak checks after deployment.
+
+A custom domain is future work. Production email still requires custom SMTP, a verified sending domain, deliverability tests, and rate-limit review; Resend is the planned likely provider but is not integrated. Google and Discord authentication are planned but not connected. Cloudflare may be evaluated later for hosting or video capabilities.
 
 ## Project separation
 

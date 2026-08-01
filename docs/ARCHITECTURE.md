@@ -149,13 +149,21 @@ There is no checkout, card form, payment handling, fake successful purchase, or 
 
 ## Supabase, PostgreSQL, and local migrations
 
-If connected later, Supabase Auth will establish user identity while server-side code validates sessions. PostgreSQL will store the minimum required account, role, entitlement, and integration-reference data. Row Level Security policies must enforce least-privilege access independently of application UI.
+Supabase Auth establishes user identity while server-side code validates sessions. PostgreSQL stores the minimum required account, role, entitlement, and integration-reference data. Row Level Security policies enforce least-privilege access independently of application UI.
 
-`supabase/migrations` contains the applied initial account migration, admin/audit migration, audited-profile hardening, and narrow trusted read grants. The administration migration adds `audit_events`, restrictive grants and RLS, an active-admin helper, an authenticated display-name function, and atomic role/restriction functions with final-admin protection. The server secret receives only the account-summary columns required after real-admin validation. Content and moderation tables remain planned pending ownership, lifecycle, evidence, and retention review.
+`supabase/migrations` contains the five applied migrations: the initial account model, admin/audit operations, audited-profile hardening, narrow trusted read grants, and the account-security audit action. The administration migration adds `audit_events`, restrictive grants and RLS, an active-admin helper, an authenticated display-name function, and atomic role/restriction functions with final-admin protection. The server secret receives only the account-summary columns required after real-admin validation. Content and moderation tables remain planned pending ownership, lifecycle, evidence, and retention review.
 
 `src/lib/supabase/database.types.ts` is generated from the linked project. `types.ts` remains a stable re-export boundary for existing imports.
 
 Service-role credentials must remain server-only. Webhooks must verify signatures before changing account state. Provider callbacks must be idempotent and auditable.
+
+## Production deployment boundary
+
+Vercel hosts the production Next.js application. Production receives the public site URL, public Supabase URL and anon key, and a server-only Supabase secret. Preview receives no server secret and must fail closed for trusted administrative directory reads. Public variables may be bundled for browsers; the secret may be read only by the lazy `server-only` admin client after normal authenticated admin authorization.
+
+Supabase owns authentication and the database. Its production Site URL points to the canonical Vercel origin, with exact production and localhost allowlist entries for `/auth/confirm` and `/auth/recovery`. The application validates continuation paths independently and never trusts an arbitrary callback destination.
+
+Deployments currently use the authenticated Vercel CLI because GitHub integration lacks repository access. This prevents automatic Git-triggered deployments but does not weaken runtime authorization. A future integration must grant only the required repository access and must not broaden Production secret scope to Preview.
 
 ## Operational isolation
 
