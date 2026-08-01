@@ -1,12 +1,51 @@
 # Future integration architecture
 
-This document describes direction, not implemented security. The current project contains mock data and public development placeholders only.
+This document describes direction and an unconfigured Supabase-ready foundation, not completed security. The current website still renders mock data and public development placeholders only. No Supabase project or credentials are connected, and the SQL migration is local and unapplied.
+
+## Application modes
+
+- `mock` is the default when public Supabase configuration is missing or still uses placeholders. Public static generation does not initialize a client or contact Supabase.
+- `supabase` is selected only when a valid HTTPS project URL and non-placeholder public anon key are present. This means configuration exists; it does not mean authorization is complete.
+
+The mode is an infrastructure signal, never an authenticated-user signal. The UI must not manufacture a signed-in user in mock mode.
+
+## Supabase client boundaries
+
+The project uses only the official `@supabase/supabase-js` and `@supabase/ssr` packages.
+
+- `browser.ts` is a Client Component boundary. It lazily creates a client with the public URL and anon key only. RLS must constrain every database request it can make.
+- `server.ts` creates a new cookie-backed client per request using the async Next.js `cookies()` API. It uses the public anon key and the requesting user's session, not the service-role key.
+- `proxy.ts` synchronizes refreshed auth cookies through the official `getAll`/`setAll` pattern. It calls `getClaims()` only when configured and performs no role query or redirect.
+- `admin.ts` is guarded by `server-only`, initializes only when explicitly called, and rejects missing or placeholder service-role configuration. Because this client bypasses RLS, it is reserved for narrow trusted jobs such as verified webhooks.
+
+No client is created during module import. Configuration errors occur only when a dependent function is intentionally invoked.
+
+## Planned authenticated request flow
+
+1. A future auth callback Route Handler exchanges a provider code for a cookie-backed session and allows only reviewed redirect destinations.
+2. Proxy refreshes or synchronizes cookies; it does not grant access.
+3. A protected Page, Route Handler, or Server Function validates identity on the server with `getClaims()` or `getUser()` as appropriate.
+4. Server authorization checks trusted roles and account restrictions.
+5. Entitlement checks age-verification and subscription state.
+6. Database queries remain constrained by RLS for the authenticated user.
+7. Sensitive Route Handlers and signed-video endpoints repeat every relevant authorization and entitlement check.
+
+Authenticated routes must not use ISR or shared caching for responses that set or depend on auth cookies.
 
 ## Authorization model
 
 The preliminary roles are `visitor`, `subscriber`, `moderator`, `content_manager`, and `admin`. A future account may have multiple roles. Account blocking overrides role-based access.
 
 All protected operations must use a validated server-side session and server-side authorization. Supabase Row Level Security must independently restrict database access. Frontend state, hidden navigation, route names, and the pure helpers in `src/lib/permissions/access.ts` are not security enforcement.
+
+The four layers stay distinct:
+
+1. Authentication establishes who the user is.
+2. Authorization determines which trusted roles and operations apply.
+3. Entitlement combines account-blocking, professional age verification, and subscription state for member media.
+4. Database enforcement uses grants and RLS to constrain rows independently of application rendering.
+
+Proxy cookie refresh, hidden navigation, and Client Component checks are not authorization. Page-level server checks are required, Route Handlers and Server Functions must repeat them, and signed-playback endpoints must re-evaluate entitlement immediately before issuing temporary authorization.
 
 ## Subscriber video access
 
@@ -44,9 +83,13 @@ A professional external payment provider will be selected later. Subscription st
 
 There is no checkout, card form, payment handling, fake successful purchase, or provider credential in this MVP.
 
-## Supabase and PostgreSQL
+## Supabase, PostgreSQL, and local migrations
 
-If selected, Supabase Auth will establish user identity while server-side code validates sessions. PostgreSQL will store the minimum required account, role, entitlement, and integration-reference data. Row Level Security policies must enforce least-privilege access independently of application UI.
+If connected later, Supabase Auth will establish user identity while server-side code validates sessions. PostgreSQL will store the minimum required account, role, entitlement, and integration-reference data. Row Level Security policies must enforce least-privilege access independently of application UI.
+
+`supabase/migrations` contains a local review artifact for profiles, trusted role assignments, account restrictions, minimal age-verification results, and minimal subscription state. It enables RLS on every application table, revokes broad access, grants narrowly scoped self-read columns, permits only a basic self-profile update, and provides no user write path for roles or entitlement state. It has not been applied anywhere.
+
+The current `Database` TypeScript definition is intentionally only a typing shell. Supabase CLI-generated types will replace it after the reviewed migration is applied to an intentional environment.
 
 Service-role credentials must remain server-only. Webhooks must verify signatures before changing account state. Provider callbacks must be idempotent and auditable.
 

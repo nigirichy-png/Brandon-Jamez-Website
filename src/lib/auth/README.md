@@ -1,3 +1,3 @@
-# Authentication integration boundary
+# Authentication boundary
 
-Authentication is intentionally not implemented in this MVP. A future integration must validate sessions on the server, apply role and account-state authorization on the server, and use Supabase Row Level Security for database access. Client state and hidden links must never be treated as security controls.
+Authentication utilities identify a user. They do not decide roles, entitlements, or database-row access. See `session.ts` and the project architecture documentation.

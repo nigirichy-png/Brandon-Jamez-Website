@@ -11,6 +11,7 @@ No real authentication, age verification, subscription, payment, database, or vi
 - Tailwind CSS 4
 - ESLint 9 with the Next.js configuration
 - npm
+- `@supabase/supabase-js` and `@supabase/ssr` (installed but unconfigured)
 - `src` directory and `@/*` import alias
 
 ## Routes
@@ -60,20 +61,28 @@ src/
     ui/                   Reusable cards, headings, buttons, and branding
   data/                   Development-only mock content
   lib/
-    auth/                 Future authentication boundary notes
+    auth/                 Server-only session validation helpers
     permissions/          Preliminary pure TypeScript UI logic
+    supabase/             Lazy browser, server, Proxy, and admin clients
   types/                  Shared roles, access state, and content types
 docs/
   ARCHITECTURE.md         Future integration and security design
+supabase/
+  migrations/             Local SQL review artifacts; never auto-applied
+  README.md               Migration and RLS review requirements
 ```
 
 ## Mock-data status
 
 Everything in `src/data/mock-data.ts` is development-only. Public video records are display metadata and do not include MP4 URLs. Subscriber video records are metadata only and include no files, filesystem paths, playback URLs, provider asset IDs, credentials, or tokens. Social destinations and live streaming are not configured.
 
+The default application mode is `mock`. Missing or obvious placeholder Supabase values are treated as unconfigured. Public pages remain static and no Supabase client is created or network request attempted during a normal build. A Supabase-dependent client produces a controlled configuration error only when code intentionally requests it; `getCurrentUser()` instead returns `null` in mock mode.
+
 ## Security boundaries
 
 The current protected-looking routes are **not protected**. Navigation visibility and frontend checks are not security. The helpers in `src/lib/permissions/access.ts` are preliminary application logic for planning user interfaces; they do not enforce route or data security.
+
+The Next.js 16 `src/proxy.ts` file is cookie-refresh preparation only. It returns a normal response while unconfigured and does not redirect, query roles, or protect pages. Proxy cookie refresh is not authorization. Future protected Pages, Route Handlers, and Server Functions must validate identity and repeat authorization and entitlement checks on the server; RLS must independently protect rows.
 
 Production security must include:
 
@@ -94,12 +103,15 @@ Copy `.env.example` to the Git-ignored `.env.local` only when an integration is 
 - `.env.local` and other real environment files remain ignored by Git.
 - Variables prefixed with `NEXT_PUBLIC_` are visible in browser code and must never contain secrets.
 - Supabase service-role keys, provider API tokens, and webhook secrets are server-only.
+- `SUPABASE_SERVICE_ROLE_KEY` must never be imported into a Client Component. It bypasses RLS and is isolated behind a `server-only` module.
 - Real secrets belong in `.env.local` for local development or encrypted deployment environment settings.
 - Never commit real credentials or generated secrets.
 
 ## Integration and deployment direction
 
-Supabase Auth and PostgreSQL are future candidates, with Row Level Security required before private data exists. Professional external providers will be selected later for age verification, payments, and private streaming. None has been chosen or integrated.
+Supabase Auth and PostgreSQL now have an unconfigured code foundation and a local, unapplied migration proposal. No Supabase project is connected. The future auth callback will exchange a provider code for a cookie-backed session in a server Route Handler, validate the resulting user, and redirect through an allowlisted destination. Future Supabase CLI-generated database types will replace the current typing shell after the reviewed schema exists.
+
+Professional external providers will be selected later for age verification, payments, and private streaming. None has been chosen or integrated.
 
 Vercel is the initial likely hosting target. Cloudflare may be evaluated later for hosting or video capabilities. Deployment must not begin until environment, security, privacy, and legal requirements have been reviewed.
 
