@@ -1,0 +1,165 @@
+@import "tailwindcss";
+
+:root {
+  --page: #08080c;
+  --page-deep: #050507;
+  --surface: #111118;
+  --surface-raised: #171721;
+  --surface-soft: #1d1d28;
+  --border: rgba(255, 255, 255, 0.11);
+  --border-strong: rgba(255, 255, 255, 0.19);
+  --text-primary: #fafafa;
+  --text-secondary: #c7c7d0;
+  --text-muted: #8d8d9c;
+  --accent-magenta: #e54fec;
+  --accent-purple: #8758f7;
+  --accent-cyan: #5ee8ed;
+  --state-live: #47e6a2;
+  --state-warning: #f7c76b;
+  --radius-sm: 0.8rem;
+  --radius-md: 1.25rem;
+  --radius-lg: 2rem;
+  --radius-xl: 2.75rem;
+  --shadow-card: 0 24px 70px rgba(0, 0, 0, 0.3);
+  --shadow-accent: 0 18px 55px rgba(229, 79, 236, 0.2);
+  --content-wide: 78rem;
+  --content-copy: 44rem;
+  --section-space: clamp(4.5rem, 9vw, 8rem);
+  --transition-fast: 160ms;
+  --transition-base: 260ms;
+  --focus-ring: #5ee8ed;
+}
+
+@theme inline {
+  --color-background: var(--page);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display-face);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--page);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  overflow-x: clip;
+  background:
+    radial-gradient(circle at 80% -10%, rgba(135, 88, 247, 0.09), transparent 28rem),
+    linear-gradient(rgba(255, 255, 255, 0.014) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.014) 1px, transparent 1px),
+    var(--page);
+  background-size: auto, 64px 64px, 64px 64px, auto;
+  color: var(--text-primary);
+  font-family: var(--font-body), "Segoe UI", sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+::selection {
+  background: var(--accent-magenta);
+  color: white;
+}
+
+a,
+button,
+input {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.page-shell {
+  width: min(calc(100% - 1.5rem), var(--content-wide));
+  margin-inline: auto;
+}
+
+.section-space {
+  padding-block: var(--section-space);
+}
+
+.font-display {
+  font-family: var(--font-display-face), var(--font-body), sans-serif;
+}
+
+.gradient-text {
+  background: linear-gradient(105deg, #f5b4fa 0%, var(--accent-magenta) 42%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.surface-outline {
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+
+.eyebrow {
+  font-size: clamp(0.72rem, 1.8vw, 0.8rem);
+  font-weight: 800;
+  letter-spacing: 0.17em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: -5rem;
+  z-index: 100;
+  border-radius: 999px;
+  background: white;
+  padding: 0.75rem 1rem;
+  color: black;
+  font-weight: 800;
+}
+
+.skip-link:focus {
+  top: calc(1rem + env(safe-area-inset-top));
+}
+
+@media (min-width: 640px) {
+  .page-shell {
+    width: min(calc(100% - 3rem), var(--content-wide));
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pointer-lift:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-card);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
