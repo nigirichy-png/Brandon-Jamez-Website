@@ -116,7 +116,7 @@ export function HeaderNavigation({ authenticated }: { authenticated: boolean }) 
               ))}
             </nav>
             <div className="mt-auto border-t border-white/10 pt-5">
-              <p className="mb-4 px-2 text-sm leading-6 text-zinc-500">The account experience is a development placeholder.</p>
+              <p className="mb-4 px-2 text-sm leading-6 text-zinc-500">Secure account access and settings.</p>
               <Link href={accountHref} onClick={() => closeMenu()} className="flex min-h-14 items-center justify-center rounded-2xl bg-fuchsia-500 px-5 font-extrabold text-white shadow-[var(--shadow-accent)] hover:bg-fuchsia-400">
                 {accountLabel}
               </Link>

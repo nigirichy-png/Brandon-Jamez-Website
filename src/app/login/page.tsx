@@ -15,6 +15,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const configured = isSupabaseConfigured();
   const error = typeof query.error === "string" && query.error in errors ? errors[query.error as keyof typeof errors] : null;
   const signedOut = query.status === "signed_out";
+  const passwordUpdated = query.status === "password_reset" || query.status === "password_changed";
   const next = getSafeNextPath(typeof query.next === "string" ? query.next : null);
   return <AuthShell eyebrow="Brandon Jamez account" title="Welcome back." description="Sign in through the server-rendered Supabase authentication flow. Sessions are stored through the existing SSR cookie boundary.">
     <span className={`eyebrow inline-flex rounded-full border px-3 py-2 ${configured ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-200" : "border-amber-300/25 bg-amber-300/10 text-amber-200"}`}>{configured ? "Authentication connected" : "Not configured"}</span>
@@ -22,10 +23,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <p className="mt-3 leading-7 text-zinc-400">Credentials are sent only to the server action and Supabase Auth. They are never placed in URLs or local storage.</p>
     {error ? <p role="alert" className="mt-5 rounded-xl border border-rose-300/20 bg-rose-300/[0.06] p-4 text-sm text-rose-100">{error}</p> : null}
     {signedOut ? <p role="status" className="mt-5 rounded-xl border border-emerald-300/20 bg-emerald-300/[0.06] p-4 text-sm text-emerald-100">You have been signed out.</p> : null}
+    {passwordUpdated ? <p role="status" className="mt-5 rounded-xl border border-emerald-300/20 bg-emerald-300/[0.06] p-4 text-sm text-emerald-100">Your password was changed. Sign in with the new password.</p> : null}
     <form action={loginAction} className="mt-7 space-y-5">
       <input type="hidden" name="next" value={next} />
       <div><label htmlFor="email" className="mb-2 block text-sm font-bold text-zinc-300">Email address</label><input id="email" name="email" type="email" autoComplete="email" required maxLength={254} disabled={!configured} className="min-h-13 w-full rounded-[var(--radius-sm)] border border-white/10 bg-black/25 px-4 text-base text-white disabled:cursor-not-allowed disabled:text-zinc-500" /></div>
-      <div><label htmlFor="password" className="mb-2 block text-sm font-bold text-zinc-300">Password</label><input id="password" name="password" type="password" autoComplete="current-password" required maxLength={128} disabled={!configured} className="min-h-13 w-full rounded-[var(--radius-sm)] border border-white/10 bg-black/25 px-4 text-base text-white disabled:cursor-not-allowed disabled:text-zinc-500" /></div>
+      <div><div className="mb-2 flex flex-wrap items-center justify-between gap-2"><label htmlFor="password" className="block text-sm font-bold text-zinc-300">Password</label><Link href="/forgot-password" className="text-sm font-extrabold text-cyan-300 hover:text-cyan-200">Forgot password?</Link></div><input id="password" name="password" type="password" autoComplete="current-password" required maxLength={128} disabled={!configured} className="min-h-13 w-full rounded-[var(--radius-sm)] border border-white/10 bg-black/25 px-4 text-base text-white disabled:cursor-not-allowed disabled:text-zinc-500" /></div>
       <SubmitButton idleLabel="Sign in securely" pendingLabel="Signing in…" disabled={!configured} />
     </form>
     <p className="mt-5 text-sm text-zinc-400">Need an account? <Link href="/signup" className="font-extrabold text-cyan-300 hover:text-cyan-200">Create one</Link></p>

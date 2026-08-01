@@ -26,10 +26,15 @@ Supabase Auth, the RLS-protected account schema, display-name self-service, role
 | `/subscribe` | Public information | Future subscriber requirements; subscriptions are not active |
 | `/login` | Public authentication | Server Action email/password sign-in with safe same-origin continuation |
 | `/signup` | Public authentication | Validated account creation with email confirmation |
+| `/forgot-password` | Public authentication | Enumeration-resistant password-reset request |
 | `/auth/confirm` | Route Handler | Token-hash, authorization-code, existing-cookie, and hosted confirmation routing |
 | `/auth/complete` | Public authentication | Safe completion for the unchanged hosted ConfirmationURL fragment flow |
+| `/auth/recovery` | Route Handler | Recovery token-hash, PKCE code, and hosted-fragment routing |
+| `/auth/recovery/complete` | Public authentication | SDK-owned completion for hosted implicit recovery fragments |
+| `/reset-password` | Recovery-session only | Password replacement after a validated recovery callback |
 | `/auth/error` | Public status | Generic confirmation failure guidance without token details |
 | `/account` | Authenticated | Account summary, audited display-name editing, authorized-area links, and sign-out |
+| `/account/security` | Authenticated | Current-password change and confirmed email-change request |
 | `/verify-age` | Public development plan | Future professional age-verification boundary; no collection or verification |
 | `/member` | Server-authorized | Real RLS state by default; explicit mock scenarios with allowlisted `?demo=` |
 | `/member/videos/[videoId]` | Server-authorized | Repeats identity, entitlement, and video-record checks |
@@ -140,6 +145,10 @@ The unchanged Supabase `ConfirmationURL` template is supported for local develop
 
 `/auth/confirm` also retains the future custom-template flow using `token_hash` plus an allowlisted email OTP type, supports an official PKCE authorization `code` exchange, and accepts an already valid cookie-backed user. Every successful path ends at `/account`; invalid parameters and provider failures lead only to generic application pages. Callback destinations are fixed same-origin paths and never taken from an untrusted URL.
 
+Add `http://localhost:3000/auth/recovery` to the hosted redirect allowlist alongside `/auth/confirm`. Password-reset requests always return the same message, whether or not an account exists. `/auth/recovery` accepts only a recovery `token_hash`, an official PKCE code, or the hosted implicit-fragment handoff. Server callbacks establish a short-lived signed, HttpOnly recovery marker before `/reset-password` can update the password. The unchanged hosted implicit flow is completed by the official Auth SDK on `/auth/recovery/complete`; application code never parses or renders its fragment. Successful recovery and authenticated password changes invalidate all sessions and return to sign-in. Email changes keep Supabase double confirmation enabled and append an email-free audit event through an authenticated, no-argument database function.
+
+If `/auth/recovery` is absent from the hosted allowlist, Supabase may fall back to the Site URL and the implicit recovery fragment cannot be recovered by a server after that navigation. Default Supabase email delivery is best-effort and rate limited, so local delivery tests remain constrained until custom SMTP is configured.
+
 The project-local `supabase/config.toml` mirrors these local expectations but has not been pushed wholesale to the hosted project because doing so would also overwrite unrelated hosted Auth defaults.
 
 ## Security boundaries
@@ -157,6 +166,7 @@ Before production launch, authentication additionally requires:
 - Email deliverability testing
 - Supabase Auth rate-limit review
 - Password-reset email configuration and end-to-end testing
+- Email-change template review and end-to-end testing
 
 Production security must also include:
 
@@ -183,7 +193,7 @@ Copy `.env.example` to the Git-ignored `.env.local` only when an integration is 
 
 ## Integration and deployment direction
 
-Supabase Auth and all four reviewed migrations are applied to the dedicated Brandon Jamez Website project. Confirmation supports hosted, token-hash, and authorization-code flows. Server Actions implement signup, login, logout, display-name updates, role changes, and restrictions. CLI-generated database types live in `src/lib/supabase/database.types.ts`.
+Supabase Auth and the first four reviewed migrations are applied to the dedicated Brandon Jamez Website project. Confirmation supports hosted, token-hash, and authorization-code flows. Server Actions implement signup, login, logout, account security, display-name updates, role changes, and restrictions. The account-security audit migration remains local until explicitly approved. CLI-generated database types live in `src/lib/supabase/database.types.ts`.
 
 Professional external providers will be selected later for age verification, payments, and private streaming. None has been chosen or integrated.
 

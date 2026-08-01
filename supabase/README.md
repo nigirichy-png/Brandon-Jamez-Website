@@ -44,3 +44,5 @@ SQL table privileges. Sensitive reason and provider-reference columns remain
 ungranted, and browser roles receive no additional access.
 
 Content and moderation tables remain future work. Define ownership, lifecycle, evidence handling, and retention before adding them. Development preview selectors never authorize database access and are ignored in production.
+
+`202608010005_account_security_audit_action.sql` is a pending review artifact. It adds only the allowlisted `account.email_change_requested` action and a no-argument, authenticated function that derives its actor from `auth.uid()`. It stores no old or new email, accepts no identifier, and changes no Auth, role, restriction, verification, subscription, or profile state. It must not be applied until the required explicit approval is received.

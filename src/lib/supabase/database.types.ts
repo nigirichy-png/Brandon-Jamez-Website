@@ -246,6 +246,10 @@ export type Database = {
         Args: { p_target_user_id: string }
         Returns: boolean
       }
+      record_own_email_change_request: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       update_own_display_name: {
         Args: { p_display_name: string }
         Returns: boolean
