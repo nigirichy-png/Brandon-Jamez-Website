@@ -3,7 +3,7 @@ import Link from "next/link";
 import { mockScenarioOptions } from "@/lib/entitlements/mock-scenarios";
 import type { MockScenarioId } from "@/lib/entitlements/types";
 
-export function ScenarioSwitcher({ activeScenario }: { activeScenario: MockScenarioId }) {
+export function ScenarioSwitcher({ activeScenario }: { activeScenario: MockScenarioId | null }) {
   return (
     <nav aria-label="Development access scenarios" className="rounded-[var(--radius-lg)] border border-amber-300/20 bg-amber-300/[0.045] p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">

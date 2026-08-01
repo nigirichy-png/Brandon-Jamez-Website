@@ -12,12 +12,19 @@ export const staffScenarioIds = [
 
 export type StaffScenarioId = (typeof staffScenarioIds)[number];
 export type StaffArea = "moderator" | "content" | "admin";
-export type StaffScenario = AccessState & {
-  scenarioId: StaffScenarioId;
+export type StaffAccessState = AccessState & {
+  scenarioId: StaffScenarioId | null;
   label: string;
   displayName: string | null;
   simulatedRoleLabel: string;
-  accountStatusLabel: "Guest" | "Active mock account" | "Blocked mock account";
+  accountStatusLabel: "Guest" | "Active mock account" | "Blocked mock account" | "Active account" | "Account unavailable";
+  developmentPreview: boolean;
+  accessLoadFailed?: boolean;
+};
+
+export type StaffScenario = StaffAccessState & {
+  scenarioId: StaffScenarioId;
+  developmentPreview: true;
 };
 
 export type StaffAccessReason =

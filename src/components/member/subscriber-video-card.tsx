@@ -10,8 +10,8 @@ const thumbnailClasses = {
   violet: "from-violet-500/80 via-indigo-950 to-[#09090d]",
 };
 
-export function SubscriberVideoCard({ video, scenarioId, featured = false }: { video: SubscriberVideo; scenarioId: MockScenarioId; featured?: boolean }) {
-  const href = `/member/videos/${video.id}?demo=${scenarioId}`;
+export function SubscriberVideoCard({ video, scenarioId, featured = false }: { video: SubscriberVideo; scenarioId: MockScenarioId | null; featured?: boolean }) {
+  const href = scenarioId ? `/member/videos/${video.id}?demo=${scenarioId}` : `/member/videos/${video.id}`;
   return (
     <article className={`pointer-lift group overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-[var(--surface)] transition-[transform,border-color,box-shadow] duration-[var(--transition-base)] ${featured ? "lg:grid lg:grid-cols-[1.25fr_.75fr]" : ""}`}>
       <div className={`relative aspect-video overflow-hidden bg-gradient-to-br ${thumbnailClasses[video.thumbnailVariant]} ${featured ? "lg:aspect-auto lg:min-h-96" : ""}`} role="img" aria-label={`Abstract mock artwork for ${video.title}`}>

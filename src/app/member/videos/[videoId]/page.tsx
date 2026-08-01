@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { AccessGate } from "@/components/member/access-gate";
 import { AccessSummary } from "@/components/member/access-summary";
 import { ScenarioSwitcher } from "@/components/member/scenario-switcher";
 import { evaluateMemberAccess } from "@/lib/entitlements/evaluate-member-access";
-import { getMockScenario } from "@/lib/entitlements/mock-scenarios";
+import { resolveMemberAccessState } from "@/lib/auth/access-state";
 import { authorizeMockPlayback, getSubscriberVideo } from "@/lib/entitlements/video-access";
 
 export const metadata: Metadata = { title: "Member Video Demo" };
@@ -18,13 +18,13 @@ type VideoPageProps = {
 
 export default async function MemberVideoPage({ params, searchParams }: VideoPageProps) {
   const [{ videoId }, query] = await Promise.all([params, searchParams]);
+  const state = await resolveMemberAccessState(query.demo);
+  if (!state.developmentPreview && !state.authenticated) redirect(`/login?next=${encodeURIComponent(`/member/videos/${videoId}`)}`);
   const video = getSubscriberVideo(videoId);
   if (!video) notFound();
-
-  const state = getMockScenario(query.demo);
   const decision = evaluateMemberAccess(state);
   const playback = authorizeMockPlayback(state, video.id);
-  const backHref = `/member?demo=${state.scenarioId}`;
+  const backHref = state.scenarioId ? `/member?demo=${state.scenarioId}` : "/member";
 
   return (
     <main id="main-content" className="flex-1">

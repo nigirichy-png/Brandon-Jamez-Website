@@ -1,6 +1,14 @@
 # Future integration architecture
 
-This document describes direction and an unconfigured Supabase-ready foundation, not completed security. The current website still renders mock data and public development placeholders only. No Supabase project or credentials are connected, and the SQL migration is local and unapplied.
+This document describes the connected authentication foundation and remaining integration direction. Supabase Auth and the initial account schema are connected; content, entitlement-provider, and staff-mutation workflows remain mock or planned.
+
+## Implemented authentication flow
+
+Signup and login use validated Next.js Server Actions and the request-scoped `@supabase/ssr` client. Signup grants no role, verification, or subscription. `/auth/confirm` supports an allowlisted `EmailOtpType` with `token_hash`, an official PKCE authorization-code exchange, and an already valid cookie-backed user. The unchanged hosted `ConfirmationURL` flow returns an implicit fragment that a server cannot read, so the missing-query case moves to `/auth/complete`. There, the official Supabase Auth client consumes and clears the fragment, validates the user remotely, and writes only the normal SSR session to cookies through a dedicated cookie storage adapter. Application code never parses or renders callback values, and localStorage is not used. Failures are generic. Login accepts only a same-origin relative continuation path. Logout is a Server Action.
+
+`loadRealAccountState()` first validates the current user through Supabase Auth and then queries only the user's RLS-visible profile, roles, restriction, age-verification, and subscription records. Missing rows produce inactive state. Any database error clears roles and fails closed by treating access as unavailable. Provider references, restriction reasons, metadata dumps, and tokens are never returned to account UI.
+
+Without a valid explicit development scenario, every member and internal Page uses this real state and redirects unauthenticated requests to login. Valid preview parameters select isolated mock UI state and never modify the real user, database, cookie, role, or entitlement.
 
 ## Development member simulation
 
@@ -8,7 +16,7 @@ This document describes direction and an unconfigured Supabase-ready foundation,
 
 The modules in `src/lib/entitlements` are marked server-only where they interpret scenario state or make access decisions. They evaluate authentication first, then account blocking, professional age-verification status, subscription expiry or absence, and finally access. The dynamic video route validates the requested mock record and repeats that evaluation before producing a request-time fake playback decision. Its reference is an obviously fake non-URL value, expires after five minutes, has no cryptographic or provider meaning, and is not exposed as a playable browser credential.
 
-This structure demonstrates the placement of future boundaries, not their trustworthiness. Query parameters are controlled by the visitor. Production code must derive identity and statuses from validated server-side sources, remove the scenario selector, and replace the fake decision with a narrow provider integration that issues real short-lived playback authorization only after all checks pass.
+Query parameters remain visitor-controlled development previews and are never trusted as real state. Normal requests derive identity and statuses from validated server-side sources. The fake playback decision still requires replacement with a narrow provider integration that issues real short-lived playback authorization only after all checks pass.
 
 ## Development staff simulation
 
@@ -16,7 +24,7 @@ The moderator, content-manager, and admin routes use a separate allowlisted `?st
 
 Every internal Page calls its own server-only evaluator before rendering operations records. The shared shell and hidden navigation are organizational UI only and are never treated as authorization. Evaluation order is authenticated identity, unblocked account, required trusted role, then allowed. Moderator routes accept moderator or admin; content routes accept content manager or admin; admin routes accept only admin. An admin is not automatically modeled as age-verified or subscribed, and a subscriber has no staff permission.
 
-Production replacement requires seven distinct boundaries:
+The architecture maintains seven distinct boundaries:
 
 1. Authentication validates the Supabase user and server-side session.
 2. Staff authorization loads trusted roles from protected database rows.
@@ -56,9 +64,9 @@ The project uses only the official `@supabase/supabase-js` and `@supabase/ssr` p
 
 No client is created during module import. Configuration errors occur only when a dependent function is intentionally invoked.
 
-## Planned authenticated request flow
+## Authenticated request flow
 
-1. A future auth callback Route Handler exchanges a provider code for a cookie-backed session and allows only reviewed redirect destinations.
+1. Signup confirmation establishes a cookie-backed session through the hosted fragment completion, a token-hash verification, a PKCE code exchange, or an already valid cookie session.
 2. Proxy refreshes or synchronizes cookies; it does not grant access.
 3. A protected Page, Route Handler, or Server Function validates identity on the server with `getClaims()` or `getUser()` as appropriate.
 4. Server authorization checks trusted roles and account restrictions.
@@ -123,11 +131,11 @@ There is no checkout, card form, payment handling, fake successful purchase, or 
 
 If connected later, Supabase Auth will establish user identity while server-side code validates sessions. PostgreSQL will store the minimum required account, role, entitlement, and integration-reference data. Row Level Security policies must enforce least-privilege access independently of application UI.
 
-`supabase/migrations` contains a local review artifact for profiles, trusted role assignments, account restrictions, minimal age-verification results, and minimal subscription state. It enables RLS on every application table, revokes broad access, grants narrowly scoped self-read columns, permits only a basic self-profile update, and provides no user write path for roles or entitlement state. It has not been applied anywhere.
+`supabase/migrations` contains the applied initial migration for profiles, trusted role assignments, account restrictions, minimal age-verification results, and minimal subscription state. It enables RLS on every application table, revokes broad access, grants narrowly scoped self-read columns, permits only a basic self-profile update, and provides no user write path for roles or entitlement state. The remote dry run passed before explicit approval, the migration was applied, and the five tables and six policies were verified through catalog queries.
 
 No second migration is added for the internal preview. Tables such as `content_items`, `events`, `moderation_cases`, and `audit_events` remain planned because ownership, lifecycle and retention rules, moderation evidence handling, audit actor semantics, and exact trusted-write procedures need review first. When mature, each table must begin with RLS enabled, no broad browser grants, no public moderation visibility, appropriate indexes and foreign keys, and fixed `search_path` on any privileged function. Audit insertion must be a narrow trusted server operation, never a normal authenticated-browser write.
 
-The current `Database` TypeScript definition is intentionally only a typing shell. Supabase CLI-generated types will replace it after the reviewed migration is applied to an intentional environment.
+`src/lib/supabase/database.types.ts` is generated from the linked project. `types.ts` remains a stable re-export boundary for existing imports.
 
 Service-role credentials must remain server-only. Webhooks must verify signatures before changing account state. Provider callbacks must be idempotent and auditable.
 

@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 import { getInternalNavigation, withStaffScenario } from "@/lib/staff/internal-navigation";
-import type { StaffScenario } from "@/lib/staff/types";
+import type { StaffAccessState } from "@/lib/staff/types";
 
-export function InternalNavigation({ state, currentPath }: { state: StaffScenario; currentPath: string }) {
+export function InternalNavigation({ state, currentPath }: { state: StaffAccessState; currentPath: string }) {
   const items = getInternalNavigation(state);
   return (
     <nav aria-label="Internal operations navigation">

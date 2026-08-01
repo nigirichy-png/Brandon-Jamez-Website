@@ -13,13 +13,20 @@ export type MockScenarioId = (typeof mockScenarioIds)[number];
 export type VerificationStatus = "not_started" | "verified";
 export type SubscriptionStatus = "none" | "active" | "expired";
 
-export type MockAccessScenario = AccessState & {
-  scenarioId: MockScenarioId;
+export type MemberAccessState = AccessState & {
+  scenarioId: MockScenarioId | null;
   label: string;
   displayName: string | null;
   verificationStatus: VerificationStatus;
   subscriptionStatus: SubscriptionStatus;
   subscriptionSummary: string;
+  developmentPreview: boolean;
+  accessLoadFailed?: boolean;
+};
+
+export type MockAccessScenario = MemberAccessState & {
+  scenarioId: MockScenarioId;
+  developmentPreview: true;
 };
 
 export type MemberAccessReason =

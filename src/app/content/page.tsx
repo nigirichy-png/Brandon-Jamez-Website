@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { InternalShell } from "@/components/internal/internal-shell";
 import { StaffAccessGate } from "@/components/internal/staff-access-gate";
@@ -8,12 +9,13 @@ import { SummaryCard } from "@/components/internal/summary-card";
 import { eventManagementRecords, videoContentRecords } from "@/data/internal-operations";
 import { evaluateContentManagerAccess } from "@/lib/staff/evaluate-staff-access";
 import { withStaffScenario } from "@/lib/staff/internal-navigation";
-import { getMockStaffScenario } from "@/lib/staff/mock-staff-scenarios";
+import { resolveStaffAccessState } from "@/lib/auth/access-state";
 
 export const metadata: Metadata = { title: "Content Operations Preview" };
 
 export default async function ContentPage({ searchParams }: { searchParams: Promise<{ staffDemo?: string | string[] }> }) {
-  const state = getMockStaffScenario((await searchParams).staffDemo);
+  const state = await resolveStaffAccessState((await searchParams).staffDemo);
+  if (!state.developmentPreview && !state.authenticated) redirect("/login?next=/content");
   const decision = evaluateContentManagerAccess(state);
   const drafts = videoContentRecords.filter((record) => record.publicationStatus === "draft").length + eventManagementRecords.filter((record) => record.publicationStatus === "draft").length;
   return <InternalShell state={state} decision={decision} currentPath="/content" eyebrow="Content operations" title="Shape the release, safely." description="A structured preview for coordinating public video, subscriber metadata, events, featured placement, and publication state without writing to a database.">

@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { StaffScenario } from "./types";
+import type { StaffAccessState } from "./types";
 
 type InternalNavItem = { href: string; label: string; group: string };
 
@@ -20,7 +20,7 @@ const adminItems: InternalNavItem[] = [
   { href: "/admin/audit", label: "Audit preview", group: "Administration" },
 ];
 
-export function getInternalNavigation(state: StaffScenario): InternalNavItem[] {
+export function getInternalNavigation(state: StaffAccessState): InternalNavItem[] {
   if (!state.authenticated || state.accountBlocked) return [];
   if (state.roles.includes("admin")) return [...moderatorItems, ...contentItems, ...adminItems];
   if (state.roles.includes("moderator")) return moderatorItems;
@@ -28,6 +28,6 @@ export function getInternalNavigation(state: StaffScenario): InternalNavItem[] {
   return [];
 }
 
-export function withStaffScenario(href: string, scenarioId: StaffScenario["scenarioId"]) {
-  return `${href}?staffDemo=${scenarioId}`;
+export function withStaffScenario(href: string, scenarioId: StaffAccessState["scenarioId"]) {
+  return scenarioId ? `${href}?staffDemo=${scenarioId}` : href;
 }

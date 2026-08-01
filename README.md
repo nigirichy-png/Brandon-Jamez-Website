@@ -1,8 +1,8 @@
 # Brandon Jamez Website
 
-A polished frontend foundation for the future public Brandon Jamez platform. This repository is an intentionally safe MVP: it presents branding, public content previews, events, the Pattaya Guide handoff, and transparent development placeholders for future account areas.
+A polished foundation for the Brandon Jamez platform. It combines public previews, real Supabase email/password authentication, server-side access-state loading, and explicitly isolated mock entitlement and staff experiences.
 
-No real authentication, age verification, subscription, payment, database, or video-streaming provider is connected.
+Supabase Auth and the initial RLS-protected account schema are connected. Age verification, subscriptions, payments, private streaming, staff mutations, and external moderation remain unconnected.
 
 ## Technology
 
@@ -11,7 +11,8 @@ No real authentication, age verification, subscription, payment, database, or vi
 - Tailwind CSS 4
 - ESLint 9 with the Next.js configuration
 - npm
-- `@supabase/supabase-js` and `@supabase/ssr` (installed but unconfigured)
+- `@supabase/supabase-js` and `@supabase/ssr`
+- Project-local Supabase CLI, invoked through `npx supabase`
 - `src` directory and `@/*` import alias
 
 ## Routes
@@ -23,10 +24,15 @@ No real authentication, age verification, subscription, payment, database, or vi
 | `/videos` | Public mock UI | Public video metadata and abstract placeholders only |
 | `/events` | Public mock UI | Upcoming mock events |
 | `/subscribe` | Public information | Future subscriber requirements; subscriptions are not active |
-| `/login` | Development placeholder | Disabled sign-in preview plus URL-only member and staff preview links |
+| `/login` | Public authentication | Server Action email/password sign-in with safe same-origin continuation |
+| `/signup` | Public authentication | Validated account creation with email confirmation |
+| `/auth/confirm` | Route Handler | Token-hash, authorization-code, existing-cookie, and hosted confirmation routing |
+| `/auth/complete` | Public authentication | Safe completion for the unchanged hosted ConfirmationURL fragment flow |
+| `/auth/error` | Public status | Generic confirmation failure guidance without token details |
+| `/account` | Authenticated | Data-minimized account and access-state summary plus sign-out |
 | `/verify-age` | Public development plan | Future professional age-verification boundary; no collection or verification |
-| `/member` | Server-rendered development demo | Mock subscriber access states selected by an allowlisted `?demo=` value |
-| `/member/videos/[videoId]` | Server-rendered development demo | Validated mock video record and repeated entitlement/playback simulation |
+| `/member` | Server-authorized | Real RLS state by default; explicit mock scenarios with allowlisted `?demo=` |
+| `/member/videos/[videoId]` | Server-authorized | Repeats identity, entitlement, and video-record checks |
 | `/mod` | Server-rendered development demo | Moderation operations overview |
 | `/mod/review` | Server-rendered development demo | Fictional internal review queue with disabled actions |
 | `/content` | Server-rendered development demo | Content-operations overview |
@@ -86,7 +92,9 @@ Everything in `src/data/mock-data.ts` is development-only. Public video records 
 
 ## Member access demo
 
-The member routes simulate six explicitly allowlisted states: `guest`, `signed_in_unverified`, `age_verified_no_subscription`, `active_subscriber`, `blocked_subscriber`, and `expired_subscriber`. Select one with a URL such as `/member?demo=active_subscriber`. Missing, repeated, or unknown values safely resolve to `guest`.
+Without a valid preview parameter, member routes require a validated Supabase user and load restriction, age-verification, subscription, and role state through RLS-protected queries. Guests redirect to `/login`; missing rows and query failures never grant access.
+
+The routes retain six explicitly allowlisted development states: `guest`, `signed_in_unverified`, `age_verified_no_subscription`, `active_subscriber`, `blocked_subscriber`, and `expired_subscriber`. Select one explicitly with a URL such as `/member?demo=active_subscriber`. Missing, repeated, or unknown values use real authentication rather than upgrading access.
 
 This is a UI and architecture demonstration, not a shortcut around future security:
 
@@ -97,11 +105,11 @@ This is a UI and architecture demonstration, not a shortcut around future securi
 - An allowed request receives an in-memory fake playback reference with a five-minute expiry. It is neither a URL nor a JWT and cannot play media.
 - Guest and gated member views do not render the subscriber library metadata.
 
-Production must replace the scenario lookup with validated server-side session and database state. It must also re-evaluate entitlement immediately before requesting a short-lived signed playback URL or token from a reviewed streaming provider.
+Real access uses validated server-side session and database state. A future video integration must still re-evaluate entitlement immediately before requesting a short-lived signed playback URL or token from a reviewed streaming provider.
 
 ## Internal operations demo
 
-The internal routes use a separate, server-parsed `?staffDemo=` parameter. Available allowlisted scenarios are `guest`, `subscriber_only`, `moderator`, `content_manager`, `admin`, `blocked_moderator`, and `blocked_admin`. Unknown, missing, or repeated values fall back to `guest` and nothing is stored.
+Without a valid preview parameter, internal routes validate the Supabase user and query trusted database roles and account restrictions through RLS. Guests redirect to login; no role row means no staff permission. The separate `?staffDemo=` parameter retains explicit UI previews for `guest`, `subscriber_only`, `moderator`, `content_manager`, `admin`, `blocked_moderator`, and `blocked_admin`. Unknown, missing, or repeated values use real authorization.
 
 Direct preview links:
 
@@ -109,21 +117,47 @@ Direct preview links:
 - Content manager: `/content?staffDemo=content_manager`
 - Administrator: `/admin?staffDemo=admin`
 
-Each Page independently repeats the appropriate mock authorization check. Moderator routes require `moderator` or `admin`; content routes require `content_manager` or `admin`; admin routes require `admin`. All require the simulated account to be authenticated and unblocked. Subscriber entitlement remains separate: a subscriber is not staff, and staff scenarios are not automatically paid subscribers.
+Each Page independently repeats the appropriate authorization check. Moderator routes require `moderator` or `admin`; content routes require `content_manager` or `admin`; admin routes require `admin`. All require an authenticated, unblocked account. Subscriber entitlement remains separate: a subscriber is not staff, and staff roles are not automatically paid subscribers.
 
 The records in `src/data/internal-operations.ts` are safe, fictional, server-only development data. Moderation is limited to this website's internal fictional workflow and never contacts or claims action against an external platform. Content and administrative controls are disabled, non-persistent previews. Audit records are fictional presentation data, not proof that an operation occurred.
 
-These routes are publicly selectable demonstrations, not production security. Future implementation requires validated Supabase identity, trusted database role lookup, route-level and operation-level server checks, restrictive RLS, narrow service-role writes, and server-written append-oriented audit events. Browser-side role selection or mutation must never be trusted.
+The explicit preview states remain demonstrations and never read or mutate real staff data. Real page access uses validated Supabase identity, trusted database role lookup, repeated route-level checks, and restrictive RLS. Future mutations will additionally require operation-level checks, narrow trusted writes, and server-written append-oriented audit events. Browser-side role selection or mutation is never trusted.
 
-The default application mode is `mock`. Missing or obvious placeholder Supabase values are treated as unconfigured. Public pages remain static and no Supabase client is created or network request attempted during a normal build. A Supabase-dependent client produces a controlled configuration error only when code intentionally requests it; `getCurrentUser()` instead returns `null` in mock mode.
+Missing or obvious placeholder Supabase values still select safe unconfigured operation. Public pages remain static, auth forms disable themselves, and `getCurrentUser()` returns `null` without creating a client. This allows a configuration-cleared build while the connected local environment uses `.env.local`.
+
+## Authentication setup
+
+`.env.local` contains only the site URL, Supabase project URL, and public publishable key under the existing public-key variable name. It is Git-ignored. No service-role key is configured.
+
+The hosted project must be configured manually in Supabase Dashboard:
+
+1. Authentication → URL Configuration → Site URL: `http://localhost:3000`
+2. Authentication → URL Configuration → Redirect URLs: `http://localhost:3000/auth/confirm`
+3. Authentication → Providers → Email: keep email/password signup and confirmation enabled
+
+The unchanged Supabase `ConfirmationURL` template is supported for local development. Its hosted verification endpoint redirects to `/auth/confirm` with an implicit session fragment. The server cannot access fragments, so `/auth/confirm` forwards that case to `/auth/complete`; the official Supabase Auth client consumes and clears the fragment, validates the user with Supabase, and stores the SSR session in cookies rather than localStorage. The application does not parse, render, or log fragment values. If confirmation completed but a usable local session cannot be established, the page gives a neutral sign-in link.
+
+`/auth/confirm` also retains the future custom-template flow using `token_hash` plus an allowlisted email OTP type, supports an official PKCE authorization `code` exchange, and accepts an already valid cookie-backed user. Every successful path ends at `/account`; invalid parameters and provider failures lead only to generic application pages. Callback destinations are fixed same-origin paths and never taken from an untrusted URL.
+
+The project-local `supabase/config.toml` mirrors these local expectations but has not been pushed wholesale to the hosted project because doing so would also overwrite unrelated hosted Auth defaults.
 
 ## Security boundaries
 
-The current protected-looking routes are **not protected**. Navigation visibility and frontend checks are not security. The helpers in `src/lib/permissions/access.ts` are preliminary application logic for planning user interfaces; they do not enforce route or data security. Likewise, the development helpers in `src/lib/entitlements` accept deliberately selectable mock state and must never be treated as production authorization.
+Protected Pages validate a current Supabase user and load access state on the server. Navigation visibility and Proxy refresh remain non-authoritative; every Page repeats its own checks and RLS independently constrains account rows. The development helpers in `src/lib/entitlements` and `src/lib/staff` accept deliberately selectable mock state and must never be treated as real authorization.
 
-The Next.js 16 `src/proxy.ts` file is cookie-refresh preparation only. It returns a normal response while unconfigured and does not redirect, query roles, or protect pages. Proxy cookie refresh is not authorization. Future protected Pages, Route Handlers, and Server Functions must validate identity and repeat authorization and entitlement checks on the server; RLS must independently protect rows.
+The Next.js 16 `src/proxy.ts` file refreshes cookie-backed sessions when configured and returns a normal response when unconfigured. It does not redirect, query roles, or protect pages. Proxy refresh is not authorization: protected Pages validate identity and repeat authorization and entitlement checks on the server, while RLS independently protects account rows. Future Route Handlers and Server Actions for privileged mutations must repeat the same checks.
 
-Production security must include:
+Before production launch, authentication additionally requires:
+
+- A custom SMTP provider; Resend is the likely future provider but is not integrated now
+- A verified sending domain
+- The production Site URL and exact production redirect URLs
+- An editable confirmation template using `token_hash` for the server-side confirmation route
+- Email deliverability testing
+- Supabase Auth rate-limit review
+- Password-reset email configuration and end-to-end testing
+
+Production security must also include:
 
 - Supabase Auth or another reviewed authentication system with validated server-side sessions
 - Server-side authorization on every protected request
@@ -148,7 +182,7 @@ Copy `.env.example` to the Git-ignored `.env.local` only when an integration is 
 
 ## Integration and deployment direction
 
-Supabase Auth and PostgreSQL now have an unconfigured code foundation and a local, unapplied migration proposal. No Supabase project is connected. The future auth callback will exchange a provider code for a cookie-backed session in a server Route Handler, validate the resulting user, and redirect through an allowlisted destination. Future Supabase CLI-generated database types will replace the current typing shell after the reviewed schema exists.
+Supabase Auth is connected and the reviewed initial migration has been applied to the dedicated Brandon Jamez Website project. Confirmation supports the unchanged hosted local flow while preserving token-hash and authorization-code server flows, Server Actions implement signup/login/logout, and CLI-generated database types live in `src/lib/supabase/database.types.ts`.
 
 Professional external providers will be selected later for age verification, payments, and private streaming. None has been chosen or integrated.
 

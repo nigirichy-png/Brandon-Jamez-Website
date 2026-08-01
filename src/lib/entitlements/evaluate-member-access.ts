@@ -1,8 +1,8 @@
 import "server-only";
 
-import type { MemberAccessDecision, MockAccessScenario } from "./types";
+import type { MemberAccessDecision, MemberAccessState } from "./types";
 
-export function evaluateMemberAccess(state: MockAccessScenario): MemberAccessDecision {
+export function evaluateMemberAccess(state: MemberAccessState): MemberAccessDecision {
   if (!state.authenticated) return { allowed: false, reason: "not_authenticated" };
   if (state.accountBlocked) return { allowed: false, reason: "account_blocked" };
   if (!state.ageVerified) return { allowed: false, reason: "age_verification_required" };

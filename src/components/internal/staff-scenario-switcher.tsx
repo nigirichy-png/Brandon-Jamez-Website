@@ -3,7 +3,7 @@ import Link from "next/link";
 import { staffScenarioOptions } from "@/lib/staff/mock-staff-scenarios";
 import type { StaffScenarioId } from "@/lib/staff/types";
 
-export function StaffScenarioSwitcher({ activeScenario, currentPath }: { activeScenario: StaffScenarioId; currentPath: string }) {
+export function StaffScenarioSwitcher({ activeScenario, currentPath }: { activeScenario: StaffScenarioId | null; currentPath: string }) {
   return (
     <section aria-labelledby="staff-scenario-title" className="rounded-2xl border border-amber-300/20 bg-amber-300/[0.035] p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">

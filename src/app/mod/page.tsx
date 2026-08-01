@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { InternalShell } from "@/components/internal/internal-shell";
 import { StaffAccessGate } from "@/components/internal/staff-access-gate";
@@ -7,13 +8,14 @@ import { StatusLabel } from "@/components/internal/status-label";
 import { SummaryCard } from "@/components/internal/summary-card";
 import { moderationReviewItems } from "@/data/internal-operations";
 import { evaluateModeratorAccess } from "@/lib/staff/evaluate-staff-access";
-import { getMockStaffScenario } from "@/lib/staff/mock-staff-scenarios";
+import { resolveStaffAccessState } from "@/lib/auth/access-state";
 import { withStaffScenario } from "@/lib/staff/internal-navigation";
 
 export const metadata: Metadata = { title: "Moderation Operations Preview" };
 
 export default async function ModeratorPage({ searchParams }: { searchParams: Promise<{ staffDemo?: string | string[] }> }) {
-  const state = getMockStaffScenario((await searchParams).staffDemo);
+  const state = await resolveStaffAccessState((await searchParams).staffDemo);
+  if (!state.developmentPreview && !state.authenticated) redirect("/login?next=/mod");
   const decision = evaluateModeratorAccess(state);
   const pending = moderationReviewItems.filter((item) => item.status === "pending").length;
   const escalated = moderationReviewItems.filter((item) => item.status === "escalated").length;

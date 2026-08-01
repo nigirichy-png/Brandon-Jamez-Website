@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { InternalShell } from "@/components/internal/internal-shell";
 import { StaffAccessGate } from "@/components/internal/staff-access-gate";
@@ -8,12 +9,13 @@ import { SummaryCard } from "@/components/internal/summary-card";
 import { adminUserSummaries, auditEvents, eventManagementRecords, integrationStatuses, moderationReviewItems, videoContentRecords } from "@/data/internal-operations";
 import { evaluateAdminAccess } from "@/lib/staff/evaluate-staff-access";
 import { withStaffScenario } from "@/lib/staff/internal-navigation";
-import { getMockStaffScenario } from "@/lib/staff/mock-staff-scenarios";
+import { resolveStaffAccessState } from "@/lib/auth/access-state";
 
 export const metadata: Metadata = { title: "Admin Control Center Preview" };
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ staffDemo?: string | string[] }> }) {
-  const state = getMockStaffScenario((await searchParams).staffDemo);
+  const state = await resolveStaffAccessState((await searchParams).staffDemo);
+  if (!state.developmentPreview && !state.authenticated) redirect("/login?next=/admin");
   const decision = evaluateAdminAccess(state);
   return <InternalShell state={state} decision={decision} currentPath="/admin" eyebrow="Administration" title="Control starts with boundaries." description="A high-level internal control-center preview separating identity, roles, entitlement, content, moderation, integrations, and audit responsibility.">
     {!decision.allowed ? <StaffAccessGate decision={decision} area="admin" /> : <div className="space-y-8">

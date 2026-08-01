@@ -5,14 +5,14 @@ import { randomUUID } from "node:crypto";
 import { subscriberVideos } from "@/data/mock-data";
 
 import { evaluateMemberAccess } from "./evaluate-member-access";
-import type { MockAccessScenario, MockPlaybackDecision } from "./types";
+import type { MemberAccessState, MockPlaybackDecision } from "./types";
 
 export function getSubscriberVideo(videoId: string) {
   return subscriberVideos.find((video) => video.id === videoId);
 }
 
 export function authorizeMockPlayback(
-  state: MockAccessScenario,
+  state: MemberAccessState,
   videoId: string,
   now = new Date(),
 ): MockPlaybackDecision {

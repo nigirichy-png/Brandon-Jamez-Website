@@ -15,6 +15,7 @@ const scenarios: Record<MockScenarioId, MockAccessScenario> = {
     verificationStatus: "not_started",
     subscriptionStatus: "none",
     subscriptionSummary: "No subscription",
+    developmentPreview: true,
   },
   signed_in_unverified: {
     scenarioId: "signed_in_unverified",
@@ -28,6 +29,7 @@ const scenarios: Record<MockScenarioId, MockAccessScenario> = {
     verificationStatus: "not_started",
     subscriptionStatus: "none",
     subscriptionSummary: "Waiting for age verification",
+    developmentPreview: true,
   },
   age_verified_no_subscription: {
     scenarioId: "age_verified_no_subscription",
@@ -41,6 +43,7 @@ const scenarios: Record<MockScenarioId, MockAccessScenario> = {
     verificationStatus: "verified",
     subscriptionStatus: "none",
     subscriptionSummary: "No active subscription",
+    developmentPreview: true,
   },
   active_subscriber: {
     scenarioId: "active_subscriber",
@@ -54,6 +57,7 @@ const scenarios: Record<MockScenarioId, MockAccessScenario> = {
     verificationStatus: "verified",
     subscriptionStatus: "active",
     subscriptionSummary: "Active through September 30, 2026 (mock)",
+    developmentPreview: true,
   },
   blocked_subscriber: {
     scenarioId: "blocked_subscriber",
@@ -67,6 +71,7 @@ const scenarios: Record<MockScenarioId, MockAccessScenario> = {
     verificationStatus: "verified",
     subscriptionStatus: "active",
     subscriptionSummary: "Active, access paused by account status",
+    developmentPreview: true,
   },
   expired_subscriber: {
     scenarioId: "expired_subscriber",
@@ -80,12 +85,17 @@ const scenarios: Record<MockScenarioId, MockAccessScenario> = {
     verificationStatus: "verified",
     subscriptionStatus: "expired",
     subscriptionSummary: "Expired July 15, 2026 (mock)",
+    developmentPreview: true,
   },
 };
 
 export function parseMockScenario(value: string | string[] | undefined): MockScenarioId {
   if (typeof value !== "string") return "guest";
   return mockScenarioIds.find((scenarioId) => scenarioId === value) ?? "guest";
+}
+
+export function isMockScenario(value: string | string[] | undefined): value is MockScenarioId {
+  return typeof value === "string" && mockScenarioIds.some((scenarioId) => scenarioId === value);
 }
 
 export function getMockScenario(value: string | string[] | undefined): MockAccessScenario {

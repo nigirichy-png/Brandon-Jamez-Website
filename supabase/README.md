@@ -1,6 +1,6 @@
 # Local Supabase preparation
 
-Nothing in this directory has been applied to a local or remote database. The migration is a review artifact for a future Supabase integration.
+The initial migration in this directory was reviewed, passed a linked-project dry run, and was applied to the dedicated Brandon Jamez Website Supabase project after explicit approval. Do not assume future migrations are approved merely because this one was applied.
 
 ## Review workflow
 
@@ -8,8 +8,8 @@ Before any application:
 
 1. Select and create a Supabase project intentionally outside this task.
 2. Review the SQL with the real authentication, privacy, payment, and age-verification workflows.
-3. Test it first against a disposable local Supabase environment.
-4. Generate database types with the Supabase CLI and replace `src/lib/supabase/types.ts`.
+3. Test it first against a disposable local Supabase environment when Docker is available.
+4. Regenerate `src/lib/supabase/database.types.ts` with `npx supabase gen types typescript --linked` after an approved schema change.
 5. Test grants, every RLS policy, negative authorization cases, triggers, and webhook idempotency.
 6. Apply to a controlled non-production environment before production.
 
@@ -24,6 +24,12 @@ There are deliberately no authenticated write grants or policies for roles, acco
 The service-role key bypasses RLS. It must remain server-only and be used sparingly for narrow, audited tasks. A service-role client must never be passed to a browser, used in a Client Component, or treated as a convenient substitute for correct RLS policies.
 
 The non-exposed `private.has_role` helper reads trusted `user_roles` for the current `auth.uid()`. It does not trust editable `raw_user_meta_data`. It is prepared for later reviewed policies but is not used to claim that staff workflows are complete.
+
+## Applied foundation
+
+Remote catalog verification confirmed `profiles`, `user_roles`, `account_restrictions`, `age_verifications`, and `subscriptions` with RLS enabled, plus the six expected self-read/basic-profile policies. No table contents were inspected and no role was assigned.
+
+Local `config.toml` sets the localhost site URL, confirmation redirect, email confirmation, and password policy for a future local Docker stack. It was not pushed wholesale to hosted Auth because `config push` would also update unrelated hosted defaults. The hosted project can retain Supabase's unchanged `ConfirmationURL` template for local development; configure its URL settings manually as documented in the root README. A custom token-hash template, custom SMTP, verified domain, and production URL configuration remain launch requirements.
 
 ## Internal operations schema status
 

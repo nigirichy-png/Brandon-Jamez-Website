@@ -1,4 +1,4 @@
-import type { MemberAccessDecision, MockAccessScenario } from "@/lib/entitlements/types";
+import type { MemberAccessDecision, MemberAccessState } from "@/lib/entitlements/types";
 
 type SummaryItem = {
   label: string;
@@ -6,13 +6,13 @@ type SummaryItem = {
   ok: boolean;
 };
 
-export function AccessSummary({ state, decision }: { state: MockAccessScenario; decision: MemberAccessDecision }) {
+export function AccessSummary({ state, decision }: { state: MemberAccessState; decision: MemberAccessDecision }) {
   const items: SummaryItem[] = [
-    { label: "Authentication", value: state.authenticated ? "Signed in (mock)" : "Not signed in", ok: state.authenticated },
-    { label: "Age verification", value: state.ageVerified ? "Verified (mock)" : "Required", ok: state.ageVerified },
+    { label: "Authentication", value: state.authenticated ? state.developmentPreview ? "Signed in (mock)" : "Signed in" : "Not signed in", ok: state.authenticated },
+    { label: "Age verification", value: state.ageVerified ? state.developmentPreview ? "Verified (mock)" : "Verified" : "Required", ok: state.ageVerified },
     { label: "Subscription", value: state.subscriptionSummary, ok: state.subscriptionActive && state.subscriptionStatus === "active" },
     { label: "Account", value: state.accountBlocked ? "Blocked" : "In good standing", ok: !state.accountBlocked },
-    { label: "Final access", value: decision.allowed ? "Allowed in this demo" : "Not allowed", ok: decision.allowed },
+    { label: "Final access", value: decision.allowed ? state.developmentPreview ? "Allowed in this demo" : "Allowed" : "Not allowed", ok: decision.allowed },
   ];
 
   return (
