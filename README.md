@@ -23,14 +23,19 @@ No real authentication, age verification, subscription, payment, database, or vi
 | `/videos` | Public mock UI | Public video metadata and abstract placeholders only |
 | `/events` | Public mock UI | Upcoming mock events |
 | `/subscribe` | Public information | Future subscriber requirements; subscriptions are not active |
-| `/login` | Development placeholder | Disabled sign-in preview; authentication is not connected |
+| `/login` | Development placeholder | Disabled sign-in preview plus URL-only member and staff preview links |
 | `/verify-age` | Public development plan | Future professional age-verification boundary; no collection or verification |
 | `/member` | Server-rendered development demo | Mock subscriber access states selected by an allowlisted `?demo=` value |
 | `/member/videos/[videoId]` | Server-rendered development demo | Validated mock video record and repeated entitlement/playback simulation |
-| `/mod` | Unprotected placeholder | Future moderator area |
-| `/admin` | Unprotected placeholder | Future admin area |
-
-The `content_manager` role is prepared in the type and permission model, but it intentionally has no route in this MVP.
+| `/mod` | Server-rendered development demo | Moderation operations overview |
+| `/mod/review` | Server-rendered development demo | Fictional internal review queue with disabled actions |
+| `/content` | Server-rendered development demo | Content-operations overview |
+| `/content/videos` | Server-rendered development demo | Public and subscriber video-metadata workflow |
+| `/content/events` | Server-rendered development demo | Event publication workflow |
+| `/admin` | Server-rendered development demo | Administrative control-center overview |
+| `/admin/users` | Server-rendered development demo | Data-minimized fictional user summaries |
+| `/admin/content` | Server-rendered development demo | High-level content oversight |
+| `/admin/audit` | Server-rendered development demo | Responsive fictional audit-event stream |
 
 ## Local development
 
@@ -57,6 +62,7 @@ src/
   app/                    Route pages and global styles
   components/
     home/                 Homepage-specific sections
+    internal/             Shared staff shell, access gates, navigation, and operation UI
     layout/               Shared header and footer
     protected/            Honest unprotected-placeholder presentation
     ui/                   Reusable cards, headings, buttons, and branding
@@ -64,6 +70,7 @@ src/
   lib/
     auth/                 Server-only session validation helpers
     permissions/          Preliminary pure TypeScript UI logic
+    staff/                Server-only mock staff scenarios and authorization decisions
     supabase/             Lazy browser, server, Proxy, and admin clients
   types/                  Shared roles, access state, and content types
 docs/
@@ -91,6 +98,22 @@ This is a UI and architecture demonstration, not a shortcut around future securi
 - Guest and gated member views do not render the subscriber library metadata.
 
 Production must replace the scenario lookup with validated server-side session and database state. It must also re-evaluate entitlement immediately before requesting a short-lived signed playback URL or token from a reviewed streaming provider.
+
+## Internal operations demo
+
+The internal routes use a separate, server-parsed `?staffDemo=` parameter. Available allowlisted scenarios are `guest`, `subscriber_only`, `moderator`, `content_manager`, `admin`, `blocked_moderator`, and `blocked_admin`. Unknown, missing, or repeated values fall back to `guest` and nothing is stored.
+
+Direct preview links:
+
+- Moderator: `/mod?staffDemo=moderator`
+- Content manager: `/content?staffDemo=content_manager`
+- Administrator: `/admin?staffDemo=admin`
+
+Each Page independently repeats the appropriate mock authorization check. Moderator routes require `moderator` or `admin`; content routes require `content_manager` or `admin`; admin routes require `admin`. All require the simulated account to be authenticated and unblocked. Subscriber entitlement remains separate: a subscriber is not staff, and staff scenarios are not automatically paid subscribers.
+
+The records in `src/data/internal-operations.ts` are safe, fictional, server-only development data. Moderation is limited to this website's internal fictional workflow and never contacts or claims action against an external platform. Content and administrative controls are disabled, non-persistent previews. Audit records are fictional presentation data, not proof that an operation occurred.
+
+These routes are publicly selectable demonstrations, not production security. Future implementation requires validated Supabase identity, trusted database role lookup, route-level and operation-level server checks, restrictive RLS, narrow service-role writes, and server-written append-oriented audit events. Browser-side role selection or mutation must never be trusted.
 
 The default application mode is `mock`. Missing or obvious placeholder Supabase values are treated as unconfigured. Public pages remain static and no Supabase client is created or network request attempted during a normal build. A Supabase-dependent client produces a controlled configuration error only when code intentionally requests it; `getCurrentUser()` instead returns `null` in mock mode.
 

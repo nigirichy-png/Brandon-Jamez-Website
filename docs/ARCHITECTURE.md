@@ -10,6 +10,34 @@ The modules in `src/lib/entitlements` are marked server-only where they interpre
 
 This structure demonstrates the placement of future boundaries, not their trustworthiness. Query parameters are controlled by the visitor. Production code must derive identity and statuses from validated server-side sources, remove the scenario selector, and replace the fake decision with a narrow provider integration that issues real short-lived playback authorization only after all checks pass.
 
+## Development staff simulation
+
+The moderator, content-manager, and admin routes use a separate allowlisted `?staffDemo=` query parameter. It is parsed in Server Components, never persisted, and deliberately independent from the subscriber `?demo=` parameter. The seven scenarios model guest, subscriber-only, authorized staff, admin, and blocked staff states without creating users, sessions, cookies, or database records.
+
+Every internal Page calls its own server-only evaluator before rendering operations records. The shared shell and hidden navigation are organizational UI only and are never treated as authorization. Evaluation order is authenticated identity, unblocked account, required trusted role, then allowed. Moderator routes accept moderator or admin; content routes accept content manager or admin; admin routes accept only admin. An admin is not automatically modeled as age-verified or subscribed, and a subscriber has no staff permission.
+
+Production replacement requires seven distinct boundaries:
+
+1. Authentication validates the Supabase user and server-side session.
+2. Staff authorization loads trusted roles from protected database rows.
+3. Subscriber entitlement separately evaluates restrictions, age verification, and subscription state.
+4. Content-management permission authorizes a narrow operation, not merely a page.
+5. Administrative permission independently authorizes privileged account and configuration work.
+6. PostgreSQL grants and RLS constrain data even when application checks fail.
+7. Trusted server code writes an append-oriented audit event for privileged changes.
+
+Route Handlers and Server Actions must repeat identity, restriction, role, target, and operation checks. A service-role client may be used only in narrow reviewed server modules; it must never be imported into browser code or used to bypass thoughtful RLS design.
+
+### Internal workflow boundaries
+
+The moderation preview processes only safe fictional records already submitted to this website's internal workflow. It performs no reports, bans, mass actions, account actions, or API calls against YouTube, Facebook, Discord, Instagram, or any other external service.
+
+The content preview reads existing mock video and event metadata. It cannot upload, schedule, publish, archive, or mutate records. Future writes must validate content-manager or admin permission on the server, constrain rows with RLS, and emit an audit event.
+
+The admin preview shows data-minimized fictional account summaries and safe integration labels only. It exposes no environment variables, secret names, credentials, contact data, identity-document data, payment data, IP addresses, or precise locations. Role and blocking controls are disabled demonstrations; browser-side role mutation is never security.
+
+Future audit events must be server-written, append-oriented, protected from direct browser insertion, limited to non-sensitive metadata, and readable only through trusted staff authorization plus RLS. They should cover role changes, restrictions, publication changes, moderation escalations, and configuration reviews.
+
 ## Application modes
 
 - `mock` is the default when public Supabase configuration is missing or still uses placeholders. Public static generation does not initialize a client or contact Supabase.
@@ -96,6 +124,8 @@ There is no checkout, card form, payment handling, fake successful purchase, or 
 If connected later, Supabase Auth will establish user identity while server-side code validates sessions. PostgreSQL will store the minimum required account, role, entitlement, and integration-reference data. Row Level Security policies must enforce least-privilege access independently of application UI.
 
 `supabase/migrations` contains a local review artifact for profiles, trusted role assignments, account restrictions, minimal age-verification results, and minimal subscription state. It enables RLS on every application table, revokes broad access, grants narrowly scoped self-read columns, permits only a basic self-profile update, and provides no user write path for roles or entitlement state. It has not been applied anywhere.
+
+No second migration is added for the internal preview. Tables such as `content_items`, `events`, `moderation_cases`, and `audit_events` remain planned because ownership, lifecycle and retention rules, moderation evidence handling, audit actor semantics, and exact trusted-write procedures need review first. When mature, each table must begin with RLS enabled, no broad browser grants, no public moderation visibility, appropriate indexes and foreign keys, and fixed `search_path` on any privileged function. Audit insertion must be a narrow trusted server operation, never a normal authenticated-browser write.
 
 The current `Database` TypeScript definition is intentionally only a typing shell. Supabase CLI-generated types will replace it after the reviewed migration is applied to an intentional environment.
 

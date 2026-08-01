@@ -27,9 +27,14 @@ export default function LoginPage() {
           </form>
           <p className="mt-6 text-sm leading-6 text-zinc-500">Future authentication will use validated server-side sessions. A visible form alone will never grant access.</p>
           <div className="mt-7 rounded-[var(--radius-md)] border border-amber-300/20 bg-amber-300/[0.05] p-4">
-            <p className="text-sm font-bold text-amber-100">Developer preview</p>
-            <p className="mt-1 text-xs leading-5 text-amber-100/60">The member demo uses allowlisted URL scenarios. It does not sign you in or save account state.</p>
-            <Link href="/member" className="mt-3 inline-flex min-h-11 items-center rounded text-sm font-extrabold text-cyan-300 hover:text-cyan-200">Open member-state demo <span className="ml-2" aria-hidden="true">→</span></Link>
+            <p className="text-sm font-bold text-amber-100">Development previews</p>
+            <p className="mt-1 text-xs leading-5 text-amber-100/60">These allowlisted URL scenarios do not sign you in, change roles, set cookies, or save account state.</p>
+            <div className="mt-3 grid gap-2 min-[430px]:grid-cols-2">
+              <Link href="/member?demo=active_subscriber" className="flex min-h-11 items-center rounded-lg px-2 text-sm font-extrabold text-cyan-300 hover:bg-white/[0.04] hover:text-cyan-200">Subscriber demo <span className="ml-auto" aria-hidden="true">→</span></Link>
+              <Link href="/mod?staffDemo=moderator" className="flex min-h-11 items-center rounded-lg px-2 text-sm font-extrabold text-cyan-300 hover:bg-white/[0.04] hover:text-cyan-200">Moderator demo <span className="ml-auto" aria-hidden="true">→</span></Link>
+              <Link href="/content?staffDemo=content_manager" className="flex min-h-11 items-center rounded-lg px-2 text-sm font-extrabold text-cyan-300 hover:bg-white/[0.04] hover:text-cyan-200">Content demo <span className="ml-auto" aria-hidden="true">→</span></Link>
+              <Link href="/admin?staffDemo=admin" className="flex min-h-11 items-center rounded-lg px-2 text-sm font-extrabold text-cyan-300 hover:bg-white/[0.04] hover:text-cyan-200">Admin demo <span className="ml-auto" aria-hidden="true">→</span></Link>
+            </div>
           </div>
           <Link href="/" className="mt-5 inline-flex min-h-11 items-center rounded text-sm font-extrabold text-cyan-300 hover:text-cyan-200"><span aria-hidden="true" className="mr-2">←</span> Return home</Link>
         </div>

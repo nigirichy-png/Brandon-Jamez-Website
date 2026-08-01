@@ -24,3 +24,9 @@ There are deliberately no authenticated write grants or policies for roles, acco
 The service-role key bypasses RLS. It must remain server-only and be used sparingly for narrow, audited tasks. A service-role client must never be passed to a browser, used in a Client Component, or treated as a convenient substitute for correct RLS policies.
 
 The non-exposed `private.has_role` helper reads trusted `user_roles` for the current `auth.uid()`. It does not trust editable `raw_user_meta_data`. It is prepared for later reviewed policies but is not used to claim that staff workflows are complete.
+
+## Internal operations schema status
+
+The development moderator, content, admin, and audit interfaces do not add or use database tables. No second migration was created because content ownership, record lifecycle, moderation retention and evidence rules, audit actor semantics, and trusted-write procedures are not yet mature enough for a durable schema.
+
+Future proposals may cover `content_items`, `events`, `moderation_cases`, and `audit_events`. Before SQL is added, define operation-level permission rules and retention requirements. New tables must enable RLS immediately, expose no moderation records publicly, give normal authenticated browser users no privileged writes, and reserve audit insertion for narrow trusted server operations. Any privileged function must use a fixed `search_path`. Nothing in the mock staff selector or disabled browser controls may become a database authorization source.
