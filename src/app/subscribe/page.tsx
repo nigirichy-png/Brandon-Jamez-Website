@@ -19,7 +19,7 @@ export default function SubscribePage() {
     <main id="main-content" className="flex-1">
       <PageHero eyebrow="Future subscriber access" title="The next layer, built responsibly." description="Subscriptions are not active. No checkout, payment form, or subscriber playback is connected on this development site.">
         <ButtonLink href="/login">View sign-in placeholder</ButtonLink>
-        <ButtonLink href="/member?demo=active_subscriber" variant="secondary">Preview active member</ButtonLink>
+        {process.env.NODE_ENV === "development" ? <ButtonLink href="/member?demo=active_subscriber" variant="secondary">Preview active member</ButtonLink> : null}
       </PageHero>
 
       <section className="page-shell section-space">

@@ -27,7 +27,7 @@ export default function VerifyAgePage() {
           <p className="eyebrow text-cyan-300">Development handoff</p>
           <h2 className="font-display mt-4 text-4xl font-bold tracking-tight text-white">Preview the next gated state</h2>
           <p className="mt-4 max-w-2xl leading-7 text-zinc-300">Use the signed-in, unverified scenario to see how the member page directs a future user here. The link changes only a URL parameter.</p>
-          <div className="mt-7 flex flex-wrap gap-3"><Link href="/member?demo=signed_in_unverified" className="inline-flex min-h-12 items-center rounded-full bg-fuchsia-500 px-6 py-3 text-sm font-extrabold text-white hover:bg-fuchsia-400">Open unverified demo</Link><Link href="/" className="inline-flex min-h-12 items-center rounded-full border border-white/15 px-6 py-3 text-sm font-extrabold text-white hover:bg-white/[0.06]">Back home</Link></div>
+          <div className="mt-7 flex flex-wrap gap-3">{process.env.NODE_ENV === "development" ? <Link href="/member?demo=signed_in_unverified" className="inline-flex min-h-12 items-center rounded-full bg-fuchsia-500 px-6 py-3 text-sm font-extrabold text-white hover:bg-fuchsia-400">Open unverified demo</Link> : null}<Link href="/" className="inline-flex min-h-12 items-center rounded-full border border-white/15 px-6 py-3 text-sm font-extrabold text-white hover:bg-white/[0.06]">Back home</Link></div>
         </div>
       </section>
     </main>

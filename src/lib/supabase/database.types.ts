@@ -102,6 +102,45 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_events: {
+        Row: {
+          action: string
+          actor_role_snapshot: Database["public"]["Enums"]["app_role"][]
+          actor_user_id: string | null
+          id: number
+          metadata: Json
+          occurred_at: string
+          result: string
+          target_label_snapshot: string | null
+          target_type: string
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_role_snapshot?: Database["public"]["Enums"]["app_role"][]
+          actor_user_id?: string | null
+          id?: never
+          metadata?: Json
+          occurred_at?: string
+          result: string
+          target_label_snapshot?: string | null
+          target_type: string
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_role_snapshot?: Database["public"]["Enums"]["app_role"][]
+          actor_user_id?: string | null
+          id?: never
+          metadata?: Json
+          occurred_at?: string
+          result?: string
+          target_label_snapshot?: string | null
+          target_type?: string
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -185,7 +224,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      admin_assign_role: {
+        Args: {
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_target_user_id: string
+        }
+        Returns: boolean
+      }
+      admin_block_account: {
+        Args: { p_reason: string; p_target_user_id: string }
+        Returns: boolean
+      }
+      admin_remove_role: {
+        Args: {
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_target_user_id: string
+        }
+        Returns: boolean
+      }
+      admin_restore_account: {
+        Args: { p_target_user_id: string }
+        Returns: boolean
+      }
+      update_own_display_name: {
+        Args: { p_display_name: string }
+        Returns: boolean
+      }
     }
     Enums: {
       age_verification_status:

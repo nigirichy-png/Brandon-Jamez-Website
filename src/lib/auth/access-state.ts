@@ -66,7 +66,7 @@ export async function loadRealAccountState(): Promise<RealAccountState> {
 }
 
 export async function resolveMemberAccessState(value: string | string[] | undefined): Promise<MemberAccessState> {
-  if (isMockScenario(value)) return getMockScenario(value);
+  if (process.env.NODE_ENV === "development" && isMockScenario(value)) return getMockScenario(value);
   const real = await loadRealAccountState();
   return {
     scenarioId: null,
@@ -86,7 +86,7 @@ export async function resolveMemberAccessState(value: string | string[] | undefi
 }
 
 export async function resolveStaffAccessState(value: string | string[] | undefined): Promise<StaffAccessState> {
-  if (isStaffScenario(value)) return getMockStaffScenario(value);
+  if (process.env.NODE_ENV === "development" && isStaffScenario(value)) return getMockStaffScenario(value);
   const real = await loadRealAccountState();
   const staffRole = real.roles.includes("admin") ? "Administrator" : real.roles.includes("content_manager") ? "Content manager" : real.roles.includes("moderator") ? "Moderator" : real.roles.includes("subscriber") ? "Subscriber (not staff)" : "No staff role";
   return {

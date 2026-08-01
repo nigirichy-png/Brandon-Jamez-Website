@@ -30,7 +30,7 @@ export default async function MemberVideoPage({ params, searchParams }: VideoPag
     <main id="main-content" className="flex-1">
       <section className="page-shell py-10 sm:py-14 lg:py-16">
         <Link href={backHref} className="inline-flex min-h-11 items-center rounded text-sm font-extrabold text-cyan-300 hover:text-cyan-200"><span className="mr-2" aria-hidden="true">←</span> Back to member library</Link>
-        <div className="mt-7"><ScenarioSwitcher activeScenario={state.scenarioId} /></div>
+        {process.env.NODE_ENV === "development" ? <div className="mt-7"><ScenarioSwitcher activeScenario={state.scenarioId} /></div> : null}
       </section>
       <section className="page-shell pb-12 sm:pb-16"><AccessSummary state={state} decision={decision} /></section>
 

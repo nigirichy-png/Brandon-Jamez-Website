@@ -1,8 +1,8 @@
 # Brandon Jamez Website
 
-A polished foundation for the Brandon Jamez platform. It combines public previews, real Supabase email/password authentication, server-side access-state loading, and explicitly isolated mock entitlement and staff experiences.
+A polished foundation for the Brandon Jamez platform. It combines public previews, real Supabase authentication, server-authorized account administration, append-oriented audit events, and development-only mock entitlement and staff experiences.
 
-Supabase Auth and the initial RLS-protected account schema are connected. Age verification, subscriptions, payments, private streaming, staff mutations, and external moderation remain unconnected.
+Supabase Auth, the RLS-protected account schema, display-name self-service, role management, account restrictions, and administrative audit records are connected. Professional age verification, payments, subscriptions, private streaming, content mutations, and external moderation remain unconnected.
 
 ## Technology
 
@@ -29,7 +29,7 @@ Supabase Auth and the initial RLS-protected account schema are connected. Age ve
 | `/auth/confirm` | Route Handler | Token-hash, authorization-code, existing-cookie, and hosted confirmation routing |
 | `/auth/complete` | Public authentication | Safe completion for the unchanged hosted ConfirmationURL fragment flow |
 | `/auth/error` | Public status | Generic confirmation failure guidance without token details |
-| `/account` | Authenticated | Data-minimized account and access-state summary plus sign-out |
+| `/account` | Authenticated | Account summary, audited display-name editing, authorized-area links, and sign-out |
 | `/verify-age` | Public development plan | Future professional age-verification boundary; no collection or verification |
 | `/member` | Server-authorized | Real RLS state by default; explicit mock scenarios with allowlisted `?demo=` |
 | `/member/videos/[videoId]` | Server-authorized | Repeats identity, entitlement, and video-record checks |
@@ -38,10 +38,11 @@ Supabase Auth and the initial RLS-protected account schema are connected. Age ve
 | `/content` | Server-rendered development demo | Content-operations overview |
 | `/content/videos` | Server-rendered development demo | Public and subscriber video-metadata workflow |
 | `/content/events` | Server-rendered development demo | Event publication workflow |
-| `/admin` | Server-rendered development demo | Administrative control-center overview |
-| `/admin/users` | Server-rendered development demo | Data-minimized fictional user summaries |
+| `/admin` | Admin-only | Real administrative control-center overview; local previews in development only |
+| `/admin/users` | Admin-only | Paginated, data-minimized real account summaries |
+| `/admin/users/[userId]` | Admin-only | Account detail, confirmed role/restriction actions, and recent audit activity |
 | `/admin/content` | Server-rendered development demo | High-level content oversight |
-| `/admin/audit` | Server-rendered development demo | Responsive fictional audit-event stream |
+| `/admin/audit` | Admin-only | Paginated real audit-event stream; fictional records only in development preview |
 
 ## Local development
 
@@ -94,7 +95,7 @@ Everything in `src/data/mock-data.ts` is development-only. Public video records 
 
 Without a valid preview parameter, member routes require a validated Supabase user and load restriction, age-verification, subscription, and role state through RLS-protected queries. Guests redirect to `/login`; missing rows and query failures never grant access.
 
-The routes retain six explicitly allowlisted development states: `guest`, `signed_in_unverified`, `age_verified_no_subscription`, `active_subscriber`, `blocked_subscriber`, and `expired_subscriber`. Select one explicitly with a URL such as `/member?demo=active_subscriber`. Missing, repeated, or unknown values use real authentication rather than upgrading access.
+In `npm run dev`, the routes retain six explicitly allowlisted development states: `guest`, `signed_in_unverified`, `age_verified_no_subscription`, `active_subscriber`, `blocked_subscriber`, and `expired_subscriber`. Production ignores every `demo` value and never renders the selector.
 
 This is a UI and architecture demonstration, not a shortcut around future security:
 
@@ -109,7 +110,7 @@ Real access uses validated server-side session and database state. A future vide
 
 ## Internal operations demo
 
-Without a valid preview parameter, internal routes validate the Supabase user and query trusted database roles and account restrictions through RLS. Guests redirect to login; no role row means no staff permission. The separate `?staffDemo=` parameter retains explicit UI previews for `guest`, `subscriber_only`, `moderator`, `content_manager`, `admin`, `blocked_moderator`, and `blocked_admin`. Unknown, missing, or repeated values use real authorization.
+Internal routes validate the Supabase user and query trusted database roles and account restrictions through RLS. Guests redirect to login; no role row means no staff permission. In `npm run dev` only, `?staffDemo=` retains explicit UI previews. Production ignores the parameter and omits preview controls from rendered HTML.
 
 Direct preview links:
 
@@ -119,15 +120,15 @@ Direct preview links:
 
 Each Page independently repeats the appropriate authorization check. Moderator routes require `moderator` or `admin`; content routes require `content_manager` or `admin`; admin routes require `admin`. All require an authenticated, unblocked account. Subscriber entitlement remains separate: a subscriber is not staff, and staff roles are not automatically paid subscribers.
 
-The records in `src/data/internal-operations.ts` are safe, fictional, server-only development data. Moderation is limited to this website's internal fictional workflow and never contacts or claims action against an external platform. Content and administrative controls are disabled, non-persistent previews. Audit records are fictional presentation data, not proof that an operation occurred.
+The records in `src/data/internal-operations.ts` are safe, fictional, server-only development data. Moderation and content previews never contact an external platform. Real admin user and audit pages use server-authorized Supabase reads; mock user and audit records appear only in explicit development preview mode.
 
-The explicit preview states remain demonstrations and never read or mutate real staff data. Real page access uses validated Supabase identity, trusted database role lookup, repeated route-level checks, and restrictive RLS. Future mutations will additionally require operation-level checks, narrow trusted writes, and server-written append-oriented audit events. Browser-side role selection or mutation is never trusted.
+The explicit preview states remain demonstrations and never read or mutate real staff data. Administrative Server Actions repeat identity, unblocked-admin, target, input, and resulting-state checks. Atomic database functions derive the actor from `auth.uid()`, protect the last active administrator, and append data-minimized audit events. Browser input and navigation visibility are never authorization.
 
 Missing or obvious placeholder Supabase values still select safe unconfigured operation. Public pages remain static, auth forms disable themselves, and `getCurrentUser()` returns `null` without creating a client. This allows a configuration-cleared build while the connected local environment uses `.env.local`.
 
 ## Authentication setup
 
-`.env.local` contains only the site URL, Supabase project URL, and public publishable key under the existing public-key variable name. It is Git-ignored. No service-role key is configured.
+`.env.local` is Git-ignored. Real admin enumeration requires a server-only `SUPABASE_SECRET_KEY` (preferred) or legacy `SUPABASE_SERVICE_ROLE_KEY`; neither may use a `NEXT_PUBLIC_` prefix.
 
 The hosted project must be configured manually in Supabase Dashboard:
 
@@ -175,14 +176,14 @@ Copy `.env.example` to the Git-ignored `.env.local` only when an integration is 
 
 - `.env.local` and other real environment files remain ignored by Git.
 - Variables prefixed with `NEXT_PUBLIC_` are visible in browser code and must never contain secrets.
-- Supabase service-role keys, provider API tokens, and webhook secrets are server-only.
-- `SUPABASE_SERVICE_ROLE_KEY` must never be imported into a Client Component. It bypasses RLS and is isolated behind a `server-only` module.
+- Supabase secret/service-role keys, provider API tokens, and webhook secrets are server-only.
+- `SUPABASE_SECRET_KEY` and `SUPABASE_SERVICE_ROLE_KEY` bypass RLS. They are isolated behind a lazy `server-only` module and used for narrowly scoped admin directory reads only after normal session authorization succeeds.
 - Real secrets belong in `.env.local` for local development or encrypted deployment environment settings.
 - Never commit real credentials or generated secrets.
 
 ## Integration and deployment direction
 
-Supabase Auth is connected and the reviewed initial migration has been applied to the dedicated Brandon Jamez Website project. Confirmation supports the unchanged hosted local flow while preserving token-hash and authorization-code server flows, Server Actions implement signup/login/logout, and CLI-generated database types live in `src/lib/supabase/database.types.ts`.
+Supabase Auth and all four reviewed migrations are applied to the dedicated Brandon Jamez Website project. Confirmation supports hosted, token-hash, and authorization-code flows. Server Actions implement signup, login, logout, display-name updates, role changes, and restrictions. CLI-generated database types live in `src/lib/supabase/database.types.ts`.
 
 Professional external providers will be selected later for age verification, payments, and private streaming. None has been chosen or integrated.
 

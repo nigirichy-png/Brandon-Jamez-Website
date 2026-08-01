@@ -40,7 +40,7 @@ export default async function MemberPage({ searchParams }: MemberPageProps) {
         </div>
       </section>
 
-      <section className="page-shell pb-10 sm:pb-14"><ScenarioSwitcher activeScenario={state.scenarioId} /></section>
+      {process.env.NODE_ENV === "development" ? <section className="page-shell pb-10 sm:pb-14"><ScenarioSwitcher activeScenario={state.scenarioId} /></section> : null}
       <section className="page-shell pb-12 sm:pb-16"><AccessSummary state={state} decision={decision} /></section>
 
       {!decision.allowed ? (

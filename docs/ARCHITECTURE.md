@@ -1,6 +1,6 @@
 # Future integration architecture
 
-This document describes the connected authentication foundation and remaining integration direction. Supabase Auth and the initial account schema are connected; content, entitlement-provider, and staff-mutation workflows remain mock or planned.
+This document describes the connected authentication and administration foundation and remaining integration direction. Supabase Auth, account administration, and audit events are connected; content and entitlement-provider workflows remain mock or planned.
 
 ## Implemented authentication flow
 
@@ -8,7 +8,7 @@ Signup and login use validated Next.js Server Actions and the request-scoped `@s
 
 `loadRealAccountState()` first validates the current user through Supabase Auth and then queries only the user's RLS-visible profile, roles, restriction, age-verification, and subscription records. Missing rows produce inactive state. Any database error clears roles and fails closed by treating access as unavailable. Provider references, restriction reasons, metadata dumps, and tokens are never returned to account UI.
 
-Without a valid explicit development scenario, every member and internal Page uses this real state and redirects unauthenticated requests to login. Valid preview parameters select isolated mock UI state and never modify the real user, database, cookie, role, or entitlement.
+Every production member and internal Page uses real state and redirects unauthenticated requests to login. Preview parameters are interpreted only when `NODE_ENV === "development"`; production ignores them and does not render selectors.
 
 ## Development member simulation
 
@@ -34,7 +34,17 @@ The architecture maintains seven distinct boundaries:
 6. PostgreSQL grants and RLS constrain data even when application checks fail.
 7. Trusted server code writes an append-oriented audit event for privileged changes.
 
-Route Handlers and Server Actions must repeat identity, restriction, role, target, and operation checks. A service-role client may be used only in narrow reviewed server modules; it must never be imported into browser code or used to bypass thoughtful RLS design.
+Server Actions repeat identity, restriction, role, target, input, and post-mutation checks. The service-secret client is lazy, server-only, and used for narrow Auth-directory reads after normal session authorization. Authenticated RPC functions derive `auth.uid()`, use a fixed empty search path, and make role/restriction changes plus audit insertion atomic.
+
+## Administrative operations
+
+`/admin/users` paginates Auth users at a conservative page size, combines only safe profile, role, restriction, verification, and subscription fields, and masks email addresses. `/admin/users/[userId]` validates the route identifier after admin authorization, re-reads the target, and offers deliberate confirmation forms. Identifiers are used only in same-origin internal links and trusted lookups, never visible labels or logs.
+
+Role assignment is idempotent. Exact role removal and account blocking share a transaction advisory lock and reject any change that would leave no active, unblocked administrator. A subscriber role never creates subscription entitlement. Blocking is application-level, retains Auth credentials, stores a private validated reason, and never reveals that reason to the account holder or audit UI. Restoration clears the restriction timestamp, actor, and reason.
+
+`audit_events` is append-oriented: browser roles have no insert, update, or delete grant; authenticated active admins receive a restricted read policy; narrowly scoped functions write allowlisted successful actions. Events exclude emails, restriction reasons, tokens, raw errors, provider payloads, and entitlement references. User deletion nulls actor or target identifiers rather than cascade-deleting history.
+
+Display-name self-service uses the cookie-backed authenticated client and `update_own_display_name`. Identity comes only from `auth.uid()`, input is trimmed and constrained, and the operation updates only the caller's profile before appending an audit event.
 
 ### Internal workflow boundaries
 
@@ -60,7 +70,7 @@ The project uses only the official `@supabase/supabase-js` and `@supabase/ssr` p
 - `browser.ts` is a Client Component boundary. It lazily creates a client with the public URL and anon key only. RLS must constrain every database request it can make.
 - `server.ts` creates a new cookie-backed client per request using the async Next.js `cookies()` API. It uses the public anon key and the requesting user's session, not the service-role key.
 - `proxy.ts` synchronizes refreshed auth cookies through the official `getAll`/`setAll` pattern. It calls `getClaims()` only when configured and performs no role query or redirect.
-- `admin.ts` is guarded by `server-only`, initializes only when explicitly called, and rejects missing or placeholder service-role configuration. Because this client bypasses RLS, it is reserved for narrow trusted jobs such as verified webhooks.
+- `admin.ts` is guarded by `server-only`, initializes only when explicitly called, and rejects missing or placeholder secret/service-role configuration. Because this client bypasses RLS, it is reserved for reviewed, narrowly scoped server reads and future verified webhooks.
 
 No client is created during module import. Configuration errors occur only when a dependent function is intentionally invoked.
 
@@ -131,9 +141,7 @@ There is no checkout, card form, payment handling, fake successful purchase, or 
 
 If connected later, Supabase Auth will establish user identity while server-side code validates sessions. PostgreSQL will store the minimum required account, role, entitlement, and integration-reference data. Row Level Security policies must enforce least-privilege access independently of application UI.
 
-`supabase/migrations` contains the applied initial migration for profiles, trusted role assignments, account restrictions, minimal age-verification results, and minimal subscription state. It enables RLS on every application table, revokes broad access, grants narrowly scoped self-read columns, permits only a basic self-profile update, and provides no user write path for roles or entitlement state. The remote dry run passed before explicit approval, the migration was applied, and the five tables and six policies were verified through catalog queries.
-
-No second migration is added for the internal preview. Tables such as `content_items`, `events`, `moderation_cases`, and `audit_events` remain planned because ownership, lifecycle and retention rules, moderation evidence handling, audit actor semantics, and exact trusted-write procedures need review first. When mature, each table must begin with RLS enabled, no broad browser grants, no public moderation visibility, appropriate indexes and foreign keys, and fixed `search_path` on any privileged function. Audit insertion must be a narrow trusted server operation, never a normal authenticated-browser write.
+`supabase/migrations` contains the applied initial account migration, admin/audit migration, audited-profile hardening, and narrow trusted read grants. The administration migration adds `audit_events`, restrictive grants and RLS, an active-admin helper, an authenticated display-name function, and atomic role/restriction functions with final-admin protection. The server secret receives only the account-summary columns required after real-admin validation. Content and moderation tables remain planned pending ownership, lifecycle, evidence, and retention review.
 
 `src/lib/supabase/database.types.ts` is generated from the linked project. `types.ts` remains a stable re-export boundary for existing imports.
 

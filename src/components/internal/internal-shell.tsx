@@ -12,7 +12,7 @@ export function InternalShell({ state, decision, currentPath, eyebrow, title, de
     <main id="main-content" className="flex-1 bg-[#090b10]">
       <section className="border-b border-white/10 bg-[#0d1016]">
         <div className="page-shell flex flex-wrap items-center justify-between gap-4 py-5">
-          <div className="flex items-center gap-3"><BrandMark /><span className="hidden h-7 w-px bg-white/15 min-[430px]:block" aria-hidden="true" /><span className="font-display text-xs font-bold uppercase tracking-[0.17em] text-cyan-200">Internal operations</span></div>
+          <div className="flex min-w-0 items-center gap-3"><BrandMark /><span className="hidden h-7 w-px bg-white/15 min-[430px]:block" aria-hidden="true" /><span className="font-display hidden text-xs font-bold uppercase tracking-[0.17em] text-cyan-200 min-[390px]:inline">Internal operations</span></div>
           <div className="flex flex-wrap items-center gap-2"><StatusLabel tone={state.developmentPreview ? "warning" : "positive"}>{state.developmentPreview ? "Development preview" : "Validated account"}</StatusLabel><Link href="/" className="inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-bold text-zinc-400 hover:bg-white/[0.05] hover:text-white">Public website <span className="ml-1.5" aria-hidden="true">↗</span></Link></div>
         </div>
       </section>
@@ -32,7 +32,7 @@ export function InternalShell({ state, decision, currentPath, eyebrow, title, de
             <h1 className="font-display mt-4 max-w-4xl text-[clamp(2.4rem,7vw,5rem)] font-bold leading-[0.96] tracking-[-0.055em] text-white">{title}</h1>
             <p className="mt-4 max-w-3xl leading-7 text-zinc-400 sm:text-lg">{description}</p>
           </header>
-          <div className="my-6">{!state.developmentPreview ? <p className="mb-3 rounded-xl border border-emerald-300/15 bg-emerald-300/[0.035] p-3 text-sm text-emerald-100">Authorization below uses the validated Supabase account. Development scenarios remain available for explicit UI previews only.</p> : null}<StaffScenarioSwitcher activeScenario={state.scenarioId} currentPath={currentPath} /></div>
+          <div className="my-6">{!state.developmentPreview ? <p className="mb-3 rounded-xl border border-emerald-300/15 bg-emerald-300/[0.035] p-3 text-sm text-emerald-100">Authorization below uses the validated Supabase account.</p> : null}{process.env.NODE_ENV === "development" ? <StaffScenarioSwitcher activeScenario={state.scenarioId} currentPath={currentPath} /> : null}</div>
           {children}
         </div>
       </div>
