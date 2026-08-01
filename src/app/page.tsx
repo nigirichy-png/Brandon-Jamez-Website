@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { Hero } from "@/components/home/hero";
 import { LiveStatus } from "@/components/home/live-status";
 import { SocialStage } from "@/components/home/social-stage";
@@ -37,11 +39,25 @@ export default function Home() {
       </section>
 
       <section className="border-y border-white/10 bg-[var(--page-deep)]">
-        <div className="page-shell py-12 sm:py-14 lg:py-10">
-          <div className="mx-auto max-w-5xl">
-            <p className="eyebrow text-fuchsia-300">About Brandon</p>
-            <h2 className="font-display mt-4 max-w-4xl text-[clamp(2.25rem,6vw,4rem)] font-bold leading-[1.02] tracking-[-0.05em] text-white">Livestreams, nightlife and real life in Pattaya.</h2>
-            <p className="mt-4 max-w-3xl text-[clamp(1rem,2vw,1.15rem)] leading-8 text-zinc-300">Brandon Jamez shares livestreams, nights out, local experiences and unscripted moments from Pattaya.</p>
+        <div className="page-shell py-12 sm:py-14 lg:py-12">
+          <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[.62fr_1fr] lg:items-center lg:gap-10">
+            <div className="relative w-full max-w-[29.6875rem] overflow-hidden rounded-[var(--radius-lg)] border border-white/15 bg-[var(--surface)] shadow-[var(--shadow-card)]">
+              <Image
+                src="/brandon-throne.png"
+                alt="Brandon Jamez seated in a decorative chair"
+                width={475}
+                height={361}
+                sizes="(max-width: 511px) calc(100vw - 3rem), (max-width: 1023px) 475px, 23rem"
+                className="h-auto w-full object-cover object-center"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_46%,rgba(8,8,12,0.46)_100%),linear-gradient(180deg,rgba(31,7,38,0.08),transparent_52%,rgba(8,8,12,0.34))]" aria-hidden="true" />
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(229,79,236,0.09),transparent_50%,rgba(94,232,237,0.06))] mix-blend-soft-light ring-1 ring-inset ring-cyan-300/12" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="eyebrow text-fuchsia-300">About Brandon</p>
+              <h2 className="font-display mt-4 max-w-4xl text-[clamp(2.25rem,6vw,4rem)] font-bold leading-[1.02] tracking-[-0.05em] text-white">Livestreams, nightlife and real life in Pattaya.</h2>
+              <p className="mt-4 max-w-3xl text-[clamp(1rem,2vw,1.15rem)] leading-8 text-zinc-300">Brandon Jamez shares livestreams, nights out, local experiences and unscripted moments from Pattaya.</p>
+            </div>
           </div>
         </div>
       </section>
