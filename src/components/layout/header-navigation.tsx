@@ -11,7 +11,6 @@ const navigation = [
   { href: "/guide", label: "Pattaya Guide" },
   { href: "/videos", label: "Videos" },
   { href: "/events", label: "Events" },
-  { href: "/subscribe", label: "Subscribe" },
 ];
 
 export function HeaderNavigation({ authenticated }: { authenticated: boolean }) {

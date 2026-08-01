@@ -1,31 +1,25 @@
-import { socialLinks } from "@/data/mock-data";
-
-const initials: Record<string, string> = {
-  "social-youtube": "YT",
-  "social-instagram": "IG",
-  "social-tiktok": "TT",
-  "social-x": "X",
-};
+import { creatorSocialLinks } from "@/data/public-links";
 
 export function SocialStage() {
   return (
-    <div className="grid overflow-hidden rounded-[var(--radius-lg)] border border-white/10 sm:grid-cols-2 lg:grid-cols-4">
-      {socialLinks.map((social, index) => (
-        <article key={social.id} className="group relative min-h-44 overflow-hidden border-b border-white/10 bg-[var(--surface)] p-6 last:border-b-0 sm:border-r sm:[&:nth-child(2)]:border-r-0 sm:[&:nth-child(3)]:border-b-0 lg:min-h-56 lg:border-b-0 lg:[&:nth-child(2)]:border-r lg:[&:last-child]:border-r-0">
-          <div className="absolute -right-6 -top-8 font-display text-8xl font-bold text-white/[0.025] transition-transform duration-500 group-hover:-translate-x-2" aria-hidden="true">{initials[social.id]}</div>
-          <div className="relative flex h-full flex-col">
-            <div className="flex items-start justify-between">
-              <span className="font-display grid size-11 place-items-center rounded-full border border-white/15 text-sm font-bold text-white">{initials[social.id]}</span>
-              <span className="text-xs font-bold text-zinc-600">0{index + 1}</span>
-            </div>
-            <div className="mt-auto pt-8">
-              <h3 className="font-display text-2xl font-bold text-white">{social.label}</h3>
-              <p className="mt-1 text-sm text-zinc-500">{social.handle}</p>
-              <p className="eyebrow mt-4 text-fuchsia-300/70">Not configured</p>
-            </div>
-          </div>
-        </article>
-      ))}
-    </div>
+    <section className="page-shell pb-7 pt-4 sm:pb-9 sm:pt-5" aria-labelledby="social-links-title">
+      <div className="flex flex-col gap-3 border-b border-white/10 pb-6 sm:flex-row sm:items-center sm:justify-between">
+        <p id="social-links-title" className="eyebrow shrink-0 text-zinc-400">Follow Brandon</p>
+        <nav aria-label="Brandon Jamez social profiles" className="flex flex-wrap gap-2">
+          {creatorSocialLinks.map((social) => (
+            <a
+              key={social.label}
+              href={social.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${social.label} (opens in a new tab)`}
+              className="inline-flex min-h-11 items-center rounded-full border border-white/12 bg-white/[0.035] px-4 py-2 text-sm font-bold text-zinc-200 transition-[background-color,border-color,color] duration-[var(--transition-fast)] hover:border-fuchsia-300/35 hover:bg-fuchsia-300/[0.08] hover:text-white"
+            >
+              {social.label}<span className="ml-2 text-xs text-zinc-500" aria-hidden="true">↗</span>
+            </a>
+          ))}
+        </nav>
+      </div>
+    </section>
   );
 }

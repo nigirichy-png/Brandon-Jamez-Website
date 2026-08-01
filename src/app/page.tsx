@@ -1,72 +1,63 @@
 import { Hero } from "@/components/home/hero";
 import { LiveStatus } from "@/components/home/live-status";
 import { SocialStage } from "@/components/home/social-stage";
-import { ButtonLink } from "@/components/ui/button-link";
-import { EventCard } from "@/components/ui/event-card";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { VideoCard } from "@/components/ui/video-card";
-import { publicVideos, upcomingEvents } from "@/data/mock-data";
+import { creatorLinks } from "@/data/public-links";
+
+const externalActionClass = "inline-flex min-h-12 w-fit items-center justify-center rounded-full px-6 py-3 text-sm font-extrabold transition-[background-color,border-color,color] duration-[var(--transition-fast)]";
 
 export default function Home() {
   return (
     <main id="main-content" className="flex-1">
       <Hero />
       <LiveStatus />
+      <SocialStage />
 
-      <section className="page-shell section-space">
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <SectionHeading eyebrow="Fresh from the feed" title="Public stories, cut with intent." description="A development preview of the clips and updates that will live here. No external video service is connected." />
-          <ButtonLink href="/videos" variant="secondary" className="w-fit shrink-0">Browse the library <span className="ml-2" aria-hidden="true">→</span></ButtonLink>
-        </div>
-        <div className="mt-10 grid gap-5 lg:grid-cols-12">
-          <VideoCard video={publicVideos[0]} href={`/videos#${publicVideos[0].id}`} featured className="lg:col-span-7 lg:row-span-2" />
-          <VideoCard video={publicVideos[1]} href={`/videos#${publicVideos[1].id}`} className="lg:col-span-5" />
-          <VideoCard video={publicVideos[2]} href={`/videos#${publicVideos[2].id}`} className="lg:col-span-5" />
+      <section className="page-shell py-12 sm:py-16 lg:py-20" aria-label="Creator updates">
+        <div className="grid gap-4 md:grid-cols-2 lg:gap-5">
+          <article className="relative overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-[var(--surface)] p-6 sm:p-8 lg:p-9">
+            <div className="absolute -right-12 -top-16 size-44 rounded-full border-[26px] border-fuchsia-400/[0.07]" aria-hidden="true" />
+            <div className="relative flex h-full flex-col items-start">
+              <p className="eyebrow text-fuchsia-300">Latest videos</p>
+              <h2 className="font-display mt-3 max-w-lg text-[clamp(2rem,5vw,3rem)] font-bold leading-[1.02] tracking-[-0.045em] text-white">Watch the latest from Brandon.</h2>
+              <p className="mt-4 max-w-xl leading-7 text-zinc-400">Find Brandon&apos;s latest videos, livestreams and channel updates on YouTube.</p>
+              <a href={creatorLinks.youtube} target="_blank" rel="noopener noreferrer" aria-label="Watch Brandon Jamez's latest videos on YouTube (opens in a new tab)" className={`${externalActionClass} mt-6 bg-fuchsia-600 text-white shadow-[var(--shadow-accent)] hover:bg-fuchsia-500`}>Watch latest videos <span className="ml-2" aria-hidden="true">↗</span></a>
+            </div>
+          </article>
+
+          <article className="relative overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-cyan-300/[0.035] p-6 sm:p-8 lg:p-9">
+            <div className="absolute -bottom-20 -right-12 size-48 rounded-full border-[30px] border-cyan-300/[0.055]" aria-hidden="true" />
+            <div className="relative flex h-full flex-col items-start">
+              <p className="eyebrow text-cyan-300">Live &amp; upcoming</p>
+              <h2 className="font-display mt-3 max-w-lg text-[clamp(2rem,5vw,3rem)] font-bold leading-[1.02] tracking-[-0.045em] text-white">Follow Brandon for the next stream.</h2>
+              <p className="mt-4 max-w-xl leading-7 text-zinc-400">Livestream announcements and creator updates are shared through Brandon&apos;s official platforms.</p>
+              <a href={creatorLinks.youtube} target="_blank" rel="noopener noreferrer" aria-label="Open Brandon Jamez on YouTube (opens in a new tab)" className={`${externalActionClass} mt-6 border border-cyan-300/30 bg-cyan-300/[0.07] text-cyan-100 hover:bg-cyan-300/[0.13]`}>Open YouTube <span className="ml-2" aria-hidden="true">↗</span></a>
+            </div>
+          </article>
         </div>
       </section>
 
       <section className="border-y border-white/10 bg-[var(--page-deep)]">
-        <div className="page-shell section-space grid gap-10 lg:grid-cols-[.7fr_1.3fr] lg:gap-16">
-          <div className="lg:sticky lg:top-28 lg:self-start">
-            <SectionHeading eyebrow="Up next" title="Plans worth showing up for." description="Mock dates demonstrate how public appearances, online sessions, and special announcements will be presented." />
-            <ButtonLink href="/events" variant="quiet" className="mt-5 px-0">See the full calendar <span className="ml-2" aria-hidden="true">→</span></ButtonLink>
+        <div className="page-shell py-12 sm:py-14 lg:py-10">
+          <div className="mx-auto max-w-5xl">
+            <p className="eyebrow text-fuchsia-300">About Brandon</p>
+            <h2 className="font-display mt-4 max-w-4xl text-[clamp(2.25rem,6vw,4rem)] font-bold leading-[1.02] tracking-[-0.05em] text-white">Livestreams, nightlife and real life in Pattaya.</h2>
+            <p className="mt-4 max-w-3xl text-[clamp(1rem,2vw,1.15rem)] leading-8 text-zinc-300">Brandon Jamez shares livestreams, nights out, local experiences and unscripted moments from Pattaya.</p>
           </div>
-          <div>{upcomingEvents.slice(0, 2).map((event, index) => <EventCard key={event.id} event={event} index={index} />)}</div>
         </div>
       </section>
 
-      <section className="page-shell section-space">
-        <div className="mb-9 grid gap-6 lg:grid-cols-[1fr_.75fr] lg:items-end">
-          <SectionHeading eyebrow="Find the signal" title="Every platform. One point of view." />
-          <p className="max-w-xl leading-7 text-zinc-400 lg:justify-self-end">Official destinations will be added only when intentionally configured. For now, each channel remains a clearly labeled placeholder.</p>
-        </div>
-        <SocialStage />
-      </section>
-
-      <section className="page-shell pb-[var(--section-space)]">
-        <div className="overflow-hidden rounded-[var(--radius-xl)] border border-white/10">
-          <article className="relative grid gap-8 bg-cyan-300/[0.055] p-7 sm:p-10 lg:grid-cols-[1fr_.7fr] lg:items-end lg:p-14">
-            <div className="absolute -right-16 -top-20 size-56 rounded-full border-[34px] border-cyan-300/[0.07]" aria-hidden="true" />
-            <div className="relative">
-              <p className="eyebrow text-cyan-300">Pattaya Guide</p>
-              <h2 className="font-display mt-4 max-w-2xl text-[clamp(2.25rem,7vw,4.5rem)] font-bold leading-[0.98] tracking-[-0.055em] text-white">Local perspective. Its own destination.</h2>
-            </div>
-            <div className="relative lg:pb-1">
-              <p className="leading-7 text-zinc-300">The existing Guide stays independent while this site prepares a deliberate public handoff.</p>
-              <ButtonLink href="/guide" variant="secondary" className="mt-6">Explore the guide plan</ButtonLink>
-            </div>
-          </article>
-          <article className="relative grid gap-8 border-t border-white/10 bg-gradient-to-br from-fuchsia-500/14 via-violet-500/[0.06] to-transparent p-7 sm:p-10 lg:grid-cols-[.7fr_1fr] lg:items-center lg:p-14">
-            <div className="lg:order-2">
-              <p className="eyebrow text-fuchsia-300">Future membership</p>
-              <h2 className="font-display mt-4 max-w-2xl text-[clamp(2.25rem,7vw,4.5rem)] font-bold leading-[0.98] tracking-[-0.055em] text-white">More access. Real safeguards.</h2>
-            </div>
-            <div className="lg:order-1">
-              <p className="max-w-md leading-7 text-zinc-300">See the planned subscriber experience and the checks required before it can safely launch.</p>
-              <ButtonLink href="/subscribe" className="mt-6">See what is planned</ButtonLink>
-            </div>
-          </article>
-        </div>
+      <section className="page-shell py-12 sm:py-16 lg:py-20">
+        <article className="relative grid gap-7 overflow-hidden rounded-[var(--radius-xl)] border border-cyan-300/15 bg-cyan-300/[0.045] p-7 sm:p-10 lg:grid-cols-[1fr_.62fr] lg:items-end lg:p-12">
+          <div className="absolute -right-16 -top-20 size-56 rounded-full border-[34px] border-cyan-300/[0.07]" aria-hidden="true" />
+          <div className="relative">
+            <p className="eyebrow text-cyan-300">Pattaya Guide</p>
+            <h2 className="font-display mt-4 max-w-2xl text-[clamp(2.25rem,6vw,4rem)] font-bold leading-[1] tracking-[-0.05em] text-white">Discover Brandon&apos;s Pattaya.</h2>
+          </div>
+          <div className="relative">
+            <p className="max-w-xl leading-7 text-zinc-300">Explore nightlife, food, places and local favorites across Pattaya.</p>
+            <a href={creatorLinks.pattayaGuide} target="_blank" rel="noopener noreferrer" aria-label="Explore the Brandon Jamez Pattaya Guide (opens in a new tab)" className={`${externalActionClass} mt-6 border border-white/15 bg-white/[0.045] text-white hover:border-cyan-300/45 hover:bg-white/[0.08]`}>Explore Pattaya Guide <span className="ml-2" aria-hidden="true">↗</span></a>
+          </div>
+        </article>
       </section>
     </main>
   );
