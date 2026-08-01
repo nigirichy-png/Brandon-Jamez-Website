@@ -6,7 +6,6 @@ import { creatorLinks, creatorSocialLinks } from "@/data/public-links";
 const footerLinks = [
   { href: "/", label: "Home", external: false },
   { href: "/videos", label: "Videos", external: false },
-  { href: "/events", label: "Events", external: false },
   { href: creatorLinks.pattayaGuide, label: "Pattaya Guide", external: true },
   { href: "/account", label: "Account", external: false },
 ] as const;

@@ -10,7 +10,6 @@ const navigation = [
   { href: "/", label: "Home" },
   { href: "/guide", label: "Pattaya Guide" },
   { href: "/videos", label: "Videos" },
-  { href: "/events", label: "Events" },
 ];
 
 export function HeaderNavigation({ authenticated }: { authenticated: boolean }) {
