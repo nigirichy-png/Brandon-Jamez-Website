@@ -19,7 +19,7 @@ export default function SubscribePage() {
     <main id="main-content" className="flex-1">
       <PageHero eyebrow="Future subscriber access" title="The next layer, built responsibly." description="Subscriptions are not active. No checkout, payment form, or subscriber playback is connected on this development site.">
         <ButtonLink href="/login">View sign-in placeholder</ButtonLink>
-        <ButtonLink href="/" variant="secondary">Back to home</ButtonLink>
+        <ButtonLink href="/member?demo=active_subscriber" variant="secondary">Preview active member</ButtonLink>
       </PageHero>
 
       <section className="page-shell section-space">
@@ -45,9 +45,9 @@ export default function SubscribePage() {
           <div className="mb-9 max-w-2xl">
             <p className="eyebrow text-fuchsia-300">Metadata-only previews</p>
             <h2 className="font-display mt-4 text-4xl font-bold tracking-tight text-white sm:text-5xl">A glimpse, without private media.</h2>
-            <p className="mt-4 leading-7 text-zinc-400">These records contain titles and descriptions only. No video files, playback URLs, provider identifiers, or tokens exist.</p>
+            <p className="mt-4 leading-7 text-zinc-400">These promotional records contain mock titles and descriptions only. No video files, playback URLs, real provider identifiers, or tokens exist.</p>
           </div>
-          <div className="grid gap-5 md:grid-cols-2">{subscriberVideos.map((video) => <VideoCard key={video.id} video={video} />)}</div>
+          <div className="grid gap-5 md:grid-cols-2">{subscriberVideos.slice(0, 2).map((video) => <VideoCard key={video.id} video={video} />)}</div>
         </div>
       </section>
 

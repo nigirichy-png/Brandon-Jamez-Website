@@ -24,8 +24,9 @@ No real authentication, age verification, subscription, payment, database, or vi
 | `/events` | Public mock UI | Upcoming mock events |
 | `/subscribe` | Public information | Future subscriber requirements; subscriptions are not active |
 | `/login` | Development placeholder | Disabled sign-in preview; authentication is not connected |
-| `/verify-age` | Unprotected placeholder | Future professional age-verification boundary |
-| `/member` | Unprotected placeholder | Future subscriber area |
+| `/verify-age` | Public development plan | Future professional age-verification boundary; no collection or verification |
+| `/member` | Server-rendered development demo | Mock subscriber access states selected by an allowlisted `?demo=` value |
+| `/member/videos/[videoId]` | Server-rendered development demo | Validated mock video record and repeated entitlement/playback simulation |
 | `/mod` | Unprotected placeholder | Future moderator area |
 | `/admin` | Unprotected placeholder | Future admin area |
 
@@ -74,13 +75,28 @@ supabase/
 
 ## Mock-data status
 
-Everything in `src/data/mock-data.ts` is development-only. Public video records are display metadata and do not include MP4 URLs. Subscriber video records are metadata only and include no files, filesystem paths, playback URLs, provider asset IDs, credentials, or tokens. Social destinations and live streaming are not configured.
+Everything in `src/data/mock-data.ts` is development-only. Public video records are display metadata and do not include MP4 URLs. Subscriber video records are metadata only and include no files, filesystem paths, playback URLs, real provider asset IDs, credentials, or tokens. Their `mockPlaybackAssetId` fields are deliberately fake internal identifiers. Social destinations and live streaming are not configured.
+
+## Member access demo
+
+The member routes simulate six explicitly allowlisted states: `guest`, `signed_in_unverified`, `age_verified_no_subscription`, `active_subscriber`, `blocked_subscriber`, and `expired_subscriber`. Select one with a URL such as `/member?demo=active_subscriber`. Missing, repeated, or unknown values safely resolve to `guest`.
+
+This is a UI and architecture demonstration, not a shortcut around future security:
+
+- Scenario selection is parsed only in Server Components and is not stored in cookies, local storage, a database, or a session.
+- No scenario creates a Supabase user or invokes authentication, age verification, payments, or streaming.
+- Server-only helpers evaluate authentication, blocking, verification, and subscription in a conservative order.
+- Each mock video detail request validates its record and repeats the entitlement decision.
+- An allowed request receives an in-memory fake playback reference with a five-minute expiry. It is neither a URL nor a JWT and cannot play media.
+- Guest and gated member views do not render the subscriber library metadata.
+
+Production must replace the scenario lookup with validated server-side session and database state. It must also re-evaluate entitlement immediately before requesting a short-lived signed playback URL or token from a reviewed streaming provider.
 
 The default application mode is `mock`. Missing or obvious placeholder Supabase values are treated as unconfigured. Public pages remain static and no Supabase client is created or network request attempted during a normal build. A Supabase-dependent client produces a controlled configuration error only when code intentionally requests it; `getCurrentUser()` instead returns `null` in mock mode.
 
 ## Security boundaries
 
-The current protected-looking routes are **not protected**. Navigation visibility and frontend checks are not security. The helpers in `src/lib/permissions/access.ts` are preliminary application logic for planning user interfaces; they do not enforce route or data security.
+The current protected-looking routes are **not protected**. Navigation visibility and frontend checks are not security. The helpers in `src/lib/permissions/access.ts` are preliminary application logic for planning user interfaces; they do not enforce route or data security. Likewise, the development helpers in `src/lib/entitlements` accept deliberately selectable mock state and must never be treated as production authorization.
 
 The Next.js 16 `src/proxy.ts` file is cookie-refresh preparation only. It returns a normal response while unconfigured and does not redirect, query roles, or protect pages. Proxy cookie refresh is not authorization. Future protected Pages, Route Handlers, and Server Functions must validate identity and repeat authorization and entitlement checks on the server; RLS must independently protect rows.
 

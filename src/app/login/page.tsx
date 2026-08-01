@@ -26,7 +26,12 @@ export default function LoginPage() {
             <button type="button" disabled className="min-h-13 w-full cursor-not-allowed rounded-full bg-zinc-700 px-5 font-extrabold text-zinc-400">Sign in unavailable</button>
           </form>
           <p className="mt-6 text-sm leading-6 text-zinc-500">Future authentication will use validated server-side sessions. A visible form alone will never grant access.</p>
-          <Link href="/" className="mt-7 inline-flex min-h-11 items-center rounded text-sm font-extrabold text-cyan-300 hover:text-cyan-200"><span aria-hidden="true" className="mr-2">←</span> Return home</Link>
+          <div className="mt-7 rounded-[var(--radius-md)] border border-amber-300/20 bg-amber-300/[0.05] p-4">
+            <p className="text-sm font-bold text-amber-100">Developer preview</p>
+            <p className="mt-1 text-xs leading-5 text-amber-100/60">The member demo uses allowlisted URL scenarios. It does not sign you in or save account state.</p>
+            <Link href="/member" className="mt-3 inline-flex min-h-11 items-center rounded text-sm font-extrabold text-cyan-300 hover:text-cyan-200">Open member-state demo <span className="ml-2" aria-hidden="true">→</span></Link>
+          </div>
+          <Link href="/" className="mt-5 inline-flex min-h-11 items-center rounded text-sm font-extrabold text-cyan-300 hover:text-cyan-200"><span aria-hidden="true" className="mr-2">←</span> Return home</Link>
         </div>
       </div>
     </main>

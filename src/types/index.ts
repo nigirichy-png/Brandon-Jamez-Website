@@ -33,9 +33,16 @@ export type SubscriberVideo = {
   description: string;
   category: string;
   duration: string;
+  publishedAt: string;
   thumbnailVariant: ThumbnailVariant;
   accessLevel: "subscriber";
   availability: "development-metadata-only";
+  featured: boolean;
+  progressPercent: number;
+  contentRating: string;
+  series: string;
+  episode: string;
+  mockPlaybackAssetId: string;
 };
 
 export type EventStatus = "announced" | "limited" | "coming-soon";

@@ -2,6 +2,14 @@
 
 This document describes direction and an unconfigured Supabase-ready foundation, not completed security. The current website still renders mock data and public development placeholders only. No Supabase project or credentials are connected, and the SQL migration is local and unapplied.
 
+## Development member simulation
+
+`/member` and `/member/videos/[videoId]` now demonstrate server-rendered access states without creating identity or entitlement. An allowlisted `?demo=` value selects one of six typed in-memory scenarios. Unknown, missing, or repeated query values resolve to `guest`; the selection is never written to cookies, browser storage, Supabase, or another persistence layer.
+
+The modules in `src/lib/entitlements` are marked server-only where they interpret scenario state or make access decisions. They evaluate authentication first, then account blocking, professional age-verification status, subscription expiry or absence, and finally access. The dynamic video route validates the requested mock record and repeats that evaluation before producing a request-time fake playback decision. Its reference is an obviously fake non-URL value, expires after five minutes, has no cryptographic or provider meaning, and is not exposed as a playable browser credential.
+
+This structure demonstrates the placement of future boundaries, not their trustworthiness. Query parameters are controlled by the visitor. Production code must derive identity and statuses from validated server-side sources, remove the scenario selector, and replace the fake decision with a narrow provider integration that issues real short-lived playback authorization only after all checks pass.
+
 ## Application modes
 
 - `mock` is the default when public Supabase configuration is missing or still uses placeholders. Public static generation does not initialize a client or contact Supabase.
