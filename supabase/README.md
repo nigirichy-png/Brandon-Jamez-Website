@@ -49,6 +49,8 @@ The reviewed videos-only CMS is the sole content table currently present. It sto
 
 `202608010005_account_security_audit_action.sql` is applied. It adds only the allowlisted `account.email_change_requested` action and a no-argument, authenticated function that derives its actor from `auth.uid()`. It stores no old or new email, accepts no identifier, and changes no Auth, role, restriction, verification, subscription, or profile state.
 
+`202608010007_trusted_stripe_subscriptions.sql` is locally tested and unapplied. It invalidates every pre-webhook subscription row, extends Stripe state and constraints, adds the fail-closed paid-entitlement helper, a data-minimized idempotency ledger, caller-bound Checkout/Portal RPCs, and one service-role-only webhook synchronization RPC. It does not activate billing and must not be applied remotely without the phased approval in `docs/STRIPE_SUBSCRIPTIONS.md`.
+
 ## Hosted authentication URLs
 
 The hosted Supabase project uses the canonical Vercel origin as its production Site URL. Its redirect allowlist contains exact production and localhost URLs for `/auth/confirm` and `/auth/recovery`. These dashboard settings are maintained deliberately rather than by pushing the complete local `config.toml`, which could overwrite unrelated hosted Auth defaults. Custom SMTP, a verified sending domain, and an editable token-hash email template remain required production email work; Resend is the likely future provider and is not integrated.

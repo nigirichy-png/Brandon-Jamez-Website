@@ -12,7 +12,9 @@ const isUsableUrl = (value: string | undefined): value is string => {
   if (!value || value === PUBLIC_URL_PLACEHOLDER) return false;
 
   try {
-    return new URL(value).protocol === "https:";
+    const url = new URL(value);
+    return url.protocol === "https:"
+      || (url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname));
   } catch {
     return false;
   }

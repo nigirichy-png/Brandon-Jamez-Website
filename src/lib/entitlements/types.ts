@@ -11,7 +11,18 @@ export const mockScenarioIds = [
 
 export type MockScenarioId = (typeof mockScenarioIds)[number];
 export type VerificationStatus = "not_started" | "verified";
-export type SubscriptionStatus = "none" | "active" | "expired";
+export type SubscriptionStatus =
+  | "none"
+  | "inactive"
+  | "incomplete"
+  | "incomplete_expired"
+  | "trialing"
+  | "active"
+  | "past_due"
+  | "unpaid"
+  | "canceled"
+  | "paused"
+  | "expired";
 
 export type MemberAccessState = AccessState & {
   scenarioId: MockScenarioId | null;

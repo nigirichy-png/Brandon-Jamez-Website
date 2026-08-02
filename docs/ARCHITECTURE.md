@@ -143,9 +143,7 @@ The application must not be designed to retain ID-card photographs, passport pho
 
 ## Payments and subscription state
 
-A professional external payment provider will be selected later. Subscription state must change only in response to verified, signed, server-to-server webhook events and reviewed administrative recovery procedures.
-
-There is no checkout, card form, payment handling, fake successful purchase, or provider credential in this MVP.
+Authenticated server actions create fixed-price Stripe-hosted Checkout and Customer Portal sessions, while a signature-verified Supabase Edge Function is the only privileged subscription-state writer. Paid entitlement requires exact active Stripe state, complete identifiers, a strictly future paid period, consistent webhook timestamps, and an unrestricted account. No card form, provider credential, or redirect response is trusted by the application. See `STRIPE_SUBSCRIPTIONS.md` for configuration and deployment gates.
 
 ## Supabase, PostgreSQL, and local migrations
 

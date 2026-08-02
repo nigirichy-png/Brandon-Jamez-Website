@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.15"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -216,39 +211,93 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_webhook_events: {
+        Row: {
+          event_created_at: string
+          event_type: string
+          processed_at: string
+          processing_result: string
+          stripe_customer_id: string | null
+          stripe_event_id: string
+          stripe_subscription_id: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          event_created_at: string
+          event_type: string
+          processed_at?: string
+          processing_result: string
+          stripe_customer_id?: string | null
+          stripe_event_id: string
+          stripe_subscription_id?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          event_created_at?: string
+          event_type?: string
+          processed_at?: string
+          processing_result?: string
+          stripe_customer_id?: string | null
+          stripe_event_id?: string
+          stripe_subscription_id?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean
+          canceled_at: string | null
           created_at: string
           current_period_end: string | null
+          current_period_start: string | null
+          ended_at: string | null
+          last_checkout_started_at: string | null
+          last_synced_at: string | null
           provider: string
-          provider_customer_reference: string | null
-          provider_subscription_reference: string | null
           status: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id: string | null
+          stripe_price_id: string | null
+          stripe_subscription_id: string | null
           updated_at: string
           user_id: string
+          webhook_event_created_at: string | null
         }
         Insert: {
           cancel_at_period_end?: boolean
+          canceled_at?: string | null
           created_at?: string
           current_period_end?: string | null
+          current_period_start?: string | null
+          ended_at?: string | null
+          last_checkout_started_at?: string | null
+          last_synced_at?: string | null
           provider: string
-          provider_customer_reference?: string | null
-          provider_subscription_reference?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string
           user_id: string
+          webhook_event_created_at?: string | null
         }
         Update: {
           cancel_at_period_end?: boolean
+          canceled_at?: string | null
           created_at?: string
           current_period_end?: string | null
+          current_period_start?: string | null
+          ended_at?: string | null
+          last_checkout_started_at?: string | null
+          last_synced_at?: string | null
           provider?: string
-          provider_customer_reference?: string | null
-          provider_subscription_reference?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string
           user_id?: string
+          webhook_event_created_at?: string | null
         }
         Relationships: []
       }
@@ -367,6 +416,29 @@ export type Database = {
         }
         Returns: boolean
       }
+      begin_own_stripe_checkout: {
+        Args: never
+        Returns: {
+          has_active_access: boolean
+          stripe_customer_id: string
+        }[]
+      }
+      begin_own_stripe_portal: { Args: never; Returns: string }
+      bind_own_stripe_customer: {
+        Args: { p_stripe_customer_id: string }
+        Returns: boolean
+      }
+      get_own_stripe_billing_context: {
+        Args: never
+        Returns: {
+          cancel_at_period_end: boolean
+          current_period_end: string
+          has_active_access: boolean
+          status: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id: string
+        }[]
+      }
+      has_active_paid_subscription: { Args: never; Returns: boolean }
       list_published_cms_videos: {
         Args: never
         Returns: {
@@ -382,6 +454,25 @@ export type Database = {
           updated_at: string
           video_url: string
         }[]
+      }
+      process_stripe_subscription_event: {
+        Args: {
+          p_cancel_at_period_end?: boolean
+          p_canceled_at?: string
+          p_current_period_end?: string
+          p_current_period_start?: string
+          p_ended_at?: string
+          p_event_created_at: string
+          p_event_id: string
+          p_event_type: string
+          p_processing_result: string
+          p_status?: Database["public"]["Enums"]["subscription_status"]
+          p_stripe_customer_id?: string
+          p_stripe_price_id?: string
+          p_stripe_subscription_id?: string
+          p_user_id?: string
+        }
+        Returns: string
       }
       record_own_email_change_request: { Args: never; Returns: boolean }
       update_own_display_name: {
@@ -401,10 +492,14 @@ export type Database = {
       cms_video_platform: "youtube" | "rumble" | "kick"
       subscription_status:
         | "inactive"
+        | "incomplete"
+        | "incomplete_expired"
         | "trialing"
         | "active"
         | "past_due"
+        | "unpaid"
         | "canceled"
+        | "paused"
         | "expired"
     }
     CompositeTypes: {
@@ -548,10 +643,14 @@ export const Constants = {
       cms_video_platform: ["youtube", "rumble", "kick"],
       subscription_status: [
         "inactive",
+        "incomplete",
+        "incomplete_expired",
         "trialing",
         "active",
         "past_due",
+        "unpaid",
         "canceled",
+        "paused",
         "expired",
       ],
     },

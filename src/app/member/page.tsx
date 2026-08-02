@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AccessGate } from "@/components/member/access-gate";
@@ -9,7 +10,7 @@ import { subscriberVideos } from "@/data/mock-data";
 import { evaluateMemberAccess } from "@/lib/entitlements/evaluate-member-access";
 import { resolveMemberAccessState } from "@/lib/auth/access-state";
 
-export const metadata: Metadata = { title: "Member Library Demo" };
+export const metadata: Metadata = { title: "Member" };
 
 type MemberPageProps = {
   searchParams: Promise<{ demo?: string | string[] }>;
@@ -20,6 +21,15 @@ export default async function MemberPage({ searchParams }: MemberPageProps) {
   const state = await resolveMemberAccessState(query.demo);
   if (!state.developmentPreview && !state.authenticated) redirect("/login?next=/member");
   const decision = evaluateMemberAccess(state);
+
+  if (!state.developmentPreview && decision.allowed) {
+    return <main id="main-content" className="page-shell flex-1 py-12 sm:py-16 lg:py-20">
+      <p className="eyebrow text-emerald-300">Paid membership verified</p>
+      <h1 className="font-display mt-4 max-w-4xl text-[clamp(3rem,9vw,6rem)] font-bold leading-[0.92] tracking-[-0.06em] text-white">Your Stripe-backed access is active.</h1>
+      <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-300">The current paid period and account status were verified on the server and in the database. Subscriber video functionality is a separate future release, so no mock or private media is exposed here.</p>
+      <Link href="/account" className="mt-8 inline-flex min-h-12 items-center rounded-full bg-fuchsia-500 px-6 text-sm font-extrabold text-white hover:bg-fuchsia-400">Manage account</Link>
+    </main>;
+  }
   const featured = subscriberVideos.find((video) => video.featured) ?? subscriberVideos[0];
   const continueWatching = subscriberVideos.filter((video) => video.progressPercent > 0 && video.id !== featured.id);
   const recent = subscriberVideos.filter((video) => video.id !== featured.id);

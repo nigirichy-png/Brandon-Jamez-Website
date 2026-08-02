@@ -196,7 +196,7 @@ Copy `.env.example` to the Git-ignored `.env.local` only when an integration is 
 
 Supabase Auth and all six reviewed migrations are applied to the dedicated Brandon Jamez Website project. Migration 006 adds a videos-only CMS for validated YouTube, Rumble, and Kick HTTPS links, a published-only public RPC, active-admin RPC mutations, optimistic version checks, restrictive grants/RLS, and data-minimized audit events. The application uses the request-scoped authenticated client for routine CMS operations; it does not use the server secret for CMS reads or writes. CLI-generated database types live in `src/lib/supabase/database.types.ts`.
 
-Professional external providers will be selected later for age verification, payments, and private streaming. None has been chosen or integrated.
+Stripe subscription foundation code is documented in `docs/STRIPE_SUBSCRIPTIONS.md`, but billing remains inactive until the migration, test-mode configuration, signed webhook, Checkout, and Portal gates are explicitly completed. Professional providers for age verification and private streaming remain unselected and unconnected.
 
 ## Production deployment
 

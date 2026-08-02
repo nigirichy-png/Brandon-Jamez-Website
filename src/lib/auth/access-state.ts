@@ -22,34 +22,37 @@ export type RealAccountState = {
   verificationStatus: VerificationStatus;
   subscriptionActive: boolean;
   subscriptionStatus: SubscriptionStatus;
+  subscriptionPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
   accessLoadFailed: boolean;
 };
 
 export async function loadRealAccountState(): Promise<RealAccountState> {
-  if (!isSupabaseConfigured()) return { user: null, displayName: null, createdAt: null, roles: [], accountBlocked: false, ageVerified: false, verificationStatus: "not_started", subscriptionActive: false, subscriptionStatus: "none", accessLoadFailed: false };
+  if (!isSupabaseConfigured()) return { user: null, displayName: null, createdAt: null, roles: [], accountBlocked: false, ageVerified: false, verificationStatus: "not_started", subscriptionActive: false, subscriptionStatus: "none", subscriptionPeriodEnd: null, cancelAtPeriodEnd: false, accessLoadFailed: false };
 
   const supabase = await createServerSupabaseClient();
   const { data: userData, error: userError } = await supabase.auth.getUser();
   const user = userError ? null : userData.user;
-  if (!user) return { user: null, displayName: null, createdAt: null, roles: [], accountBlocked: false, ageVerified: false, verificationStatus: "not_started", subscriptionActive: false, subscriptionStatus: "none", accessLoadFailed: false };
+  if (!user) return { user: null, displayName: null, createdAt: null, roles: [], accountBlocked: false, ageVerified: false, verificationStatus: "not_started", subscriptionActive: false, subscriptionStatus: "none", subscriptionPeriodEnd: null, cancelAtPeriodEnd: false, accessLoadFailed: false };
 
-  const [profile, roleRows, restriction, verification, subscription] = await Promise.all([
+  const [profile, roleRows, restriction, verification, subscription, paidEntitlement] = await Promise.all([
     supabase.from("profiles").select("display_name, created_at").eq("id", user.id).limit(1),
     supabase.from("user_roles").select("role").eq("user_id", user.id),
     supabase.from("account_restrictions").select("blocked").eq("user_id", user.id).limit(1),
     supabase.from("age_verifications").select("age_verified, status").eq("user_id", user.id).limit(1),
-    supabase.from("subscriptions").select("status").eq("user_id", user.id).limit(1),
+    supabase.from("subscriptions").select("status, current_period_end, cancel_at_period_end").eq("user_id", user.id).limit(1),
+    supabase.rpc("has_active_paid_subscription"),
   ]);
 
   const profileRow = profile.data?.[0] ?? null;
   const restrictionRow = restriction.data?.[0] ?? null;
   const verificationRow = verification.data?.[0] ?? null;
   const subscriptionRow = subscription.data?.[0] ?? null;
-  const queryFailed = Boolean(profile.error || roleRows.error || restriction.error || verification.error || subscription.error);
+  const queryFailed = Boolean(profile.error || roleRows.error || restriction.error || verification.error || subscription.error || paidEntitlement.error);
   const accessLoadFailed = queryFailed || !profileRow;
   const roles = accessLoadFailed ? [] : (roleRows.data ?? []).map((row) => row.role as Role).filter((role) => trustedRoles.has(role));
   const rawSubscriptionStatus = subscriptionRow?.status;
-  const subscriptionStatus: SubscriptionStatus = rawSubscriptionStatus === "active" ? "active" : rawSubscriptionStatus === "expired" || rawSubscriptionStatus === "canceled" ? "expired" : "none";
+  const subscriptionStatus: SubscriptionStatus = rawSubscriptionStatus ?? "none";
 
   return {
     user,
@@ -59,8 +62,10 @@ export async function loadRealAccountState(): Promise<RealAccountState> {
     accountBlocked: accessLoadFailed || Boolean(restrictionRow?.blocked),
     ageVerified: !accessLoadFailed && Boolean(verificationRow?.age_verified && verificationRow.status === "verified"),
     verificationStatus: !accessLoadFailed && verificationRow?.status === "verified" ? "verified" : "not_started",
-    subscriptionActive: !accessLoadFailed && rawSubscriptionStatus === "active",
+    subscriptionActive: !accessLoadFailed && paidEntitlement.data === true,
     subscriptionStatus: accessLoadFailed ? "none" : subscriptionStatus,
+    subscriptionPeriodEnd: accessLoadFailed ? null : subscriptionRow?.current_period_end ?? null,
+    cancelAtPeriodEnd: !accessLoadFailed && Boolean(subscriptionRow?.cancel_at_period_end),
     accessLoadFailed,
   };
 }
@@ -79,7 +84,9 @@ export async function resolveMemberAccessState(value: string | string[] | undefi
     roles: real.roles,
     verificationStatus: real.verificationStatus,
     subscriptionStatus: real.subscriptionStatus,
-    subscriptionSummary: real.subscriptionActive ? "Active subscription" : real.subscriptionStatus === "expired" ? "Subscription expired" : "No active subscription",
+    subscriptionSummary: real.subscriptionActive
+      ? real.cancelAtPeriodEnd ? "Active until the current paid period ends" : "Active paid subscription"
+      : ["canceled", "expired", "incomplete_expired"].includes(real.subscriptionStatus) ? "Subscription ended" : "No active paid subscription",
     developmentPreview: false,
     accessLoadFailed: real.accessLoadFailed,
   };

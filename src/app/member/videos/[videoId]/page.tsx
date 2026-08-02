@@ -20,6 +20,7 @@ export default async function MemberVideoPage({ params, searchParams }: VideoPag
   const [{ videoId }, query] = await Promise.all([params, searchParams]);
   const state = await resolveMemberAccessState(query.demo);
   if (!state.developmentPreview && !state.authenticated) redirect(`/login?next=${encodeURIComponent(`/member/videos/${videoId}`)}`);
+  if (!state.developmentPreview) notFound();
   const video = getSubscriberVideo(videoId);
   if (!video) notFound();
   const decision = evaluateMemberAccess(state);
