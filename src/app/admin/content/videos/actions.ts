@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireRealAdmin } from "@/lib/admin/data";
 import { isUuid } from "@/lib/admin/validation";
 import type { CmsVideoPlatform } from "@/lib/cms/video-model";
+import { isSupportedVideoUrl } from "@/lib/cms/video-links";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type CmsActionState = {
@@ -13,11 +14,6 @@ export type CmsActionState = {
 };
 
 const platforms = new Set<CmsVideoPlatform>(["youtube", "rumble", "kick"]);
-const platformHosts: Record<CmsVideoPlatform, readonly string[]> = {
-  youtube: ["youtube.com", "youtu.be"],
-  rumble: ["rumble.com"],
-  kick: ["kick.com"],
-};
 
 function value(formData: FormData, name: string): string | null {
   const candidate = formData.get(name);
@@ -26,19 +22,6 @@ function value(formData: FormData, name: string): string | null {
 
 function containsControlCharacters(input: string): boolean {
   return /[\p{Cc}\p{Cf}]/u.test(input);
-}
-
-function isSupportedUrl(platform: CmsVideoPlatform, input: string): boolean {
-  try {
-    const url = new URL(input);
-    const hostname = url.hostname.toLowerCase();
-    return url.protocol === "https:"
-      && !url.username
-      && !url.password
-      && platformHosts[platform].some((host) => hostname === host || hostname.endsWith(`.${host}`));
-  } catch {
-    return false;
-  }
 }
 
 function parseVideoFields(formData: FormData):
@@ -63,7 +46,7 @@ function parseVideoFields(formData: FormData):
     return { ok: false, state: { tone: "error", message: "Choose a supported video platform." } };
   }
   const platform = platformValue as CmsVideoPlatform;
-  if (url.length < 9 || url.length > 2048 || containsControlCharacters(url) || !isSupportedUrl(platform, url)) {
+  if (url.length < 9 || url.length > 2048 || containsControlCharacters(url) || !isSupportedVideoUrl(platform, url)) {
     return { ok: false, state: { tone: "error", message: `Enter a valid HTTPS ${platform} video URL.` } };
   }
   return { ok: true, title, description, platform, url, category };
