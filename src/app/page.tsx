@@ -1,42 +1,37 @@
 import Image from "next/image";
 
 import { Hero } from "@/components/home/hero";
+import { HomepageVideoFeature } from "@/components/home/homepage-video-feature";
 import { LiveStatus } from "@/components/home/live-status";
 import { SocialStage } from "@/components/home/social-stage";
 import { creatorLinks } from "@/data/public-links";
+import { selectHomepageVideo } from "@/lib/cms/homepage-video";
+import type { PublicCmsVideo } from "@/lib/cms/video-model";
+import { listPublishedCmsVideos } from "@/lib/cms/videos";
 
 const externalActionClass = "inline-flex min-h-12 w-fit items-center justify-center rounded-full px-6 py-3 text-sm font-extrabold transition-[background-color,border-color,color] duration-[var(--transition-fast)]";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  let videos: PublicCmsVideo[] = [];
+  let videoLoadFailed = false;
+
+  try {
+    videos = await listPublishedCmsVideos();
+  } catch {
+    videoLoadFailed = true;
+  }
+
+  const homepageVideo = selectHomepageVideo(videos);
+
   return (
     <main id="main-content" className="flex-1">
       <Hero />
       <LiveStatus />
       <SocialStage />
 
-      <section className="page-shell py-12 sm:py-16 lg:py-20" aria-label="Creator updates">
-        <div className="grid gap-4 md:grid-cols-2 lg:gap-5">
-          <article className="relative overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-[var(--surface)] p-6 sm:p-8 lg:p-9">
-            <div className="absolute -right-12 -top-16 size-44 rounded-full border-[26px] border-fuchsia-400/[0.07]" aria-hidden="true" />
-            <div className="relative flex h-full flex-col items-start">
-              <p className="eyebrow text-fuchsia-300">Latest videos</p>
-              <h2 className="font-display mt-3 max-w-lg text-[clamp(2rem,5vw,3rem)] font-bold leading-[1.02] tracking-[-0.045em] text-white">Watch the latest from Brandon.</h2>
-              <p className="mt-4 max-w-xl leading-7 text-zinc-400">Find Brandon&apos;s latest videos, livestreams and channel updates on YouTube.</p>
-              <a href={creatorLinks.youtube} target="_blank" rel="noopener noreferrer" aria-label="Watch Brandon Jamez's latest videos on YouTube (opens in a new tab)" className={`${externalActionClass} mt-6 bg-fuchsia-600 text-white shadow-[var(--shadow-accent)] hover:bg-fuchsia-500`}>Watch latest videos <span className="ml-2" aria-hidden="true">↗</span></a>
-            </div>
-          </article>
-
-          <article className="relative overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-cyan-300/[0.035] p-6 sm:p-8 lg:p-9">
-            <div className="absolute -bottom-20 -right-12 size-48 rounded-full border-[30px] border-cyan-300/[0.055]" aria-hidden="true" />
-            <div className="relative flex h-full flex-col items-start">
-              <p className="eyebrow text-cyan-300">Live &amp; upcoming</p>
-              <h2 className="font-display mt-3 max-w-lg text-[clamp(2rem,5vw,3rem)] font-bold leading-[1.02] tracking-[-0.045em] text-white">Follow Brandon for the next stream.</h2>
-              <p className="mt-4 max-w-xl leading-7 text-zinc-400">Livestream announcements and creator updates are shared through Brandon&apos;s official platforms.</p>
-              <a href={creatorLinks.youtube} target="_blank" rel="noopener noreferrer" aria-label="Open Brandon Jamez on YouTube (opens in a new tab)" className={`${externalActionClass} mt-6 border border-cyan-300/30 bg-cyan-300/[0.07] text-cyan-100 hover:bg-cyan-300/[0.13]`}>Open YouTube <span className="ml-2" aria-hidden="true">↗</span></a>
-            </div>
-          </article>
-        </div>
-      </section>
+      <HomepageVideoFeature video={homepageVideo} loadFailed={videoLoadFailed} />
 
       <section className="border-y border-white/10 bg-[var(--page-deep)]">
         <div className="page-shell py-12 sm:py-14 lg:py-12">

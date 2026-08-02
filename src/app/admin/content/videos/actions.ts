@@ -79,6 +79,7 @@ function resultForError(error: { message: string } | null): CmsActionState {
 }
 
 function refreshVideoPaths() {
+  revalidatePath("/");
   revalidatePath("/admin/content");
   revalidatePath("/admin/content/videos");
   revalidatePath("/videos");
