@@ -13,7 +13,8 @@ import {
 } from "@/app/admin/content/videos/actions";
 import { StatusLabel } from "@/components/internal/status-label";
 import { CmsVideoPreview } from "@/components/video/cms-video-preview";
-import { cmsPlatformLabels, type CmsVideo } from "@/lib/cms/video-model";
+import { VideoPlatformBadge, VideoPlatformIcon, currentVideoPlatforms, videoPlatformIdentities } from "@/components/video/video-platform-identity";
+import type { CmsVideo } from "@/lib/cms/video-model";
 
 const fieldClass = "mt-2 w-full rounded-xl border border-white/15 bg-black/20 px-3 py-2.5 text-white outline-none placeholder:text-zinc-600 focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/20";
 const secondaryButton = "min-h-11 rounded-xl border border-white/15 px-4 py-2 text-sm font-extrabold text-white transition-colors hover:border-cyan-300/40 hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-40";
@@ -35,7 +36,7 @@ function FormFields({ video }: { video?: CmsVideo }) {
     <div className="grid gap-4 sm:grid-cols-2">
       <label className="text-sm font-bold text-zinc-200">Platform
         <select className={fieldClass} name="platform" defaultValue={video?.platform ?? "youtube"} required>
-          {Object.entries(cmsPlatformLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          {currentVideoPlatforms.map((platform) => <option key={platform} value={platform}>{videoPlatformIdentities[platform].label}</option>)}
         </select>
       </label>
       <label className="text-sm font-bold text-zinc-200">Category <span className="font-normal text-zinc-500">(optional)</span>
@@ -87,6 +88,7 @@ function formatDate(value: string | null): string {
 }
 
 export function CmsVideoRecord({ video }: { video: CmsVideo }) {
+  const identity = videoPlatformIdentities[video.platform];
   const publishAction = setCmsVideoPublicationAction.bind(null, video.id, video.updated_at, video.status === "draft");
   const featureAction = setCmsVideoFeaturedAction.bind(null, video.id, video.updated_at, !video.featured);
   const moveUpAction = reorderCmsVideoAction.bind(null, video.id, video.updated_at, Math.max(0, video.display_order - 1));
@@ -94,8 +96,8 @@ export function CmsVideoRecord({ video }: { video: CmsVideo }) {
   const deleteAction = deleteCmsVideoAction.bind(null, video.id, video.updated_at);
   return <article className={`rounded-2xl border bg-[#12151c] p-5 sm:p-6 ${video.featured ? "border-fuchsia-300/35 shadow-[0_18px_50px_rgba(229,79,236,0.08)]" : "border-white/10"}`}>
     <div className="grid gap-5 md:grid-cols-[14rem_minmax(0,1fr)] md:items-start">
-      <div className="group overflow-hidden rounded-xl border border-white/10"><CmsVideoPreview title={video.title} platform={video.platform} videoUrl={video.video_url} sizes="224px" /></div>
-      <div className="min-w-0"><div className="flex flex-wrap items-center gap-2">{video.featured ? <StatusLabel tone="positive">Featured</StatusLabel> : null}<StatusLabel tone={video.status === "published" ? "positive" : "warning"}>{video.status === "published" ? "Published" : "Draft"}</StatusLabel><StatusLabel tone="info">{cmsPlatformLabels[video.platform]}</StatusLabel></div><h2 className="font-display mt-4 text-2xl font-bold text-white">{video.title}</h2>{video.short_description ? <p className="mt-2 max-w-2xl leading-6 text-zinc-400">{video.short_description}</p> : <p className="mt-2 text-sm italic text-zinc-600">No short description</p>}<a href={video.video_url} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-11 items-center rounded-xl border border-white/15 px-4 text-sm font-extrabold text-cyan-100 hover:border-cyan-300/40">Open {cmsPlatformLabels[video.platform]} <span className="ml-2" aria-hidden="true">↗</span></a></div>
+      <div className="group overflow-hidden rounded-xl border border-white/10"><CmsVideoPreview title={video.title} platform={video.platform} videoUrl={video.video_url} compact sizes="224px" /></div>
+      <div className="min-w-0"><div className="flex flex-wrap items-center gap-2">{video.featured ? <StatusLabel tone="positive">Featured</StatusLabel> : null}<StatusLabel tone={video.status === "published" ? "positive" : "warning"}>{video.status === "published" ? "Published" : "Draft"}</StatusLabel><VideoPlatformBadge platform={video.platform} /></div><h2 className="font-display mt-4 text-2xl font-bold text-white">{video.title}</h2>{video.short_description ? <p className="mt-2 max-w-2xl leading-6 text-zinc-400">{video.short_description}</p> : <p className="mt-2 text-sm italic text-zinc-600">No short description</p>}<a href={video.video_url} target="_blank" rel="noopener noreferrer" aria-label={`Open ${identity.label}: ${video.title} (opens in a new tab)`} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/15 px-4 text-sm font-extrabold text-cyan-100 hover:border-cyan-300/40"><VideoPlatformIcon platform={video.platform} className="size-5 shrink-0" />Open {identity.label} <span aria-hidden="true">↗</span></a></div>
     </div>
     <dl className="mt-5 grid gap-3 border-y border-white/10 py-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
       <div><dt className="text-zinc-500">Category</dt><dd className={`mt-1 font-bold ${video.category ? "text-zinc-200" : "text-zinc-500"}`}>{video.category ?? "No category"}</dd></div>

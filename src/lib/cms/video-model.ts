@@ -19,9 +19,3 @@ export type CmsVideo = {
 };
 
 export type PublicCmsVideo = Omit<CmsVideo, "status">;
-
-export const cmsPlatformLabels: Record<CmsVideoPlatform, string> = {
-  youtube: "YouTube",
-  rumble: "Rumble",
-  kick: "Kick",
-};

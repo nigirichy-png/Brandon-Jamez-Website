@@ -1,6 +1,7 @@
 import { CmsVideoPreview } from "@/components/video/cms-video-preview";
+import { VideoPlatformBadge, VideoPlatformIcon, videoPlatformIdentities } from "@/components/video/video-platform-identity";
 import { creatorLinks } from "@/data/public-links";
-import { cmsPlatformLabels, type PublicCmsVideo } from "@/lib/cms/video-model";
+import type { PublicCmsVideo } from "@/lib/cms/video-model";
 
 function formatPublishedDate(value: string | null): string {
   if (!value) return "Recently published";
@@ -9,16 +10,16 @@ function formatPublishedDate(value: string | null): string {
 
 function VideoMetadata({ video }: { video: PublicCmsVideo }) {
   return <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-xs font-extrabold uppercase tracking-[0.12em]">
-    <span className="rounded-full border border-cyan-300/25 bg-cyan-300/[0.07] px-3 py-1.5 text-cyan-200">{cmsPlatformLabels[video.platform]}</span>
+    <VideoPlatformBadge platform={video.platform} />
     {video.category ? <><span className="text-white/25" aria-hidden="true">•</span><span className="text-zinc-400">{video.category}</span></> : null}
     <span className="text-white/25" aria-hidden="true">•</span>
     <time dateTime={video.published_at ?? undefined} className="text-zinc-500">{formatPublishedDate(video.published_at)}</time>
   </div>;
 }
 
-function WatchLink({ video, featured = false }: { video: PublicCmsVideo; featured?: boolean }) {
-  const platform = cmsPlatformLabels[video.platform];
-  return <a href={video.video_url} target="_blank" rel="noopener noreferrer" aria-label={`Watch ${video.title} on ${platform} (opens in a new tab)`} className={`inline-flex min-h-12 items-center justify-center rounded-full px-6 py-3 text-sm font-extrabold text-white transition-colors ${featured ? "bg-fuchsia-500 shadow-[var(--shadow-accent)] hover:bg-fuchsia-400" : "border border-fuchsia-300/30 bg-fuchsia-300/[0.08] hover:bg-fuchsia-300/[0.15]"}`}>Watch on {platform} <span className="ml-2" aria-hidden="true">↗</span></a>;
+function WatchLink({ video }: { video: PublicCmsVideo }) {
+  const identity = videoPlatformIdentities[video.platform];
+  return <a href={video.video_url} target="_blank" rel="noopener noreferrer" aria-label={`${identity.watchLabel}: ${video.title} (opens in a new tab)`} className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full border px-6 py-3 text-sm font-extrabold transition-[color,background-color,filter] ${identity.watchButtonClass}`}><VideoPlatformIcon platform={video.platform} className="size-5 shrink-0" /><span>{identity.watchLabel}</span><span aria-hidden="true">↗</span></a>;
 }
 
 function FeaturedVideo({ video }: { video: PublicCmsVideo }) {
@@ -31,7 +32,7 @@ function FeaturedVideo({ video }: { video: PublicCmsVideo }) {
         <VideoMetadata video={video} />
         <h3 className="font-display mt-5 text-[clamp(2rem,5vw,3.6rem)] font-bold leading-[0.98] tracking-[-0.052em] text-white">{video.title}</h3>
         {video.short_description ? <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg">{video.short_description}</p> : null}
-        <div className="mt-7"><WatchLink video={video} featured /></div>
+        <div className="mt-7"><WatchLink video={video} /></div>
       </div>
     </div>
   </article>;
