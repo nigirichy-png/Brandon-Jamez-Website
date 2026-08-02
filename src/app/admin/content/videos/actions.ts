@@ -12,8 +12,6 @@ export type CmsActionState = {
   message: string;
 };
 
-export const initialCmsActionState: CmsActionState = { tone: "idle", message: "" };
-
 const platforms = new Set<CmsVideoPlatform>(["youtube", "rumble", "kick"]);
 const platformHosts: Record<CmsVideoPlatform, readonly string[]> = {
   youtube: ["youtube.com", "youtu.be"],

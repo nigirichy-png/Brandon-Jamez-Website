@@ -5,7 +5,6 @@ import { useActionState } from "react";
 import {
   createCmsVideoAction,
   deleteCmsVideoAction,
-  initialCmsActionState,
   reorderCmsVideoAction,
   setCmsVideoFeaturedAction,
   setCmsVideoPublicationAction,
@@ -17,6 +16,7 @@ import { cmsPlatformLabels, type CmsVideo } from "@/lib/cms/video-model";
 
 const fieldClass = "mt-2 w-full rounded-xl border border-white/15 bg-black/20 px-3 py-2.5 text-white outline-none placeholder:text-zinc-600 focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/20";
 const secondaryButton = "min-h-11 rounded-xl border border-white/15 px-4 py-2 text-sm font-extrabold text-white transition-colors hover:border-cyan-300/40 hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-40";
+const initialCmsActionState: CmsActionState = { tone: "idle", message: "" };
 
 function ActionMessage({ state }: { state: CmsActionState }) {
   if (!state.message) return null;
