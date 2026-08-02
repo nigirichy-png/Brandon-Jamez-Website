@@ -1,6 +1,6 @@
 # Local Supabase preparation
 
-All four migrations in this directory were reviewed, passed linked-project dry runs, and were applied to the dedicated Brandon Jamez Website Supabase project after explicit approvals. Do not assume future migrations are approved.
+All six migrations in this directory were reviewed, tested, and applied to the dedicated Brandon Jamez Website Supabase project after explicit approvals. Do not assume future migrations are approved.
 
 ## Review workflow
 
@@ -43,7 +43,9 @@ used by the server-rendered admin summaries. RLS bypass alone does not provide
 SQL table privileges. Sensitive reason and provider-reference columns remain
 ungranted, and browser roles receive no additional access.
 
-Content and moderation tables remain future work. Define ownership, lifecycle, evidence handling, and retention before adding them. Development preview selectors never authorize database access and are ignored in production.
+The reviewed videos-only CMS is the sole content table currently present. It stores validated YouTube, Rumble, and Kick HTTPS link metadata; active admins mutate it through audited RPCs, and public callers read published rows through a safe RPC. Events, moderation persistence, uploaded media, hosted playback, thumbnails, and Storage remain future work. Development preview selectors never authorize database access and are ignored in production.
+
+`202608010006_cms_videos_foundation.sql` is applied. It adds `cms_videos`, the two CMS enums, a published-only public list function, active-admin mutation/list functions, optimistic-version checks, a single-featured invariant, restrictive RLS/grants, and data-minimized CMS audit actions. It adds no media table, Storage configuration, upload path, provider credential, or direct browser table mutation grant.
 
 `202608010005_account_security_audit_action.sql` is applied. It adds only the allowlisted `account.email_change_requested` action and a no-argument, authenticated function that derives its actor from `auth.uid()`. It stores no old or new email, accepts no identifier, and changes no Auth, role, restriction, verification, subscription, or profile state.
 

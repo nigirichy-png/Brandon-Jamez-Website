@@ -112,6 +112,7 @@ export type Database = {
           occurred_at: string
           result: string
           target_label_snapshot: string | null
+          target_resource_id: string | null
           target_type: string
           target_user_id: string | null
         }
@@ -124,6 +125,7 @@ export type Database = {
           occurred_at?: string
           result: string
           target_label_snapshot?: string | null
+          target_resource_id?: string | null
           target_type: string
           target_user_id?: string | null
         }
@@ -136,8 +138,60 @@ export type Database = {
           occurred_at?: string
           result?: string
           target_label_snapshot?: string | null
+          target_resource_id?: string | null
           target_type?: string
           target_user_id?: string | null
+        }
+        Relationships: []
+      }
+      cms_videos: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          display_order: number
+          featured: boolean
+          id: string
+          platform: Database["public"]["Enums"]["cms_video_platform"]
+          published_at: string | null
+          short_description: string
+          status: Database["public"]["Enums"]["cms_content_status"]
+          title: string
+          updated_at: string
+          updated_by: string | null
+          video_url: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          featured?: boolean
+          id?: string
+          platform: Database["public"]["Enums"]["cms_video_platform"]
+          published_at?: string | null
+          short_description?: string
+          status?: Database["public"]["Enums"]["cms_content_status"]
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          video_url: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          featured?: boolean
+          id?: string
+          platform?: Database["public"]["Enums"]["cms_video_platform"]
+          published_at?: string | null
+          short_description?: string
+          status?: Database["public"]["Enums"]["cms_content_status"]
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          video_url?: string
         }
         Relationships: []
       }
@@ -235,6 +289,37 @@ export type Database = {
         Args: { p_reason: string; p_target_user_id: string }
         Returns: boolean
       }
+      admin_create_cms_video: {
+        Args: {
+          p_category?: string
+          p_platform: Database["public"]["Enums"]["cms_video_platform"]
+          p_short_description: string
+          p_title: string
+          p_video_url: string
+        }
+        Returns: string
+      }
+      admin_delete_cms_video: {
+        Args: { p_expected_updated_at: string; p_video_id: string }
+        Returns: boolean
+      }
+      admin_list_cms_videos: {
+        Args: never
+        Returns: {
+          category: string
+          created_at: string
+          display_order: number
+          featured: boolean
+          id: string
+          platform: Database["public"]["Enums"]["cms_video_platform"]
+          published_at: string
+          short_description: string
+          status: Database["public"]["Enums"]["cms_content_status"]
+          title: string
+          updated_at: string
+          video_url: string
+        }[]
+      }
       admin_remove_role: {
         Args: {
           p_role: Database["public"]["Enums"]["app_role"]
@@ -242,14 +327,63 @@ export type Database = {
         }
         Returns: boolean
       }
+      admin_reorder_cms_video: {
+        Args: {
+          p_display_order: number
+          p_expected_updated_at: string
+          p_video_id: string
+        }
+        Returns: boolean
+      }
       admin_restore_account: {
         Args: { p_target_user_id: string }
         Returns: boolean
       }
-      record_own_email_change_request: {
-        Args: Record<PropertyKey, never>
+      admin_set_cms_video_featured: {
+        Args: {
+          p_expected_updated_at: string
+          p_featured: boolean
+          p_video_id: string
+        }
         Returns: boolean
       }
+      admin_set_cms_video_publication: {
+        Args: {
+          p_expected_updated_at: string
+          p_publish: boolean
+          p_video_id: string
+        }
+        Returns: boolean
+      }
+      admin_update_cms_video: {
+        Args: {
+          p_category: string
+          p_expected_updated_at: string
+          p_platform: Database["public"]["Enums"]["cms_video_platform"]
+          p_short_description: string
+          p_title: string
+          p_video_id: string
+          p_video_url: string
+        }
+        Returns: boolean
+      }
+      list_published_cms_videos: {
+        Args: never
+        Returns: {
+          category: string
+          created_at: string
+          display_order: number
+          featured: boolean
+          id: string
+          platform: Database["public"]["Enums"]["cms_video_platform"]
+          published_at: string
+          short_description: string
+          title: string
+          updated_at: string
+          video_url: string
+        }[]
+      }
+      record_own_email_change_request: { Args: never; Returns: boolean }
       update_own_display_name: {
         Args: { p_display_name: string }
         Returns: boolean
@@ -263,6 +397,8 @@ export type Database = {
         | "expired"
         | "revoked"
       app_role: "subscriber" | "moderator" | "content_manager" | "admin"
+      cms_content_status: "draft" | "published"
+      cms_video_platform: "youtube" | "rumble" | "kick"
       subscription_status:
         | "inactive"
         | "trialing"
@@ -408,6 +544,8 @@ export const Constants = {
         "revoked",
       ],
       app_role: ["subscriber", "moderator", "content_manager", "admin"],
+      cms_content_status: ["draft", "published"],
+      cms_video_platform: ["youtube", "rumble", "kick"],
       subscription_status: [
         "inactive",
         "trialing",

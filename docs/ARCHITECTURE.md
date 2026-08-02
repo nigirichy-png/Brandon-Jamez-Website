@@ -60,7 +60,7 @@ Display-name self-service uses the cookie-backed authenticated client and `updat
 
 The moderation preview processes only safe fictional records already submitted to this website's internal workflow. It performs no reports, bans, mass actions, account actions, or API calls against YouTube, Facebook, Discord, Instagram, or any other external service.
 
-The content preview reads existing mock video and event metadata. It cannot upload, schedule, publish, archive, or mutate records. Future writes must validate content-manager or admin permission on the server, constrain rows with RLS, and emit an audit event.
+The `/content` routes remain non-persistent content-manager previews. Real video management lives under `/admin/content/videos` and uses only active-admin-checked RPCs through the request-scoped authenticated client. Server Actions repeat authentication, active-admin validation, field validation, and optimistic-version handling; the database performs the mutation and audit insert atomically. The CMS stores supported external link metadata only and provides no upload, hosted playback, Storage, or media-library operation.
 
 The admin preview shows data-minimized fictional account summaries and safe integration labels only. It exposes no environment variables, secret names, credentials, contact data, identity-document data, payment data, IP addresses, or precise locations. Role and blocking controls are disabled demonstrations; browser-side role mutation is never security.
 
@@ -151,7 +151,7 @@ There is no checkout, card form, payment handling, fake successful purchase, or 
 
 Supabase Auth establishes user identity while server-side code validates sessions. PostgreSQL stores the minimum required account, role, entitlement, and integration-reference data. Row Level Security policies enforce least-privilege access independently of application UI.
 
-`supabase/migrations` contains the five applied migrations: the initial account model, admin/audit operations, audited-profile hardening, narrow trusted read grants, and the account-security audit action. The administration migration adds `audit_events`, restrictive grants and RLS, an active-admin helper, an authenticated display-name function, and atomic role/restriction functions with final-admin protection. The server secret receives only the account-summary columns required after real-admin validation. Content and moderation tables remain planned pending ownership, lifecycle, evidence, and retention review.
+`supabase/migrations` contains six applied migrations: the initial account model, admin/audit operations, audited-profile hardening, narrow trusted read grants, the account-security audit action, and the videos-only CMS foundation. Migration 006 adds validated YouTube, Rumble, and Kick link metadata, published-only public reads, active-admin CMS RPCs, optimistic concurrency, restrictive table grants/RLS, and resource-targeted audit events. The public page and normal CMS operations never use the service secret or query `cms_videos` directly. Events CMS, moderation persistence, uploaded media, hosted playback, thumbnails, and Storage remain future reviewed work.
 
 `src/lib/supabase/database.types.ts` is generated from the linked project. `types.ts` remains a stable re-export boundary for existing imports.
 

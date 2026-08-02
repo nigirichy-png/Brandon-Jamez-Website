@@ -21,7 +21,7 @@ Supabase Auth, the RLS-protected account schema, display-name self-service, role
 | --- | --- | --- |
 | `/` | Public mock UI | Homepage, live status, social placeholders, featured videos, events, Guide, and membership promotions |
 | `/guide` | Public placeholder | Explains the separate Pattaya Guide project and holds a disabled URL placeholder |
-| `/videos` | Public mock UI | Public video metadata and abstract placeholders only |
+| `/videos` | Public CMS | Published YouTube, Rumble, and Kick links from the safe public video RPC |
 | `/events` | Public mock UI | Upcoming mock events |
 | `/subscribe` | Public information | Future subscriber requirements; subscriptions are not active |
 | `/login` | Public authentication | Server Action email/password sign-in with safe same-origin continuation |
@@ -46,7 +46,8 @@ Supabase Auth, the RLS-protected account schema, display-name self-service, role
 | `/admin` | Admin-only | Real administrative control-center overview; local previews in development only |
 | `/admin/users` | Admin-only | Paginated, data-minimized real account summaries |
 | `/admin/users/[userId]` | Admin-only | Account detail, confirmed role/restriction actions, and recent audit activity |
-| `/admin/content` | Server-rendered development demo | High-level content oversight |
+| `/admin/content` | Admin-only | Real video publication summary and content-workspace entry point |
+| `/admin/content/videos` | Admin-only | Audited video creation, editing, publication, featuring, ordering, and deletion |
 | `/admin/audit` | Admin-only | Paginated real audit-event stream; fictional records only in development preview |
 
 ## Local development
@@ -94,7 +95,7 @@ supabase/
 
 ## Mock-data status
 
-Everything in `src/data/mock-data.ts` is development-only. Public video records are display metadata and do not include MP4 URLs. Subscriber video records are metadata only and include no files, filesystem paths, playback URLs, real provider asset IDs, credentials, or tokens. Their `mockPlaybackAssetId` fields are deliberately fake internal identifiers. Social destinations and live streaming are not configured.
+Everything remaining in `src/data/mock-data.ts` is development-only. The public `/videos` route no longer uses its mock records; it reads published metadata through `list_published_cms_videos`. Subscriber and internal content previews still use metadata-only mock records with no files, filesystem paths, playback URLs, real provider asset IDs, credentials, or tokens. Their `mockPlaybackAssetId` fields are deliberately fake internal identifiers. Social destinations and live streaming are not configured.
 
 ## Member access demo
 
@@ -193,7 +194,7 @@ Copy `.env.example` to the Git-ignored `.env.local` only when an integration is 
 
 ## Integration and deployment direction
 
-Supabase Auth and all five reviewed migrations are applied to the dedicated Brandon Jamez Website project. Confirmation supports hosted, token-hash, and authorization-code flows. Server Actions implement signup, login, logout, account security, display-name updates, role changes, and restrictions. CLI-generated database types live in `src/lib/supabase/database.types.ts`.
+Supabase Auth and all six reviewed migrations are applied to the dedicated Brandon Jamez Website project. Migration 006 adds a videos-only CMS for validated YouTube, Rumble, and Kick HTTPS links, a published-only public RPC, active-admin RPC mutations, optimistic version checks, restrictive grants/RLS, and data-minimized audit events. The application uses the request-scoped authenticated client for routine CMS operations; it does not use the server secret for CMS reads or writes. CLI-generated database types live in `src/lib/supabase/database.types.ts`.
 
 Professional external providers will be selected later for age verification, payments, and private streaming. None has been chosen or integrated.
 
