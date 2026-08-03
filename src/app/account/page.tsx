@@ -14,6 +14,14 @@ export const metadata: Metadata = { title: "Account" };
 const buttonClass =
   "inline-flex min-h-11 items-center rounded-xl border border-white/15 px-5 text-sm font-extrabold text-white hover:bg-white/[0.05]";
 
+const inactiveSubscriptionSummary = {
+  incomplete: "Subscription incomplete — paid access is inactive",
+  trialing: "Trial period — paid access is inactive",
+  past_due: "Payment past due — paid access is inactive",
+  unpaid: "Subscription unpaid — paid access is inactive",
+  paused: "Subscription paused — paid access is inactive",
+} as const;
+
 type AccountPageProps = {
   searchParams: Promise<{ billing?: string; checkout?: string }>;
 };
@@ -38,6 +46,22 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const hasBillingRecord = !["none", "inactive"].includes(
     state.subscriptionStatus,
   );
+  const paidAccessBadge = state.subscriptionActive
+    ? state.cancelAtPeriodEnd && periodEnd
+      ? `Active until ${periodEnd}`
+      : "Active"
+    : "Inactive";
+  const paidAccessSummary = state.subscriptionActive
+    ? state.cancelAtPeriodEnd
+      ? "Subscription canceled — will not renew"
+      : periodEnd
+        ? `Renews on ${periodEnd}`
+        : "Renewal date unavailable"
+    : state.subscriptionStatus in inactiveSubscriptionSummary
+      ? inactiveSubscriptionSummary[
+          state.subscriptionStatus as keyof typeof inactiveSubscriptionSummary
+        ]
+      : "Subscription ended";
 
   return (
     <main
@@ -173,14 +197,11 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             <StatusLabel
               tone={state.subscriptionActive ? "positive" : "neutral"}
             >
-              {state.subscriptionActive ? "Active" : "Inactive"}
+              {paidAccessBadge}
             </StatusLabel>
           </div>
           <p className="mt-3 text-sm leading-6 text-zinc-400">
-            Stripe state: {state.subscriptionStatus.replaceAll("_", " ")}.
-            {periodEnd
-              ? ` ${state.cancelAtPeriodEnd ? "Access ends" : "Current period ends"} ${periodEnd}.`
-              : ""}
+            {paidAccessSummary}
           </p>
           <div className="mt-4">
             {hasBillingRecord && stripeConfigured && !state.accountBlocked ? (
