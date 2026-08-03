@@ -1,7 +1,16 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { useActionState } from "react";
-import { createSubscriberPostAction, deleteSubscriberPostAction, setSubscriberPostPublicationAction, updateSubscriberPostAction, type SubscriberPostActionState } from "@/app/admin/subscriber-content/actions";
+import {
+  createSubscriberPostAction,
+  deleteSubscriberPostAction,
+  removeSubscriberPostImageAction,
+  setSubscriberPostPublicationAction,
+  updateSubscriberPostAction,
+  uploadSubscriberPostImageAction,
+  type SubscriberPostActionState,
+} from "@/app/admin/subscriber-content/actions";
 import { StatusLabel } from "@/components/internal/status-label";
 import type { AdminSubscriberPost } from "@/lib/subscriber-content/model";
 
@@ -9,7 +18,8 @@ const initial: SubscriberPostActionState = { tone: "idle", message: "" };
 const field = "mt-2 w-full rounded-xl border border-white/15 bg-black/20 px-3 py-2.5 text-white outline-none placeholder:text-zinc-600 focus:border-cyan-300";
 
 function Message({ state }: { state: SubscriberPostActionState }) {
-  return state.message ? <p role={state.tone === "error" ? "alert" : "status"} className={`mt-3 rounded-xl border p-3 text-sm ${state.tone === "error" ? "border-rose-300/20 text-rose-100" : "border-emerald-300/20 text-emerald-100"}`}>{state.message}</p> : null;
+  if (!state.message) return null;
+  return <p role={state.tone === "error" ? "alert" : "status"} className={`mt-3 rounded-xl border p-3 text-sm ${state.tone === "error" ? "border-rose-300/20 text-rose-100" : "border-emerald-300/20 text-emerald-100"}`}>{state.message}</p>;
 }
 
 function Fields({ post }: { post?: AdminSubscriberPost }) {
@@ -18,14 +28,20 @@ function Fields({ post }: { post?: AdminSubscriberPost }) {
     <label className="text-sm font-bold text-zinc-200">Slug <span className="font-normal text-zinc-500">(generated from title when empty)</span><input className={field} name="slug" defaultValue={post?.slug} maxLength={100} pattern="[a-z0-9]+(-[a-z0-9]+)*" /></label>
     <label className="text-sm font-bold text-zinc-200">Excerpt<textarea className={field} name="excerpt" defaultValue={post?.excerpt ?? ""} maxLength={500} rows={3} /></label>
     <label className="text-sm font-bold text-zinc-200">Plain-text body<textarea className={field} name="body" defaultValue={post?.body} maxLength={50000} rows={10} required /></label>
-    <div className="grid gap-4 md:grid-cols-2"><label className="text-sm font-bold text-zinc-200">Cover image URL<input className={field} name="coverImageUrl" defaultValue={post?.cover_image_url ?? ""} type="url" /></label><label className="text-sm font-bold text-zinc-200">Status<select className={field} name="status" defaultValue={post?.status ?? "draft"}><option value="draft">Draft</option><option value="published">Published</option></select></label></div>
-    <div className="grid gap-4 md:grid-cols-2"><label className="text-sm font-bold text-zinc-200">Media URL<input className={field} name="mediaUrl" defaultValue={post?.media_url ?? ""} type="url" /></label><label className="text-sm font-bold text-zinc-200">Media type<select className={field} name="mediaType" defaultValue={post?.media_type ?? ""}><option value="">None</option><option value="image">Image</option><option value="video">Video</option><option value="embed">External link</option></select></label></div>
+    <div className="grid gap-4 md:grid-cols-2">
+      <label className="text-sm font-bold text-zinc-200">External cover image URL <span className="font-normal text-zinc-500">(fallback)</span><input className={field} name="coverImageUrl" defaultValue={post?.cover_image_url ?? ""} type="url" /></label>
+      <label className="text-sm font-bold text-zinc-200">Status<select className={field} name="status" defaultValue={post?.status ?? "draft"}><option value="draft">Draft</option><option value="published">Published</option></select></label>
+    </div>
+    <div className="grid gap-4 md:grid-cols-2">
+      <label className="text-sm font-bold text-zinc-200">External media URL <span className="font-normal text-zinc-500">(fallback)</span><input className={field} name="mediaUrl" defaultValue={post?.media_url ?? ""} type="url" /></label>
+      <label className="text-sm font-bold text-zinc-200">Media type<select className={field} name="mediaType" defaultValue={post?.media_type ?? ""}><option value="">None</option><option value="image">Image</option><option value="video">Video</option><option value="embed">External link</option></select></label>
+    </div>
   </div>;
 }
 
 export function CreateSubscriberPostForm() {
   const [state, action, pending] = useActionState(createSubscriberPostAction, initial);
-  return <form action={action} className="rounded-2xl border border-white/10 bg-[#12151c] p-6"><h2 className="font-display text-2xl font-bold text-white">Create subscriber post</h2><p className="mb-5 mt-2 text-sm text-zinc-400">Use neutral plain text and optional HTTPS media links.</p><Fields /><button disabled={pending} className="mt-5 min-h-12 rounded-xl bg-fuchsia-500 px-5 font-extrabold text-white disabled:opacity-40">{pending ? "Saving…" : "Create post"}</button><Message state={state} /></form>;
+  return <form action={action} className="rounded-2xl border border-white/10 bg-[#12151c] p-6"><h2 className="font-display text-2xl font-bold text-white">Create subscriber post</h2><p className="mb-5 mt-2 text-sm text-zinc-400">Create the post first, then upload preferred private images from its record. External HTTPS URLs remain as compatibility fallbacks.</p><Fields /><button disabled={pending} className="mt-5 min-h-12 rounded-xl bg-fuchsia-500 px-5 font-extrabold text-white disabled:opacity-40">{pending ? "Saving…" : "Create post"}</button><Message state={state} /></form>;
 }
 
 function ButtonForm({ action, label, confirmation, danger }: { action: (state: SubscriberPostActionState, data: FormData) => Promise<SubscriberPostActionState>; label: string; confirmation: string; danger?: boolean }) {
@@ -37,9 +53,20 @@ function formatDate(value: string | null): string {
   return value ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(value)) : "Not published";
 }
 
-export function SubscriberPostRecord({ post }: { post: AdminSubscriberPost }) {
+type PostWithImages = AdminSubscriberPost & { cover_image_src: string | null; content_image_src: string | null };
+
+function ImageManager({ post, kind, imageSrc, hasPrivateImage }: { post: PostWithImages; kind: "cover" | "content"; imageSrc: string | null; hasPrivateImage: boolean }) {
+  const upload = uploadSubscriberPostImageAction.bind(null, post.id, post.updated_at, post.slug, kind);
+  const remove = removeSubscriberPostImageAction.bind(null, post.id, post.updated_at, post.slug, kind);
+  const [uploadState, uploadAction, uploading] = useActionState(upload, initial);
+  const [removeState, removeAction, removing] = useActionState(remove, initial);
+  const label = kind === "cover" ? "Cover image" : "Content image";
+  return <section className="rounded-xl border border-white/10 bg-black/15 p-4"><h3 className="font-display text-lg font-bold text-white">{label}</h3>{imageSrc ? <img src={imageSrc} alt="" className="mt-3 aspect-video max-h-64 w-full rounded-lg border border-white/10 object-contain" /> : <p className="mt-3 text-sm text-zinc-500">No image configured.</p>}<form action={uploadAction} className="mt-4"><label className="text-sm font-bold text-zinc-200">{hasPrivateImage ? "Replace private image" : "Upload private image"}<input className={`${field} file:mr-3 file:rounded-lg file:border-0 file:bg-cyan-300 file:px-3 file:py-2 file:font-bold file:text-black`} name="image" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" required /></label><p className="mt-2 text-xs leading-5 text-zinc-500">JPEG, PNG, WebP, GIF, or AVIF. Maximum 10 MB. Private upload is preferred.</p><button disabled={uploading} className="mt-3 min-h-11 rounded-xl border border-cyan-300/30 px-4 text-sm font-extrabold text-cyan-100">{uploading ? "Uploading…" : hasPrivateImage ? "Replace image" : "Upload image"}</button><Message state={uploadState} /></form>{hasPrivateImage ? <form action={removeAction} className="mt-3" onSubmit={(event) => { if (!window.confirm(`Remove the private ${kind} image from “${post.title}”?`)) event.preventDefault(); }}><button disabled={removing} className="min-h-11 rounded-xl border border-rose-300/30 px-4 text-sm font-extrabold text-rose-100">{removing ? "Removing…" : "Remove private image"}</button><Message state={removeState} /></form> : null}</section>;
+}
+
+export function SubscriberPostRecord({ post }: { post: PostWithImages }) {
   const [state, action, pending] = useActionState(updateSubscriberPostAction.bind(null, post.id, post.updated_at, post.slug), initial);
   const publication = setSubscriberPostPublicationAction.bind(null, post.id, post.updated_at, post.slug, post.status === "draft");
   const deletion = deleteSubscriberPostAction.bind(null, post.id, post.updated_at, post.slug);
-  return <article className="rounded-2xl border border-white/10 bg-[#12151c] p-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><StatusLabel tone={post.status === "published" ? "positive" : "warning"}>{post.status === "published" ? "Published" : "Draft"}</StatusLabel><h2 className="font-display mt-3 text-2xl font-bold text-white">{post.title}</h2><p className="mt-1 text-sm text-zinc-500">/{post.slug}</p></div></div><dl className="mt-4 grid gap-3 border-y border-white/10 py-4 text-sm sm:grid-cols-2"><div><dt className="text-zinc-500">Updated</dt><dd className="mt-1 font-bold text-zinc-200">{formatDate(post.updated_at)}</dd></div><div><dt className="text-zinc-500">Published</dt><dd className="mt-1 font-bold text-zinc-200">{formatDate(post.published_at)}</dd></div></dl><details className="mt-5 rounded-xl border border-white/10 p-4"><summary className="cursor-pointer font-extrabold text-cyan-100">Edit post</summary><form action={action} className="mt-5"><Fields post={post} /><button disabled={pending} className="mt-5 min-h-11 rounded-xl border border-white/15 px-4 font-extrabold text-white">{pending ? "Saving…" : "Save changes"}</button><Message state={state} /></form></details><div className="mt-4 flex flex-wrap gap-3"><ButtonForm action={publication} label={post.status === "draft" ? "Publish post" : "Return to draft"} confirmation={`${post.status === "draft" ? "Publish" : "Unpublish"} “${post.title}”?`} /><ButtonForm action={deletion} label="Delete post" confirmation={`Permanently delete “${post.title}”?`} danger /></div></article>;
+  return <article className="rounded-2xl border border-white/10 bg-[#12151c] p-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><StatusLabel tone={post.status === "published" ? "positive" : "warning"}>{post.status === "published" ? "Published" : "Draft"}</StatusLabel><h2 className="font-display mt-3 text-2xl font-bold text-white">{post.title}</h2><p className="mt-1 text-sm text-zinc-500">/{post.slug}</p></div></div><dl className="mt-4 grid gap-3 border-y border-white/10 py-4 text-sm sm:grid-cols-2"><div><dt className="text-zinc-500">Updated</dt><dd className="mt-1 font-bold text-zinc-200">{formatDate(post.updated_at)}</dd></div><div><dt className="text-zinc-500">Published</dt><dd className="mt-1 font-bold text-zinc-200">{formatDate(post.published_at)}</dd></div></dl><div className="mt-5 grid gap-4 lg:grid-cols-2"><ImageManager post={post} kind="cover" imageSrc={post.cover_image_src} hasPrivateImage={Boolean(post.cover_image_path)} /><ImageManager post={post} kind="content" imageSrc={post.content_image_src} hasPrivateImage={Boolean(post.content_image_path)} /></div><details className="mt-5 rounded-xl border border-white/10 p-4"><summary className="cursor-pointer font-extrabold text-cyan-100">Edit post</summary><form action={action} className="mt-5"><Fields post={post} /><button disabled={pending} className="mt-5 min-h-11 rounded-xl border border-white/15 px-4 font-extrabold text-white">{pending ? "Saving…" : "Save changes"}</button><Message state={state} /></form></details><div className="mt-4 flex flex-wrap gap-3"><ButtonForm action={publication} label={post.status === "draft" ? "Publish post" : "Return to draft"} confirmation={`${post.status === "draft" ? "Publish" : "Unpublish"} “${post.title}”?`} /><ButtonForm action={deletion} label="Delete post" confirmation={`Permanently delete “${post.title}”?`} danger /></div></article>;
 }

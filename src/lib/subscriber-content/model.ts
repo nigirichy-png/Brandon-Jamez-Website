@@ -9,6 +9,7 @@ export type SubscriberPostSummary = {
   slug: string;
   excerpt: string | null;
   cover_image_url: string | null;
+  cover_image_path: string | null;
   status: SubscriberPostStatus;
   published_at: string | null;
 };
@@ -17,6 +18,7 @@ export type SubscriberPostDetail = SubscriberPostSummary & {
   body: string;
   media_url: string | null;
   media_type: SubscriberMediaType | null;
+  content_image_path: string | null;
 };
 
 export type AdminSubscriberPost = SubscriberPostDetail & {

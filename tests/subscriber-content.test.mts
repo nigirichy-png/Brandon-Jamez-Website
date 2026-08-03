@@ -5,8 +5,9 @@ import test from "node:test";
 import type { SubscriberPostDetail } from "../src/lib/subscriber-content/model.ts";
 import { subscriberPostErrorMessage, slugifySubscriberPostTitle } from "../src/lib/subscriber-content/validation.ts";
 import { findPublishedSubscriberPost, publishedSubscriberPosts } from "../src/lib/subscriber-content/visibility.ts";
+import { isSafeSubscriberMediaPath, preferredSubscriberImageSource, subscriberDetailImageSource, SUBSCRIBER_IMAGE_MAX_BYTES, validateSubscriberImageFile, validateSubscriberImageMetadata } from "../src/lib/subscriber-content/media-policy.ts";
 
-const published: SubscriberPostDetail = { id: "published", title: "Published", slug: "published", excerpt: null, body: "Safe text", cover_image_url: null, media_url: null, media_type: null, status: "published", published_at: "2026-08-03T00:00:00Z" };
+const published: SubscriberPostDetail = { id: "published", title: "Published", slug: "published", excerpt: null, body: "Safe text", cover_image_url: null, cover_image_path: null, content_image_path: null, media_url: null, media_type: null, status: "published", published_at: "2026-08-03T00:00:00Z" };
 const draft: SubscriberPostDetail = { ...published, id: "draft", title: "Draft", slug: "draft", status: "draft", published_at: null };
 
 test("draft posts never appear in the subscriber listing", () => {
@@ -42,4 +43,49 @@ test("subscriber content management requires the canonical active-admin checks",
 test("slug generation is normalized and duplicate slugs have a clear error", () => {
   assert.equal(slugifySubscriberPostTitle("  A Safe Update!  "), "a-safe-update");
   assert.equal(subscriberPostErrorMessage("duplicate_subscriber_post_slug"), "That slug is already in use. Choose a unique slug.");
+});
+
+test("subscriber image validation rejects unsupported and oversized files", () => {
+  assert.equal(validateSubscriberImageMetadata({ type: "image/svg+xml", size: 100 }), "Choose a JPEG, PNG, WebP, GIF, or AVIF image.");
+  assert.equal(validateSubscriberImageMetadata({ type: "image/jpeg", size: SUBSCRIBER_IMAGE_MAX_BYTES + 1 }), "The image must be 10 MB or smaller.");
+});
+
+test("subscriber image validation rejects spoofed image content", async () => {
+  const file = new File(["not a jpeg"], "image.jpg", { type: "image/jpeg" });
+  assert.equal(await validateSubscriberImageFile(file), "The file content does not match its selected image type.");
+});
+
+test("subscriber image paths reject traversal and cross-post paths", () => {
+  const postId = "123e4567-e89b-42d3-a456-426614174000";
+  const objectId = "8f14e45f-ea8d-4a78-a652-53f2897ea2e0";
+  assert.equal(isSafeSubscriberMediaPath(`posts/${postId}/cover/${objectId}.jpg`, postId, "cover"), true);
+  assert.equal(isSafeSubscriberMediaPath(`posts/${postId}/../${objectId}.jpg`, postId, "cover"), false);
+  assert.equal(isSafeSubscriberMediaPath(`posts/223e4567-e89b-42d3-a456-426614174000/cover/${objectId}.jpg`, postId, "cover"), false);
+});
+
+test("media mutations authorize before storage access", async () => {
+  const source = await readFile(new URL("../src/app/admin/subscriber-content/actions.ts", import.meta.url), "utf8");
+  for (const actionName of ["uploadSubscriberPostImageAction", "removeSubscriberPostImageAction"]) {
+    const start = source.indexOf(`export async function ${actionName}`);
+    const end = source.indexOf("\nexport async function ", start + 1);
+    const action = source.slice(start, end < 0 ? undefined : end);
+    assert.ok(action.indexOf("await authorize()") >= 0 && action.indexOf("await authorize()") < action.indexOf(".storage.from"));
+  }
+});
+
+test("subscriber image signing remains after the canonical page guard", async () => {
+  for (const path of ["src/app/subscriber/page.tsx", "src/app/subscriber/[slug]/page.tsx"]) {
+    const source = await readFile(new URL(`../${path}`, import.meta.url), "utf8");
+    assert.ok(source.indexOf("await requireSubscriberAccess()") < source.indexOf("await resolveSubscriberPost"));
+  }
+});
+
+test("a missing private image safely renders no image without a fallback", () => {
+  assert.equal(preferredSubscriberImageSource(null, null), null);
+});
+
+test("subscriber detail prefers one content image with a cover fallback", () => {
+  assert.equal(subscriberDetailImageSource("content-signed-url", "cover-signed-url"), "content-signed-url");
+  assert.equal(subscriberDetailImageSource(null, "cover-signed-url"), "cover-signed-url");
+  assert.equal(subscriberDetailImageSource(null, null), null);
 });

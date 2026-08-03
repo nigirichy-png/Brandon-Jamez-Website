@@ -193,6 +193,8 @@ export type Database = {
       subscriber_posts: {
         Row: {
           body: string
+          content_image_path: string | null
+          cover_image_path: string | null
           cover_image_url: string | null
           created_at: string
           created_by: string | null
@@ -208,6 +210,8 @@ export type Database = {
         }
         Insert: {
           body: string
+          content_image_path?: string | null
+          cover_image_path?: string | null
           cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
@@ -223,6 +227,8 @@ export type Database = {
         }
         Update: {
           body?: string
+          content_image_path?: string | null
+          cover_image_path?: string | null
           cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
@@ -481,6 +487,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      admin_set_subscriber_post_image_path: {
+        Args: {
+          p_expected_updated_at: string
+          p_kind: string
+          p_path: string | null
+          p_post_id: string
+        }
+        Returns: string | null
+      }
       admin_update_cms_video: {
         Args: {
           p_category: string
@@ -534,6 +549,8 @@ export type Database = {
         Args: { p_slug: string }
         Returns: {
           body: string
+          content_image_path: string | null
+          cover_image_path: string | null
           cover_image_url: string | null
           excerpt: string | null
           id: string
@@ -566,6 +583,7 @@ export type Database = {
         Args: never
         Returns: {
           cover_image_url: string | null
+          cover_image_path: string | null
           excerpt: string | null
           id: string
           published_at: string | null
