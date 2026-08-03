@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import type { SubscriberPostDetail } from "../src/lib/subscriber-content/model.ts";
-import { subscriberPostErrorMessage, slugifySubscriberPostTitle } from "../src/lib/subscriber-content/validation.ts";
+import { normalizeSubscriberExternalMedia, subscriberPostErrorMessage, slugifySubscriberPostTitle } from "../src/lib/subscriber-content/validation.ts";
 import { findPublishedSubscriberPost, publishedSubscriberPosts } from "../src/lib/subscriber-content/visibility.ts";
 import { isSafeSubscriberMediaPath, preferredSubscriberImageSource, subscriberDetailImageSource, SUBSCRIBER_IMAGE_MAX_BYTES, validateSubscriberImageFile, validateSubscriberImageMetadata } from "../src/lib/subscriber-content/media-policy.ts";
 
@@ -88,4 +88,35 @@ test("subscriber detail prefers one content image with a cover fallback", () => 
   assert.equal(subscriberDetailImageSource("content-signed-url", "cover-signed-url"), "content-signed-url");
   assert.equal(subscriberDetailImageSource(null, "cover-signed-url"), "cover-signed-url");
   assert.equal(subscriberDetailImageSource(null, null), null);
+});
+
+test("supported YouTube URLs normalize to the privacy-enhanced embed origin", () => {
+  assert.deepEqual(normalizeSubscriberExternalMedia("embed", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"), { kind: "embed", provider: "YouTube", url: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" });
+});
+
+test("supported Vimeo URLs normalize to the trusted player origin", () => {
+  assert.deepEqual(normalizeSubscriberExternalMedia("embed", "https://vimeo.com/76979871"), { kind: "embed", provider: "Vimeo", url: "https://player.vimeo.com/video/76979871" });
+});
+
+test("arbitrary embed providers and non-HTTPS direct videos are rejected", () => {
+  assert.equal(normalizeSubscriberExternalMedia("embed", "https://example.com/embed/video"), null);
+  assert.equal(normalizeSubscriberExternalMedia("video", "http://cdn.example.com/video.mp4"), null);
+});
+
+test("draft preview is admin-only while subscriber draft visibility remains closed", async () => {
+  assert.equal(findPublishedSubscriberPost([draft], "draft"), null);
+  const source = await readFile(new URL("../src/app/admin/subscriber-content/[id]/preview/page.tsx", import.meta.url), "utf8");
+  const guard = source.indexOf("await requireRealAdmin(");
+  const query = source.indexOf("await getAdminSubscriberPost(id)");
+  assert.ok(guard >= 0 && guard < query);
+  assert.match(source, /if \(!authorization\.allowed\) notFound\(\)/);
+});
+
+test("text edits do not submit or clear private image paths", async () => {
+  const source = await readFile(new URL("../src/app/admin/subscriber-content/actions.ts", import.meta.url), "utf8");
+  const start = source.indexOf("export async function updateSubscriberPostAction");
+  const end = source.indexOf("\nexport async function ", start + 1);
+  const updateAction = source.slice(start, end);
+  assert.doesNotMatch(updateAction, /p_(cover|content)_image_path/);
+  assert.doesNotMatch(updateAction, /admin_set_subscriber_post_image_path/);
 });

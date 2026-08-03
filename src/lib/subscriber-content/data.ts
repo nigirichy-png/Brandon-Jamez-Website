@@ -24,3 +24,7 @@ export async function listAdminSubscriberPosts(): Promise<AdminSubscriberPost[]>
   if (error) throw new Error("admin_subscriber_posts_unavailable");
   return (data ?? []) as AdminSubscriberPost[];
 }
+
+export async function getAdminSubscriberPost(postId: string): Promise<AdminSubscriberPost | null> {
+  return (await listAdminSubscriberPosts()).find((post) => post.id === postId) ?? null;
+}

@@ -1,5 +1,44 @@
 import type { SubscriberMediaType, SubscriberPostStatus } from "./model";
 
+export type NormalizedSubscriberMedia =
+  | { kind: "video"; url: string }
+  | { kind: "embed"; provider: "YouTube" | "Vimeo"; url: string };
+
+const mediaControls = /[\s\p{Cc}\p{Cf}]/u;
+const youtubeId = /^[A-Za-z0-9_-]{11}$/;
+const vimeoId = /^\d{6,12}$/;
+
+function safeHttpsMediaUrl(value: string): URL | null {
+  if (!value || value.length > 2048 || mediaControls.test(value)) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && !url.username && !url.password ? url : null;
+  } catch {
+    return null;
+  }
+}
+
+export function normalizeSubscriberExternalMedia(type: "video" | "embed", value: string): NormalizedSubscriberMedia | null {
+  const url = safeHttpsMediaUrl(value);
+  if (!url) return null;
+  if (type === "video") return { kind: "video", url: url.toString() };
+
+  const hostname = url.hostname.toLowerCase();
+  let id: string | null = null;
+  if (["youtube.com", "www.youtube.com", "m.youtube.com", "youtube-nocookie.com", "www.youtube-nocookie.com"].includes(hostname)) {
+    if (url.pathname === "/watch") id = url.searchParams.get("v");
+    else if (url.pathname.startsWith("/embed/")) id = url.pathname.split("/")[2] ?? null;
+  } else if (hostname === "youtu.be") {
+    id = url.pathname.split("/")[1] ?? null;
+  }
+  if (id && youtubeId.test(id)) return { kind: "embed", provider: "YouTube", url: `https://www.youtube-nocookie.com/embed/${id}` };
+
+  if (["vimeo.com", "www.vimeo.com"].includes(hostname)) id = url.pathname.split("/").filter(Boolean)[0] ?? null;
+  else if (hostname === "player.vimeo.com" && url.pathname.startsWith("/video/")) id = url.pathname.split("/")[2] ?? null;
+  if (id && vimeoId.test(id)) return { kind: "embed", provider: "Vimeo", url: `https://player.vimeo.com/video/${id}` };
+  return null;
+}
+
 export type SubscriberPostInput = {
   title: string;
   slug: string;
@@ -47,11 +86,23 @@ export function validateSubscriberPostInput(formData: FormData): ValidationResul
   if (!body || body.length > 50_000 || bodyControls.test(body)) return { ok: false, message: "Enter plain-text body content between 1 and 50,000 characters." };
   if (coverImageUrl && !validHttpsUrl(coverImageUrl)) return { ok: false, message: "Enter a valid HTTPS cover image URL." };
   if ((mediaUrl && !rawMediaType) || (!mediaUrl && rawMediaType)) return { ok: false, message: "Provide both a media URL and media type, or leave both empty." };
-  if (mediaUrl && !validHttpsUrl(mediaUrl)) return { ok: false, message: "Enter a valid HTTPS media URL." };
   if (rawMediaType && !(["image", "video", "embed"] as string[]).includes(rawMediaType)) return { ok: false, message: "Choose a valid media type." };
   if (rawStatus !== "draft" && rawStatus !== "published") return { ok: false, message: "Choose draft or published status." };
 
-  return { ok: true, value: { title, slug, excerpt, body, coverImageUrl, mediaUrl, mediaType: rawMediaType as SubscriberMediaType | null, status: rawStatus } };
+  let normalizedMediaUrl = mediaUrl;
+  if (mediaUrl && rawMediaType === "image" && !validHttpsUrl(mediaUrl)) return { ok: false, message: "Enter a valid HTTPS image URL." };
+  if (mediaUrl && rawMediaType === "video") {
+    const normalized = normalizeSubscriberExternalMedia("video", mediaUrl);
+    if (!normalized) return { ok: false, message: "Enter a valid direct HTTPS video URL." };
+    normalizedMediaUrl = normalized.url;
+  }
+  if (mediaUrl && rawMediaType === "embed") {
+    const normalized = normalizeSubscriberExternalMedia("embed", mediaUrl);
+    if (!normalized) return { ok: false, message: "Enter a supported HTTPS YouTube or Vimeo URL." };
+    normalizedMediaUrl = normalized.url;
+  }
+
+  return { ok: true, value: { title, slug, excerpt, body, coverImageUrl, mediaUrl: normalizedMediaUrl, mediaType: rawMediaType as SubscriberMediaType | null, status: rawStatus } };
 }
 
 export function subscriberPostErrorMessage(message: string): string {
