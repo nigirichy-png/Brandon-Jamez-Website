@@ -18,6 +18,7 @@ const adminItems: InternalNavItem[] = [
   { href: "/admin/users", label: "User summaries", group: "Administration" },
   { href: "/admin/content", label: "Content oversight", group: "Administration" },
   { href: "/admin/content/videos", label: "Video CMS", group: "Administration" },
+  { href: "/admin/subscriber-content", label: "Subscriber content", group: "Administration" },
   { href: "/admin/audit", label: "Audit preview", group: "Administration" },
 ];
 

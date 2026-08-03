@@ -190,6 +190,54 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriber_posts: {
+        Row: {
+          body: string
+          cover_image_url: string | null
+          created_at: string
+          created_by: string | null
+          excerpt: string | null
+          id: string
+          media_type: Database["public"]["Enums"]["subscriber_media_type"] | null
+          media_url: string | null
+          published_at: string | null
+          slug: string
+          status: Database["public"]["Enums"]["cms_content_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          excerpt?: string | null
+          id?: string
+          media_type?: Database["public"]["Enums"]["subscriber_media_type"] | null
+          media_url?: string | null
+          published_at?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["cms_content_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          excerpt?: string | null
+          id?: string
+          media_type?: Database["public"]["Enums"]["subscriber_media_type"] | null
+          media_url?: string | null
+          published_at?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["cms_content_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -348,8 +396,25 @@ export type Database = {
         }
         Returns: string
       }
+      admin_create_subscriber_post: {
+        Args: {
+          p_body: string
+          p_cover_image_url: string | null
+          p_excerpt: string | null
+          p_media_type: Database["public"]["Enums"]["subscriber_media_type"] | null
+          p_media_url: string | null
+          p_slug: string
+          p_status: Database["public"]["Enums"]["cms_content_status"]
+          p_title: string
+        }
+        Returns: string
+      }
       admin_delete_cms_video: {
         Args: { p_expected_updated_at: string; p_video_id: string }
+        Returns: boolean
+      }
+      admin_delete_subscriber_post: {
+        Args: { p_expected_updated_at: string; p_post_id: string }
         Returns: boolean
       }
       admin_list_cms_videos: {
@@ -368,6 +433,10 @@ export type Database = {
           updated_at: string
           video_url: string
         }[]
+      }
+      admin_list_subscriber_posts: {
+        Args: never
+        Returns: Database["public"]["Tables"]["subscriber_posts"]["Row"][]
       }
       admin_remove_role: {
         Args: {
@@ -404,6 +473,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      admin_set_subscriber_post_publication: {
+        Args: {
+          p_expected_updated_at: string
+          p_post_id: string
+          p_publish: boolean
+        }
+        Returns: boolean
+      }
       admin_update_cms_video: {
         Args: {
           p_category: string
@@ -413,6 +490,21 @@ export type Database = {
           p_title: string
           p_video_id: string
           p_video_url: string
+        }
+        Returns: boolean
+      }
+      admin_update_subscriber_post: {
+        Args: {
+          p_body: string
+          p_cover_image_url: string | null
+          p_excerpt: string | null
+          p_expected_updated_at: string
+          p_media_type: Database["public"]["Enums"]["subscriber_media_type"] | null
+          p_media_url: string | null
+          p_post_id: string
+          p_slug: string
+          p_status: Database["public"]["Enums"]["cms_content_status"]
+          p_title: string
         }
         Returns: boolean
       }
@@ -438,6 +530,21 @@ export type Database = {
           stripe_customer_id: string
         }[]
       }
+      get_published_subscriber_post: {
+        Args: { p_slug: string }
+        Returns: {
+          body: string
+          cover_image_url: string | null
+          excerpt: string | null
+          id: string
+          media_type: Database["public"]["Enums"]["subscriber_media_type"] | null
+          media_url: string | null
+          published_at: string | null
+          slug: string
+          status: Database["public"]["Enums"]["cms_content_status"]
+          title: string
+        }[]
+      }
       has_active_paid_subscription: { Args: never; Returns: boolean }
       list_published_cms_videos: {
         Args: never
@@ -453,6 +560,18 @@ export type Database = {
           title: string
           updated_at: string
           video_url: string
+        }[]
+      }
+      list_published_subscriber_posts: {
+        Args: never
+        Returns: {
+          cover_image_url: string | null
+          excerpt: string | null
+          id: string
+          published_at: string | null
+          slug: string
+          status: Database["public"]["Enums"]["cms_content_status"]
+          title: string
         }[]
       }
       process_stripe_subscription_event: {
@@ -490,6 +609,7 @@ export type Database = {
       app_role: "subscriber" | "moderator" | "content_manager" | "admin"
       cms_content_status: "draft" | "published"
       cms_video_platform: "youtube" | "rumble" | "kick"
+      subscriber_media_type: "image" | "video" | "embed"
       subscription_status:
         | "inactive"
         | "incomplete"
@@ -641,6 +761,7 @@ export const Constants = {
       app_role: ["subscriber", "moderator", "content_manager", "admin"],
       cms_content_status: ["draft", "published"],
       cms_video_platform: ["youtube", "rumble", "kick"],
+      subscriber_media_type: ["image", "video", "embed"],
       subscription_status: [
         "inactive",
         "incomplete",
