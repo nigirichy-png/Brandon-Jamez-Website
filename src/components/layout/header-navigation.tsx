@@ -12,13 +12,16 @@ const navigation = [
   { href: "/videos", label: "Videos" },
 ];
 
-export function HeaderNavigation({ authenticated }: { authenticated: boolean }) {
+export function HeaderNavigation({ authenticated, subscriberAccess }: { authenticated: boolean; subscriberAccess: boolean }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const accountHref = authenticated ? "/account" : "/login";
   const accountLabel = authenticated ? "Account" : "Sign In";
+  const visibleNavigation = subscriberAccess
+    ? [...navigation, { href: "/subscriber", label: "Subscriber" }]
+    : navigation;
 
   const closeMenu = (restoreFocus = false) => {
     setMenuOpen(false);
@@ -69,7 +72,7 @@ export function HeaderNavigation({ authenticated }: { authenticated: boolean }) 
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
-          {navigation.map((item) => (
+          {visibleNavigation.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -107,7 +110,7 @@ export function HeaderNavigation({ authenticated }: { authenticated: boolean }) 
         <div className="absolute inset-x-0 top-full z-50 h-[calc(100dvh-4rem-env(safe-area-inset-top))] bg-black/75 sm:h-[calc(100dvh-4.5rem-env(safe-area-inset-top))] lg:hidden" onMouseDown={(event) => { if (event.target === event.currentTarget) closeMenu(true); }}>
           <div ref={panelRef} id="mobile-navigation" role="dialog" aria-modal="true" aria-label="Navigation menu" className="ml-auto flex h-full w-[min(88vw,25rem)] flex-col border-l border-white/10 bg-[#0d0d13] px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5 shadow-2xl">
             <nav className="flex flex-col gap-1" aria-label="Mobile navigation">
-              {navigation.map((item, index) => (
+              {visibleNavigation.map((item, index) => (
                 <Link key={item.href} href={item.href} onClick={() => closeMenu()} aria-current={isActive(item.href) ? "page" : undefined} className={`flex min-h-14 items-center justify-between rounded-2xl px-4 text-base font-extrabold ${isActive(item.href) ? "bg-white/[0.08] text-white" : "text-zinc-300 hover:bg-white/[0.05] hover:text-white"}`}>
                   <span>{item.label}</span><span className="text-xs text-zinc-600">0{index + 1}</span>
                 </Link>

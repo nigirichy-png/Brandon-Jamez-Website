@@ -23,7 +23,7 @@ const inactiveSubscriptionSummary = {
 } as const;
 
 type AccountPageProps = {
-  searchParams: Promise<{ billing?: string; checkout?: string }>;
+  searchParams: Promise<{ access?: string; billing?: string; checkout?: string }>;
 };
 
 export default async function AccountPage({ searchParams }: AccountPageProps) {
@@ -110,6 +110,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         >
           Checkout finished. Paid access appears after Stripe&apos;s signed
           webhook is verified; this page never trusts the redirect alone.
+        </p>
+      ) : null}
+      {query.access === "subscription_required" ? (
+        <p
+          role="status"
+          className="mt-7 rounded-xl border border-amber-300/20 bg-amber-300/[0.06] p-4 text-sm text-amber-100"
+        >
+          An active paid subscription is required to open the subscriber area.
         </p>
       ) : null}
       {query.billing === "portal_unavailable" ||
@@ -260,10 +268,10 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         ) : null}
         {state.subscriptionActive && !state.accountBlocked ? (
           <Link
-            href="/member"
+            href="/subscriber"
             className="inline-flex min-h-11 items-center rounded-xl bg-fuchsia-500 px-5 text-sm font-extrabold text-white hover:bg-fuchsia-400"
           >
-            Member area
+            Subscriber area
           </Link>
         ) : null}
         <Link href="/" className={buttonClass}>
