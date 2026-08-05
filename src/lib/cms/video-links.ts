@@ -52,3 +52,10 @@ export function getVideoThumbnailUrl(platform: CmsVideoPlatform, input: string):
   const videoId = getYouTubeVideoId(input);
   return videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;
 }
+
+export function getYouTubeHoverPreviewUrl(input: string): string | null {
+  const videoId = getYouTubeVideoId(input);
+  if (!videoId) return null;
+  const params = new URLSearchParams({ autoplay: "1", mute: "1", controls: "0", disablekb: "1", fs: "0", iv_load_policy: "3", playsinline: "1", rel: "0", start: "12", end: "24", loop: "1", playlist: videoId });
+  return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
+}

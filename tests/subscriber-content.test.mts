@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import type { SubscriberPostDetail } from "../src/lib/subscriber-content/model.ts";
+import { getYouTubeHoverPreviewUrl } from "../src/lib/cms/video-links.ts";
 import { normalizeSubscriberExternalMedia, subscriberPostErrorMessage, slugifySubscriberPostTitle } from "../src/lib/subscriber-content/validation.ts";
 import { findPublishedSubscriberPost, publishedSubscriberPosts } from "../src/lib/subscriber-content/visibility.ts";
 import { isSafeSubscriberMediaPath, preferredSubscriberImageSource, subscriberDetailImageSource, SUBSCRIBER_IMAGE_MAX_BYTES, validateSubscriberImageFile, validateSubscriberImageMetadata } from "../src/lib/subscriber-content/media-policy.ts";
@@ -92,6 +93,39 @@ test("subscriber detail prefers one content image with a cover fallback", () => 
 
 test("supported YouTube URLs normalize to the privacy-enhanced embed origin", () => {
   assert.deepEqual(normalizeSubscriberExternalMedia("embed", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"), { kind: "embed", provider: "YouTube", url: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" });
+});
+
+test("public YouTube cards build a short muted hover preview without affecting other providers", () => {
+  const preview = getYouTubeHoverPreviewUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+  assert.ok(preview);
+  const url = new URL(preview);
+  assert.equal(url.origin, "https://www.youtube-nocookie.com");
+  assert.equal(url.searchParams.get("autoplay"), "1");
+  assert.equal(url.searchParams.get("mute"), "1");
+  assert.equal(url.searchParams.get("controls"), "0");
+  assert.equal(url.searchParams.get("disablekb"), "1");
+  assert.equal(url.searchParams.get("fs"), "0");
+  assert.equal(url.searchParams.get("start"), "12");
+  assert.equal(url.searchParams.get("end"), "24");
+  assert.equal(getYouTubeHoverPreviewUrl("https://rumble.com/example"), null);
+});
+
+test("public video collection uses a scalable card grid and interaction-gated previews", async () => {
+  const [collection, hoverPreview, css] = await Promise.all([
+    readFile(new URL("../src/components/video/public-video-collection.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/components/video/video-hover-preview.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/app/globals.css", import.meta.url), "utf8"),
+  ]);
+  assert.match(collection, /videos\.map/);
+  assert.match(collection, /platform-video-grid/);
+  assert.doesNotMatch(collection, /platform-featured-video|platform-video-row/);
+  assert.match(hoverPreview, /^"use client"/);
+  assert.match(hoverPreview, /\(hover: hover\) and \(pointer: fine\)/);
+  assert.match(hoverPreview, /prefers-reduced-motion: reduce/);
+  assert.match(hoverPreview, /onMouseEnter=\{startPreview\}/);
+  assert.match(hoverPreview, /active && previewUrl/);
+  assert.doesNotMatch(hoverPreview, /Hover to preview|Preview playing|preview-hint/);
+  assert.match(css, /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
 });
 
 test("supported Vimeo URLs normalize to the trusted player origin", () => {
