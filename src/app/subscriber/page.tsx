@@ -1,23 +1,23 @@
 /* eslint-disable @next/next/no-img-element */
 import type { Metadata } from "next";
 import Link from "next/link";
+
 import { requireSubscriberAccess } from "@/lib/entitlements/require-subscriber-access";
 import { listPublishedSubscriberPosts } from "@/lib/subscriber-content/data";
 import { resolveSubscriberPostSummariesMedia } from "@/lib/subscriber-content/media";
 
 export const metadata: Metadata = { title: "Subscriber" };
-
-function formatDate(value: string | null): string {
-  return value ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(value)) : "";
-}
+const formatDate = (value: string | null) => value ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(value)) : "";
 
 export default async function SubscriberPage() {
   const state = await requireSubscriberAccess();
   const posts = await resolveSubscriberPostSummariesMedia(await listPublishedSubscriberPosts());
-  return <main id="main-content" className="flex-1">
-    <section className="page-shell pb-12 pt-12 sm:pb-16 sm:pt-16 lg:pb-20 lg:pt-24"><p className="eyebrow text-emerald-300">Subscriber access active</p><h1 className="font-display mt-4 max-w-4xl text-[clamp(3rem,9vw,6rem)] font-bold leading-[0.92] tracking-[-0.06em] text-white">Welcome, {state.displayName ?? "Subscriber"}.</h1><p className="mt-6 max-w-2xl text-base leading-8 text-zinc-300 sm:text-lg">Your published subscriber updates are collected here.</p><Link href="/account" className="mt-8 inline-flex min-h-12 items-center rounded-full border border-white/15 px-6 text-sm font-extrabold text-white hover:bg-white/[0.06]">Back to Account</Link></section>
-    <section className="border-t border-white/10 bg-[var(--page-deep)]"><div className="page-shell py-14 sm:py-20 lg:py-24"><p className="eyebrow text-fuchsia-300">Subscriber library</p><h2 className="font-display mt-3 text-4xl font-bold tracking-tight text-white sm:text-5xl">Latest subscriber content</h2>
-      {posts.length ? <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">{posts.map((post) => <article key={post.id} className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#12151c]"><div className="aspect-video w-full overflow-hidden bg-[linear-gradient(135deg,#171b24,#101219)]">{post.cover_image_src ? <img src={post.cover_image_src} alt="" className="size-full object-cover" /> : <div className="flex size-full items-center justify-center text-xs font-extrabold uppercase tracking-[0.14em] text-zinc-600">Subscriber post</div>}</div><div className="flex flex-1 flex-col p-6 sm:p-7"><p className="text-xs font-extrabold uppercase tracking-[0.12em] text-cyan-300">{formatDate(post.published_at)}</p><h3 className="font-display mt-3 text-2xl font-bold text-white">{post.title}</h3>{post.excerpt ? <p className="mt-3 flex-1 text-sm leading-7 text-zinc-400">{post.excerpt}</p> : <div className="flex-1" />}<Link href={`/subscriber/${post.slug}`} className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border border-white/15 px-4 text-sm font-extrabold text-white hover:border-cyan-300/40">Open post</Link></div></article>)}</div> : <div className="mt-8 rounded-2xl border border-dashed border-white/15 bg-[#12151c] p-8 text-center"><h3 className="font-display text-2xl font-bold text-white">No subscriber posts yet</h3><p className="mt-2 text-zinc-400">New subscriber updates will appear here when they are published.</p></div>}
-    </div></section>
+  const [featuredPost, ...remainingPosts] = posts;
+  return <main id="main-content" className="platform-page flex-1">
+    <header className="platform-shell platform-page-header py-10 sm:py-14"><p className="platform-kicker">Subscriber area</p><h1 className="platform-title">More from Brandon.</h1><p className="platform-copy">Welcome, {state.displayName ?? "Subscriber"}. Private posts, selected images and media in one simple protected space.</p><Link href="/account" className="platform-button-secondary">Back to account</Link></header>
+    <section className="platform-shell pb-12 sm:pb-16" aria-labelledby="subscriber-library-title"><div className="platform-list-heading"><h2 id="subscriber-library-title">Latest posts</h2><span>{posts.length} published</span></div>
+      {featuredPost ? <article className="platform-subscriber-feature"><div className="platform-subscriber-image">{featuredPost.cover_image_src ? <img src={featuredPost.cover_image_src} alt="" /> : <span>Subscriber post</span>}</div><div><p className="platform-kicker">Latest · {formatDate(featuredPost.published_at)}</p><h2>{featuredPost.title}</h2>{featuredPost.excerpt ? <p>{featuredPost.excerpt}</p> : null}<Link href={`/subscriber/${featuredPost.slug}`} className="platform-button-primary">Open post</Link></div></article> : <div className="platform-alert"><h2>No posts yet</h2><p>New subscriber updates will appear when published.</p></div>}
+      {remainingPosts.length ? <ol className="platform-post-list">{remainingPosts.map((post, index) => <li key={post.id}><article><span>{String(index + 2).padStart(2, "0")}</span><div className="platform-post-thumb">{post.cover_image_src ? <img src={post.cover_image_src} alt="" /> : null}</div><div><p>{formatDate(post.published_at)}</p><h3>{post.title}</h3>{post.excerpt ? <small>{post.excerpt}</small> : null}</div><Link href={`/subscriber/${post.slug}`}>Open ↗</Link></article></li>)}</ol> : null}
+    </section>
   </main>;
 }

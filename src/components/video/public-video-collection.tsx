@@ -5,66 +5,20 @@ import type { PublicCmsVideo } from "@/lib/cms/video-model";
 
 function formatPublishedDate(value: string | null): string {
   if (!value) return "Recently published";
-  return new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "UTC" }).format(new Date(value));
-}
-
-function VideoMetadata({ video }: { video: PublicCmsVideo }) {
-  return <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-xs font-extrabold uppercase tracking-[0.12em]">
-    <VideoPlatformBadge platform={video.platform} />
-    {video.category ? <><span className="text-white/25" aria-hidden="true">•</span><span className="text-zinc-400">{video.category}</span></> : null}
-    <span className="text-white/25" aria-hidden="true">•</span>
-    <time dateTime={video.published_at ?? undefined} className="text-zinc-500">{formatPublishedDate(video.published_at)}</time>
-  </div>;
+  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(value));
 }
 
 function WatchLink({ video }: { video: PublicCmsVideo }) {
   const identity = videoPlatformIdentities[video.platform];
-  return <a href={video.video_url} target="_blank" rel="noopener noreferrer" aria-label={`${identity.watchLabel}: ${video.title} (opens in a new tab)`} className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full border px-6 py-3 text-sm font-extrabold transition-[color,background-color,filter] ${identity.watchButtonClass}`}><VideoPlatformIcon platform={video.platform} className="size-5 shrink-0" /><span>{identity.watchLabel}</span><span aria-hidden="true">↗</span></a>;
-}
-
-function FeaturedVideo({ video }: { video: PublicCmsVideo }) {
-  return <article className="group overflow-hidden rounded-[var(--radius-lg)] border border-fuchsia-300/30 bg-[var(--surface)] shadow-[var(--shadow-accent)] lg:grid lg:grid-cols-[minmax(0,1.35fr)_minmax(19rem,0.85fr)]">
-    <CmsVideoPreview title={video.title} platform={video.platform} videoUrl={video.video_url} priority sizes="(min-width: 1024px) 58vw, 100vw" />
-    <div className="relative flex flex-col justify-center overflow-hidden p-6 sm:p-8 lg:p-10">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,rgba(229,79,236,0.16),transparent_38%)]" aria-hidden="true" />
-      <div className="relative">
-        <div className="mb-5"><span className="rounded-full border border-fuchsia-300/30 bg-fuchsia-300/[0.1] px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] text-fuchsia-200">Featured</span></div>
-        <VideoMetadata video={video} />
-        <h3 className="font-display mt-5 text-[clamp(2rem,5vw,3.6rem)] font-bold leading-[0.98] tracking-[-0.052em] text-white">{video.title}</h3>
-        {video.short_description ? <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg">{video.short_description}</p> : null}
-        <div className="mt-7"><WatchLink video={video} /></div>
-      </div>
-    </div>
-  </article>;
-}
-
-function LatestVideoCard({ video }: { video: PublicCmsVideo }) {
-  return <article className="pointer-lift group flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-[var(--surface)] transition-[transform,border-color,box-shadow] duration-[var(--transition-base)]">
-    <CmsVideoPreview title={video.title} platform={video.platform} videoUrl={video.video_url} sizes="(min-width: 1280px) 31vw, (min-width: 640px) 48vw, 100vw" />
-    <div className="flex flex-1 flex-col p-5 sm:p-6">
-      <VideoMetadata video={video} />
-      <h3 className="font-display mt-4 text-2xl font-bold leading-tight tracking-[-0.04em] text-white">{video.title}</h3>
-      {video.short_description ? <p className="mt-3 line-clamp-3 leading-6 text-zinc-400">{video.short_description}</p> : null}
-      <div className="mt-auto pt-6"><WatchLink video={video} /></div>
-    </div>
-  </article>;
-}
-
-function EmptyVideos() {
-  return <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-dashed border-white/15 bg-[var(--surface)] p-8 sm:p-10">
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,rgba(94,232,237,0.09),transparent_32%)]" aria-hidden="true" />
-    <div className="relative"><p className="eyebrow text-cyan-300">More is coming</p><h2 className="font-display mt-3 text-2xl font-bold text-white sm:text-3xl">The video collection is being prepared.</h2><p className="mt-3 max-w-xl leading-7 text-zinc-400">No videos have been published here yet. Visit Brandon&apos;s YouTube channel for the latest streams and updates.</p><a href={creatorLinks.youtube} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-full border border-cyan-300/30 bg-cyan-300/[0.07] px-6 py-3 text-sm font-extrabold text-cyan-100 hover:bg-cyan-300/[0.13]" aria-label="Open Brandon Jamez on YouTube (opens in a new tab)">Open YouTube <span className="ml-2" aria-hidden="true">↗</span></a></div>
-  </div>;
+  return <a href={video.video_url} target="_blank" rel="noopener noreferrer" aria-label={`${identity.watchLabel}: ${video.title} (opens in a new tab)`} className="platform-text-link"><VideoPlatformIcon platform={video.platform} className="size-4" />{identity.watchLabel} ↗</a>;
 }
 
 export function PublicVideoCollection({ videos }: { videos: PublicCmsVideo[] }) {
-  if (!videos.length) return <EmptyVideos />;
-
-  const featured = videos.find((video) => video.featured);
-  const latest = featured ? videos.filter((video) => video.id !== featured.id) : videos;
-
-  return <div className="space-y-12 sm:space-y-16">
-    {featured ? <section aria-labelledby="featured-video-title"><div className="mb-5"><p className="eyebrow text-fuchsia-300">Editor&apos;s pick</p><h2 id="featured-video-title" className="font-display mt-3 text-[clamp(2rem,6vw,3.75rem)] font-bold tracking-[-0.05em] text-white">Featured video</h2></div><FeaturedVideo video={featured} /></section> : null}
-    {latest.length ? <section aria-labelledby="latest-videos-title"><div className="mb-6 sm:mb-8"><p className="eyebrow text-cyan-300">Published collection</p><h2 id="latest-videos-title" className="font-display mt-3 text-[clamp(2rem,6vw,3.75rem)] font-bold tracking-[-0.05em] text-white">{featured ? "Latest videos" : "Watch the latest"}</h2></div><div className="grid items-stretch gap-5 sm:grid-cols-2 xl:grid-cols-3">{latest.map((video) => <LatestVideoCard key={video.id} video={video} />)}</div></section> : null}
+  if (!videos.length) return <div className="platform-alert"><h2>No videos yet</h2><p>New releases will appear here when published.</p><a href={creatorLinks.youtube} target="_blank" rel="noopener noreferrer" aria-label="Open Brandon Jamez on YouTube (opens in a new tab)" className="platform-button-primary mt-4">Open YouTube ↗</a></div>;
+  const featured = videos.find((video) => video.featured) ?? videos[0];
+  const remaining = videos.filter((video) => video.id !== featured.id);
+  return <div className="platform-video-stack">
+    <article className="platform-featured-video"><div className="platform-video-media"><CmsVideoPreview title={featured.title} platform={featured.platform} videoUrl={featured.video_url} priority sizes="(min-width: 900px) 60vw, 100vw" editorial /></div><div className="platform-video-info"><div className="platform-video-meta"><VideoPlatformBadge platform={featured.platform} />{featured.category ? <span>{featured.category}</span> : null}<time dateTime={featured.published_at ?? undefined}>{formatPublishedDate(featured.published_at)}</time></div><h2>{featured.title}</h2>{featured.short_description ? <p>{featured.short_description}</p> : null}<WatchLink video={featured} /></div></article>
+    {remaining.length ? <div><div className="platform-list-heading"><h2>More videos</h2><span>{remaining.length} entries</span></div>{remaining.map((video, index) => <article key={video.id} className="platform-video-row"><span className="platform-row-number">{String(index + 2).padStart(2, "0")}</span><div className="platform-row-thumb"><CmsVideoPreview title={video.title} platform={video.platform} videoUrl={video.video_url} sizes="12rem" editorial /></div><div className="platform-row-copy"><div className="platform-video-meta"><VideoPlatformBadge platform={video.platform} />{video.category ? <span>{video.category}</span> : null}<time dateTime={video.published_at ?? undefined}>{formatPublishedDate(video.published_at)}</time></div><h3>{video.title}</h3>{video.short_description ? <p>{video.short_description}</p> : null}</div><WatchLink video={video} /></article>)}</div> : null}
   </div>;
 }

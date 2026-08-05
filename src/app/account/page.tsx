@@ -12,7 +12,7 @@ import { openStripePortalAction } from "./subscription-actions";
 export const metadata: Metadata = { title: "Account" };
 
 const buttonClass =
-  "inline-flex min-h-11 items-center rounded-xl border border-white/15 px-5 text-sm font-extrabold text-white hover:bg-white/[0.05]";
+  "public-action-secondary";
 
 const inactiveSubscriptionSummary = {
   incomplete: "Subscription incomplete — paid access is inactive",
@@ -66,23 +66,22 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   return (
     <main
       id="main-content"
-      className="page-shell flex-1 py-12 sm:py-16 lg:py-20"
+      className="public-account flex-1 py-10 sm:py-14"
     >
-      <div className="flex flex-wrap items-start justify-between gap-5 border-b border-white/10 pb-8">
+      <div className="public-account-header">
         <div>
-          <p className="eyebrow text-cyan-300">Validated Supabase account</p>
-          <h1 className="font-display mt-3 text-5xl font-bold tracking-tight text-white sm:text-6xl">
-            Account summary
+          <p className="platform-kicker">Account</p>
+          <h1 className="public-account-title">
+            Your account
           </h1>
-          <p className="mt-4 max-w-2xl leading-7 text-zinc-400">
-            Safe identity and access state loaded on the server through the
-            authenticated session and RLS-protected records.
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--public-muted)]">
+            Manage your identity, access, billing and security settings.
           </p>
         </div>
         <form action={signOutAction}>
           <button
             type="submit"
-            className="min-h-11 rounded-full border border-white/15 px-5 text-sm font-extrabold text-white hover:bg-white/[0.05]"
+            className="public-action-secondary"
           >
             Sign out
           </button>
@@ -132,37 +131,37 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       <nav aria-label="Account settings" className="mt-7">
         <Link
           href="/account/security"
-          className="inline-flex min-h-11 items-center rounded-xl bg-fuchsia-500 px-5 text-sm font-extrabold text-white hover:bg-fuchsia-400"
+          className="public-action-primary"
         >
           Account security
         </Link>
       </nav>
       <section
-        className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        className="public-account-grid mt-7"
         aria-label="Account details"
       >
-        <article className="rounded-2xl border border-white/10 bg-[var(--surface)] p-5">
-          <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-600">
+        <article className="public-account-card">
+          <p className="public-account-label">
             Email
           </p>
           <p className="mt-3 break-all font-bold text-white">
             {state.user.email ?? "Unavailable"}
           </p>
         </article>
-        <article className="rounded-2xl border border-white/10 bg-[var(--surface)] p-5 sm:col-span-2">
-          <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-600">
+        <article className="public-account-card sm:col-span-2">
+          <p className="public-account-label">
             Profile
           </p>
           <DisplayNameForm currentName={state.displayName} />
         </article>
-        <article className="rounded-2xl border border-white/10 bg-[var(--surface)] p-5">
-          <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-600">
+        <article className="public-account-card">
+          <p className="public-account-label">
             Created
           </p>
           <p className="mt-3 font-bold text-white">{createdAt}</p>
         </article>
-        <article className="rounded-2xl border border-white/10 bg-[var(--surface)] p-5">
-          <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-600">
+        <article className="public-account-card">
+          <p className="public-account-label">
             Account status
           </p>
           <div className="mt-3">
@@ -171,8 +170,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             </StatusLabel>
           </div>
         </article>
-        <article className="rounded-2xl border border-white/10 bg-[var(--surface)] p-5">
-          <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-600">
+        <article className="public-account-card">
+          <p className="public-account-label">
             Roles
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -187,8 +186,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             )}
           </div>
         </article>
-        <article className="rounded-2xl border border-white/10 bg-[var(--surface)] p-5">
-          <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-600">
+        <article className="public-account-card">
+          <p className="public-account-label">
             Age verification
           </p>
           <div className="mt-3">
@@ -197,8 +196,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             </StatusLabel>
           </div>
         </article>
-        <article className="rounded-2xl border border-white/10 bg-[var(--surface)] p-5">
-          <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-600">
+        <article className="public-account-card">
+          <p className="public-account-label">
             Paid access
           </p>
           <div className="mt-3">
@@ -216,7 +215,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               <form action={openStripePortalAction}>
                 <button
                   type="submit"
-                  className="min-h-11 rounded-xl border border-white/15 px-4 text-sm font-extrabold text-white hover:border-cyan-300/40"
+                  className="public-action-secondary"
                 >
                   Manage subscription
                 </button>
@@ -225,7 +224,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               <>
                 <span
                   aria-disabled="true"
-                  className="inline-flex min-h-11 cursor-not-allowed items-center rounded-xl border border-white/10 px-4 text-sm font-extrabold text-zinc-500"
+                  className="inline-flex min-h-11 cursor-not-allowed items-center border border-[var(--public-rule)] px-4 text-sm font-extrabold text-zinc-500"
                 >
                   Management unavailable
                 </span>
@@ -236,7 +235,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             ) : !state.subscriptionActive ? (
               <Link
                 href="/subscribe"
-                className="inline-flex min-h-11 items-center rounded-xl bg-fuchsia-500 px-4 text-sm font-extrabold text-white hover:bg-fuchsia-400"
+                className="public-action-primary"
               >
                 Subscribe
               </Link>
@@ -248,7 +247,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         {state.roles.includes("admin") && !state.accountBlocked ? (
           <Link
             href="/admin"
-            className="inline-flex min-h-11 items-center rounded-xl bg-cyan-400 px-5 text-sm font-extrabold text-slate-950 hover:bg-cyan-300"
+            className="public-action-secondary"
           >
             Administration
           </Link>
@@ -269,7 +268,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         {state.subscriptionActive && !state.accountBlocked ? (
           <Link
             href="/subscriber"
-            className="inline-flex min-h-11 items-center rounded-xl bg-fuchsia-500 px-5 text-sm font-extrabold text-white hover:bg-fuchsia-400"
+            className="public-action-primary"
           >
             Subscriber area
           </Link>

@@ -16,6 +16,6 @@ export default async function AdminSubscriberContentPage() {
   const decision = evaluateAdminAccess(state);
   const posts = decision.allowed ? await resolveAdminSubscriberPostsMedia(await listAdminSubscriberPosts()) : [];
   return <InternalShell state={state} decision={decision} currentPath="/admin/subscriber-content" eyebrow="Administration · subscriber content" title="Manage subscriber posts." description="Create neutral plain-text posts and deliberately publish them to entitled subscribers.">
-    {!decision.allowed ? <StaffAccessGate decision={decision} area="admin" /> : <div className="space-y-8"><CreateSubscriberPostForm /><section className="grid gap-5" aria-label="Subscriber posts">{posts.length ? posts.map((post) => <SubscriberPostRecord key={post.id} post={post} />) : <p className="rounded-2xl border border-dashed border-white/15 p-8 text-center text-zinc-400">No subscriber posts yet.</p>}</section></div>}
+    {!decision.allowed ? <StaffAccessGate decision={decision} area="admin" /> : <div className="space-y-5"><CreateSubscriberPostForm /><section className="grid gap-4" aria-label="Subscriber posts">{posts.length ? posts.map((post) => <SubscriberPostRecord key={post.id} post={post} />) : <p className="rounded-xl border border-dashed border-white/15 p-6 text-center text-sm text-zinc-400">No subscriber posts yet.</p>}</section></div>}
   </InternalShell>;
 }

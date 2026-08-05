@@ -82,13 +82,13 @@ export const futureHostedVideoIdentity: VideoPlatformIdentity = {
   sourceLabel: "Exclusive",
 };
 
-export function VideoIdentityBadge({ identity, className = "" }: { identity: VideoPlatformIdentity; className?: string }) {
+export function VideoIdentityBadge({ identity, className = "", label = identity.label }: { identity: VideoPlatformIdentity; className?: string; label?: string }) {
   const Icon = identity.icon;
-  return <span aria-label={identity.accessibleLabel} className={`inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-extrabold tracking-[0.08em] ${identity.badgeClass} ${className}`}><Icon className="size-4 shrink-0" /><span>{identity.label}</span></span>;
+  return <span aria-label={identity.accessibleLabel} className={`inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-extrabold tracking-[0.08em] ${identity.badgeClass} ${className}`}><Icon className="size-4 shrink-0" /><span>{label}</span></span>;
 }
 
-export function VideoPlatformBadge({ platform, className = "" }: { platform: CmsVideoPlatform; className?: string }) {
-  return <VideoIdentityBadge identity={videoPlatformIdentities[platform]} className={className} />;
+export function VideoPlatformBadge({ platform, className = "", label }: { platform: CmsVideoPlatform; className?: string; label?: string }) {
+  return <VideoIdentityBadge identity={videoPlatformIdentities[platform]} className={className} label={label} />;
 }
 
 export function VideoPlatformIcon({ platform, className = "" }: { platform: CmsVideoPlatform; className?: string }) {
