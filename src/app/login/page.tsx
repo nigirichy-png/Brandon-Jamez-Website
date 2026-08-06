@@ -17,10 +17,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const signedOut = query.status === "signed_out";
   const passwordUpdated = query.status === "password_reset" || query.status === "password_changed";
   const next = getSafeNextPath(typeof query.next === "string" ? query.next : null);
-  return <AuthShell eyebrow="Brandon Jamez account" title="Welcome back." description="Sign in through the server-rendered Supabase authentication flow. Sessions are stored through the existing SSR cookie boundary.">
+  return <AuthShell eyebrow="Member area" title="Welcome back." description="Sign in to enter Brandon's private Pattaya feed and continue where you left off.">
     <span className={`eyebrow inline-flex rounded-full border px-3 py-2 ${configured ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-200" : "border-amber-300/25 bg-amber-300/10 text-amber-200"}`}>{configured ? "Authentication connected" : "Not configured"}</span>
     <h2 className="font-display mt-5 text-4xl font-bold tracking-tight text-white">Sign in</h2>
-    <p className="mt-3 leading-7 text-zinc-400">Credentials are sent only to the server action and Supabase Auth. They are never placed in URLs or local storage.</p>
+    <p className="mt-3 leading-7 text-zinc-400">Your member session and credentials are handled securely and never exposed in the browser URL.</p>
     {error ? <p role="alert" className="mt-5 rounded-xl border border-rose-300/20 bg-rose-300/[0.06] p-4 text-sm text-rose-100">{error}</p> : null}
     {signedOut ? <p role="status" className="mt-5 rounded-xl border border-emerald-300/20 bg-emerald-300/[0.06] p-4 text-sm text-emerald-100">You have been signed out.</p> : null}
     {passwordUpdated ? <p role="status" className="mt-5 rounded-xl border border-emerald-300/20 bg-emerald-300/[0.06] p-4 text-sm text-emerald-100">Your password was changed. Sign in with the new password.</p> : null}

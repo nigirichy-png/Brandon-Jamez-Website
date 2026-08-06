@@ -1,0 +1,105 @@
+.header {
+  border-bottom-color: rgba(56, 220, 255, .2);
+  background:
+    linear-gradient(90deg, rgba(255, 47, 145, .055), transparent 28%, transparent 70%, rgba(31, 203, 255, .07)),
+    rgba(2, 7, 18, .93);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .025), 0 12px 34px rgba(0, 0, 0, .24);
+}
+
+.shell {
+  width: min(calc(100% - 3rem), 92rem);
+}
+
+.brandLink {
+  transition: filter .2s ease;
+}
+
+.brandLink:hover {
+  filter: drop-shadow(0 0 10px rgba(35, 213, 255, .24));
+}
+
+.location {
+  border-left-color: rgba(82, 225, 255, .19);
+  color: #91a9bb;
+}
+
+.locationDot {
+  background: #32dcff;
+  box-shadow: 0 0 9px rgba(50, 220, 255, .82);
+}
+
+.location time strong {
+  color: #ddfaff;
+  font-weight: 900;
+}
+
+.navLink {
+  color: #9eacba;
+  letter-spacing: .025em;
+  transition: color .18s ease, text-shadow .18s ease;
+}
+
+.navLink:hover {
+  color: #f7fbff;
+  text-shadow: 0 0 12px rgba(54, 220, 255, .25);
+}
+
+.navLink::after {
+  position: absolute;
+  right: .75rem;
+  bottom: 0;
+  left: .75rem;
+  height: 2px;
+  background: linear-gradient(90deg, #ff4597, #38dcff);
+  box-shadow: 0 0 9px rgba(47, 217, 255, .48);
+  content: "";
+  opacity: 0;
+  transform: scaleX(.35);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.navLinkActive {
+  color: #fff;
+}
+
+.navLinkActive::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.accountLink {
+  border-color: rgba(63, 219, 255, .34);
+  background: linear-gradient(105deg, rgba(255, 57, 148, .1), rgba(40, 206, 255, .08));
+  color: #f7fbff;
+  box-shadow: inset 0 0 16px rgba(30, 211, 255, .025);
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.accountLink:hover {
+  border-color: #ff4f9a;
+  box-shadow: 0 0 18px rgba(255, 79, 154, .14);
+  transform: translateY(-1px);
+}
+
+.menuToggle {
+  color: #55e4ff;
+}
+
+.menuPanel {
+  border-left-color: rgba(50, 220, 255, .2);
+  background:
+    radial-gradient(circle at 100% 0, rgba(29, 210, 255, .1), transparent 15rem),
+    radial-gradient(circle at 0 70%, rgba(255, 57, 148, .08), transparent 18rem),
+    #030817;
+}
+
+.mobileKicker,
+.mobileActive {
+  color: #45ddff;
+}
+
+@media (max-width: 640px) {
+  .shell {
+    width: min(calc(100% - 1.25rem), 92rem);
+  }
+}

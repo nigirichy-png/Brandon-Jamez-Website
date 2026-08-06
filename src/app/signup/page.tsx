@@ -14,7 +14,7 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
   const configured = isSupabaseConfigured();
   const error = typeof query.error === "string" && query.error in errors ? errors[query.error as keyof typeof errors] : null;
   const checkEmail = query.status === "check_email";
-  return <AuthShell eyebrow="Secure account creation" title="Start with identity, not privilege." description="A new account receives no staff role, subscription, or age-verification state. Those remain independent trusted workflows.">
+  return <AuthShell eyebrow="Member registration" title="Create your account." description="Start your path to Brandon's private Pattaya feed. Membership payment and age verification remain separate secure steps.">
     <span className={`eyebrow inline-flex rounded-full border px-3 py-2 ${configured ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-200" : "border-amber-300/25 bg-amber-300/10 text-amber-200"}`}>{configured ? "Supabase Auth connected" : "Not configured"}</span>
     <h2 className="font-display mt-5 text-4xl font-bold tracking-tight text-white">Create account</h2>
     <p className="mt-3 leading-7 text-zinc-400">Email confirmation is expected. Passwords are handled by Supabase Auth and are never stored by this application.</p>

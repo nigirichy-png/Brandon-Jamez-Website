@@ -1,0 +1,196 @@
+.footer {
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid rgba(48, 218, 255, .18);
+  background:
+    radial-gradient(circle at 8% 12%, rgba(255, 49, 143, .1), transparent 21rem),
+    radial-gradient(circle at 92% 88%, rgba(39, 214, 255, .09), transparent 23rem),
+    linear-gradient(115deg, #020611, #06101e 52%, #080314);
+  color: #f5f9fc;
+}
+
+.footer::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255, 64, 154, .18), transparent 24%, transparent 76%, rgba(51, 219, 255, .16)) top/100% 1px no-repeat;
+  content: "";
+  pointer-events: none;
+}
+
+.shell {
+  width: min(calc(100% - 3rem), 92rem);
+  margin-inline: auto;
+  padding-block: clamp(2.5rem, 4.5vw, 4rem) 1.5rem;
+}
+
+.topRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 2rem;
+}
+
+.intro > p {
+  max-width: 34rem;
+  margin-top: 1rem;
+  color: #9eafbd;
+  font-size: .85rem;
+  line-height: 1.65;
+}
+
+.brandRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .85rem 1.15rem;
+}
+
+.location {
+  display: inline-flex;
+  align-items: center;
+  gap: .48rem;
+  padding-left: 1rem;
+  border-left: 1px solid rgba(75, 220, 249, .18);
+  color: #a6b6c4;
+  font-size: .61rem;
+  font-weight: 850;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.location i {
+  width: .35rem;
+  height: .35rem;
+  border-radius: 50%;
+  background: #3bdcff;
+  box-shadow: 0 0 9px #31d8ff;
+}
+
+.location time strong {
+  color: #dffaff;
+  font-weight: 900;
+}
+
+.location time small {
+  color: #698293;
+  font-size: inherit;
+}
+
+.navigation {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .75rem 1.45rem;
+}
+
+.navigation a {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  color: #aebcc7;
+  font-size: .75rem;
+  font-weight: 800;
+  transition: color .2s ease, text-shadow .2s ease;
+}
+
+.navigation a:hover {
+  color: #fff;
+  text-shadow: 0 0 12px rgba(52, 218, 255, .32);
+}
+
+.navigation a span {
+  color: #52dff9;
+}
+
+.bottomRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, .09);
+}
+
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+}
+
+.socialLink {
+  --social-color: #5adfff;
+  display: inline-flex;
+  min-height: 2.45rem;
+  align-items: center;
+  gap: .55rem;
+  padding: .48rem .65rem;
+  border: 1px solid rgba(255, 255, 255, .1);
+  background: rgba(255, 255, 255, .025);
+  color: #bcc9d3;
+  font-size: .59rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  transition: border-color .2s ease, background .2s ease, box-shadow .2s ease, color .2s ease, transform .2s ease;
+}
+
+.socialLink:hover {
+  border-color: color-mix(in srgb, var(--social-color) 55%, transparent);
+  background: color-mix(in srgb, var(--social-color) 8%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--social-color) 13%, transparent);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.socialIcon {
+  display: grid;
+  width: 1.15rem;
+  height: 1.15rem;
+  place-items: center;
+  color: var(--social-color);
+}
+
+.socialIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.socialLink b {
+  margin-left: .1rem;
+  color: #607687;
+  font-size: .64rem;
+}
+
+.facebook { --social-color: #5a9cff; }
+.instagram { --social-color: #f44f99; }
+.youtube { --social-color: #ff435f; }
+.kick { --social-color: #53fc18; }
+.rumble { --social-color: #75dc65; }
+
+.copyright {
+  flex: 0 0 auto;
+  color: #718492;
+  font-size: .57rem;
+  font-weight: 750;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 760px) {
+  .shell { width: min(calc(100% - 1.25rem), 92rem); }
+  .topRow { grid-template-columns: 1fr; align-items: start; }
+  .navigation { justify-content: flex-start; }
+  .bottomRow { align-items: flex-start; flex-direction: column; }
+  .copyright { margin-top: .35rem; }
+}
+
+@media (max-width: 420px) {
+  .location { width: 100%; padding-top: .7rem; padding-left: 0; border-top: 1px solid rgba(75, 220, 249, .14); border-left: 0; }
+  .socialLink { flex: 1 1 calc(50% - .55rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .socialLink, .navigation a { transition: none; }
+  .socialLink:hover { transform: none; }
+}

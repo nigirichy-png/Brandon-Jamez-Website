@@ -7,6 +7,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useReducer,
 import { createPortal } from "react-dom";
 
 import { CmsVideoPreview } from "@/components/video/cms-video-preview";
+import { VideoHoverPreview } from "@/components/video/video-hover-preview";
 import { VideoPlatformBadge, VideoPlatformIcon } from "@/components/video/video-platform-identity";
 import type { CmsVideoPlatform } from "@/lib/cms/video-model";
 import {
@@ -397,7 +398,7 @@ export function HomepageEditableMedia({ id, title, platform, defaultUrl, sizes, 
   const { editor, content, responsive, selected } = useEditorTarget(id);
   const candidate = content.url;
   const url = candidate && isSafeExternalUrl(candidate) ? candidate : defaultUrl;
-  if (!editor?.active) return <div className={className}><CmsVideoPreview title={title} platform={platform} videoUrl={defaultUrl} sizes={sizes} editorial /></div>;
+  if (!editor?.active) return <div className={className}><VideoHoverPreview title={title} platform={platform} videoUrl={defaultUrl} sizes={sizes} /></div>;
   return <div className={`${className ?? ""} ${styles.mediaEditor} ${selected ? styles.selectedElement : ""} ${editor.canvasDrag?.payload.nodeId === id ? styles.draggedSource : ""}`} data-canvas-node-id={id}>{responsive.visible === false ? <div className={styles.hiddenElement}>Video preview hidden</div> : <CmsVideoPreview title={title} platform={platform} videoUrl={url} sizes={sizes} editorial />}<button type="button" className={styles.elementSelectionTarget} aria-label="Edit latest video preview" aria-pressed={selected} onClick={() => editor.dispatch({ type: "select", id })} /></div>;
 }
 

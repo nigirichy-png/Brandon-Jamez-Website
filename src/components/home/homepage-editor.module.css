@@ -172,8 +172,6 @@
 .editableSection[data-flex-direction] > :first-child { display: flex !important; flex-direction: var(--editor-flex-direction); gap: var(--editor-layout-gap, normal); align-items: var(--editor-align-items, normal); justify-content: var(--editor-justify-content, normal); }
 
 .hero-introductionBlock, .portraitBlock, .latest-dropBlock, .live-statusBlock { grid-column: auto; }
-.quick-navigationBlock { grid-column: span 2; }
-.start-introductionBlock, .start-linksBlock { align-self: stretch; }
 .featured-contentBlock[data-layout="equal-columns"] > section > div { grid-template-columns: 1fr 1fr; }
 .featured-contentBlock[data-layout="guide-wide"] > section > div { grid-template-columns: minmax(0,1.5fr) minmax(15rem,.5fr); }
 .featured-contentBlock[data-layout="subscriber-wide"] > section > div { grid-template-columns: minmax(15rem,.7fr) minmax(0,1.3fr); }
@@ -321,8 +319,7 @@
 .editorWorkspace[data-preview-mode="tablet"] .portraitBlock, .editorWorkspace[data-preview-mode="mobile"] .portraitBlock { grid-column: span 1; }
 .editorWorkspace[data-preview-mode="tablet"] .latest-dropBlock, .editorWorkspace[data-preview-mode="mobile"] .latest-dropBlock { grid-column: span 2; }
 .editorWorkspace[data-preview-mode="tablet"] .live-statusBlock, .editorWorkspace[data-preview-mode="mobile"] .live-statusBlock { grid-column: span 2; }
-.editorWorkspace[data-preview-mode="tablet"] .quick-navigationBlock, .editorWorkspace[data-preview-mode="mobile"] .quick-navigationBlock { grid-column: span 2; }
-.editorWorkspace[data-preview-mode="mobile"] .hero-introductionBlock, .editorWorkspace[data-preview-mode="mobile"] .portraitBlock, .editorWorkspace[data-preview-mode="mobile"] .latest-dropBlock, .editorWorkspace[data-preview-mode="mobile"] .live-statusBlock, .editorWorkspace[data-preview-mode="mobile"] .quick-navigationBlock { grid-column: 1; }
+.editorWorkspace[data-preview-mode="mobile"] .hero-introductionBlock, .editorWorkspace[data-preview-mode="mobile"] .portraitBlock, .editorWorkspace[data-preview-mode="mobile"] .latest-dropBlock, .editorWorkspace[data-preview-mode="mobile"] .live-statusBlock { grid-column: 1; }
 
 @media (max-width: 700px) {
   .editorWorkspace { --property-panel-width: min(19rem, 100vw); }

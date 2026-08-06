@@ -2,13 +2,18 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
+import GuideMap from "./guide-map";
 import { filterGuideSpots, guideCategories, guideFavoriteStorageKey, guideMapsUrl, parseGuideFavorites, toggleGuideFavorite, type GuideSpot } from "./guide-model";
 import styles from "./integrated-guide.module.css";
-
-const GuideMap = dynamic(() => import("./guide-map"), { ssr: false, loading: () => <div className={styles.mapState}>Loading Pattaya map…</div> });
 type View = "places" | "saved" | "map";
+const brandonSocialLinks = [
+  { key: "facebook", label: "Facebook", url: "https://www.facebook.com/profile.php?id=61577844596882" },
+  { key: "instagram", label: "Instagram", url: "https://www.instagram.com/brandonjamezmakmak/" },
+  { key: "youtube", label: "YouTube", url: "https://www.youtube.com/@BrandonJamezPattaya" },
+  { key: "kick", label: "Kick", url: "https://kick.com/brandonjamezmakmak" },
+  { key: "rumble", label: "Rumble", url: "https://rumble.com/user/BrandonJamezMakMakTV" },
+] as const;
 
 function categoryLabel(value: string): string { return value === "Go-Go" ? "Go-Go Bars" : value; }
 function categoryIcon(value: string): string {
@@ -31,21 +36,29 @@ export function IntegratedGuide({ initialSpots, loadStatus }: { initialSpots: Gu
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
   const [view, setView] = useState<View>("places");
+  const [returnView, setReturnView] = useState<Exclude<View, "map">>("places");
   const [selected, setSelected] = useState<GuideSpot | null>(null);
   const [imageIndex, setImageIndex] = useState(0);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [socialLinksOpen, setSocialLinksOpen] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setFavorites(parseGuideFavorites(localStorage.getItem(guideFavoriteStorageKey), new Set(initialSpots.map((spot) => spot.id))));
+      if (window.innerWidth <= 1023 || window.matchMedia("(max-width: 1023px)").matches) setView("map");
+      try {
+        setFavorites(parseGuideFavorites(localStorage.getItem(guideFavoriteStorageKey), new Set(initialSpots.map((spot) => spot.id))));
+      } catch {
+        setFavorites([]);
+      }
       setHydrated(true);
     }, 0);
     return () => window.clearTimeout(timer);
   }, [initialSpots]);
 
   const categories = useMemo(() => guideCategories(initialSpots), [initialSpots]);
-  const savedOnly = view === "saved";
+  const savedOnly = view === "saved" || (view === "map" && returnView === "saved");
   const filtered = useMemo(() => filterGuideSpots(initialSpots, query, category, favorites, savedOnly), [initialSpots, query, category, favorites, savedOnly]);
   const toggle = (id: string) => setFavorites((current) => {
     const next = toggleGuideFavorite(current, id);
@@ -59,20 +72,38 @@ export function IntegratedGuide({ initialSpots, loadStatus }: { initialSpots: Gu
   const selectSpot = (spot: GuideSpot) => {
     setImageIndex(0);
     setSelected(spot);
-    if (window.matchMedia("(max-width: 800px)").matches) setView("map");
+    setMobileMenuOpen(false);
+    if (window.innerWidth <= 1023 || window.matchMedia("(max-width: 1023px)").matches) {
+      if (view !== "map") setReturnView(view);
+      setView("map");
+    }
+  };
+  const changeView = (next: View) => {
+    if (next !== "map") setReturnView(next);
+    if (next === "map") setMobileMenuOpen(false);
+    setView(next);
   };
   const selectedImages = selected ? [...new Set([selected.image, ...selected.images].filter(Boolean))] : [];
   const activeImage = selectedImages[imageIndex] || selected?.image || "";
 
   return <section id="pattaya-guide" data-site-builder-node="guide-native-slot" data-site-builder-label="Interactive Pattaya Guide" data-site-builder-kind="dynamic" className={styles.guide} aria-label="Interactive Pattaya Guide">
+    <button type="button" className={`${styles.mobileGuideMenuButton} ${mobileMenuOpen ? styles.mobileGuideMenuButtonOpen : ""}`} aria-expanded={mobileMenuOpen} aria-controls="mobile-guide-panel" aria-label={mobileMenuOpen ? "Close Pattaya Guide menu" : "Open Pattaya Guide menu"} onClick={() => {
+      if (mobileMenuOpen) {
+        setMobileMenuOpen(false);
+        setView("map");
+      } else {
+        setView(returnView);
+        setMobileMenuOpen(true);
+      }
+    }}>{mobileMenuOpen ? "×" : "☰"}</button>
     <div className={styles.appBar}>
       <nav className={styles.views} aria-label="Guide view">
-        {(["places", "saved", "map"] as const).map((item) => <button key={item} type="button" aria-pressed={view === item} onClick={() => setView(item)}>{item[0].toUpperCase() + item.slice(1)}{item === "saved" && hydrated ? ` ${favorites.length}` : ""}</button>)}
+        {(["places", "saved", "map"] as const).map((item) => <button key={item} type="button" aria-pressed={view === item} onClick={() => changeView(item)}>{item[0].toUpperCase() + item.slice(1)}{item === "saved" && hydrated ? ` ${favorites.length}` : ""}</button>)}
       </nav>
       <header data-site-builder-node="guide-intro" data-site-builder-label="Guide introduction" className={styles.appTitle}>
         <small>Brandon&apos;s Pattaya Guide</small>
-        <h1>Find your Pattaya.</h1>
-        <span>Places, food, nightlife and local picks from Brandon&apos;s Pattaya.</span>
+        <h1>Find your <span className={styles.appTitleAccent}>Pattaya.</span></h1>
+        <span>Places, food, nightlife and local picks from Brandon.</span>
       </header>
       <p><strong>{initialSpots.length}</strong> places <span>·</span> <strong>{favorites.length}</strong> saved</p>
     </div>
@@ -80,11 +111,23 @@ export function IntegratedGuide({ initialSpots, loadStatus }: { initialSpots: Gu
     {loadStatus !== "ready" ? <div className={styles.notice} role={loadStatus === "error" ? "alert" : "status"}>{loadStatus === "unconfigured" ? "The native guide data source is not configured yet." : "The guide could not be loaded. Please try again after a reload."}</div> : null}
 
     <div className={`${styles.workspace} ${view === "map" ? styles.mapOnly : ""}`}>
-      <aside className={`${styles.sidebar} ${view === "map" ? styles.mobileHidden : ""}`} aria-label={savedOnly ? "Saved Pattaya places" : "Pattaya places"}>
+      <aside id="mobile-guide-panel" className={`${styles.sidebar} ${view === "map" ? styles.mobileHidden : ""} ${mobileMenuOpen ? styles.mobileMenuOpen : ""}`} aria-label={savedOnly ? "Saved Pattaya places" : "Pattaya places"}>
+        <header className={styles.mobileGuideIntro}>
+          <h1>Brandon Jamez<br />Pattaya Guide</h1>
+          <p>Nightlife · Food · Fun · Hidden Gems</p>
+          <div><span><strong>{initialSpots.length}</strong><small>Places</small></span><span><strong>{favorites.length}</strong><small>Saved</small></span></div>
+        </header>
         <div className={styles.controls}>
+          <button type="button" className={styles.mobileFollowBrandon} onClick={() => { setMobileMenuOpen(false); setSocialLinksOpen(true); }}><img src="/brandon-clean-portrait.png" alt="" /><span><strong>Follow Brandon</strong><small>Socials &amp; livestreams</small></span></button>
           <label className={styles.search}><span aria-hidden="true" /><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search places…" aria-label="Search places" /></label>
           <p>Categories</p>
-          <div className={styles.categories} aria-label="Guide categories">{categories.map((item) => <button key={item} type="button" aria-pressed={category === item} onClick={() => setCategory(item)}>{item}</button>)}</div>
+          <div className={styles.categories} aria-label="Guide categories">{categories.map((item) => <button key={item} type="button" aria-pressed={category === item} onClick={() => setCategory(item)}><span aria-hidden="true">{item === "All" ? "✨" : categoryIcon(item)}</span>{categoryLabel(item)}</button>)}</div>
+          <div className={styles.mobileGuideActions}>
+            <button type="button" className={styles.mobileGuidePrimaryAction} onClick={() => changeView("map")}><span aria-hidden="true">📍</span><strong>Show spots</strong></button>
+            <button type="button" onClick={() => { setCategory("All"); setSelected(null); changeView("map"); }}><span aria-hidden="true">🌴</span><strong>Pattaya map</strong></button>
+            <button type="button" aria-pressed={savedOnly} onClick={() => { setReturnView("saved"); setView("saved"); }}><span aria-hidden="true">♡</span><strong>Favorites</strong></button>
+            <button type="button" onClick={() => { setQuery(""); setCategory("All"); setReturnView("places"); setView("places"); }}><span aria-hidden="true">↻</span><strong>Reset</strong></button>
+          </div>
         </div>
         <div className={styles.listHeading}><strong>{savedOnly ? "Saved places" : "Places"}</strong><span>{filtered.length} shown</span></div>
         <div className={styles.list} aria-live="polite">
@@ -109,5 +152,10 @@ export function IntegratedGuide({ initialSpots, loadStatus }: { initialSpots: Gu
         </aside> : null}
       </div>
     </div>
+    {socialLinksOpen ? <aside className={styles.brandonSocialCard} aria-label="Brandon social links">
+      <button type="button" className={styles.socialClose} onClick={() => setSocialLinksOpen(false)} aria-label="Close Brandon social links">×</button>
+      <div className={styles.socialHero}><img src="/brandon-clean-portrait.png" alt="" /><span>Official links</span></div>
+      <div className={styles.socialBody}><h2>Follow Brandon</h2><p>Latest Pattaya nightlife content, livestreams, and updates.</p><div className={styles.socialGrid}>{brandonSocialLinks.map((item) => <a key={item.key} className={styles[`social-${item.key}`]} href={item.url} target="_blank" rel="noopener noreferrer"><span aria-hidden="true">{item.key === "facebook" ? "f" : item.key === "instagram" ? "◎" : item.key === "youtube" ? "▶" : item.key === "kick" ? "K" : "R"}</span><strong>{item.label}</strong></a>)}</div></div>
+    </aside> : null}
   </section>;
 }

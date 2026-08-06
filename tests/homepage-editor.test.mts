@@ -81,10 +81,10 @@ test("Header contextual preview state is isolated, responsive, and undoable", ()
 
 test("immutable Public V3 layout models the approved homepage hierarchy", () => {
   const tree = createDefaultLayoutTree();
-  assert.deepEqual(resolveLayoutChildren(tree, "homepage", "desktop"), ["hero-section", "start-section", "feature-section"]);
+  assert.deepEqual(resolveLayoutChildren(tree, "homepage", "desktop"), ["hero-section", "feature-section"]);
   assert.deepEqual(resolveLayoutChildren(tree, "hero-section", "desktop"), ["hero-main-row", "hero-utility-row"]);
   assert.deepEqual(resolveLayoutChildren(tree, "hero-main-row", "desktop"), ["hero-introduction-column", "portrait-column", "latest-drop-column"]);
-  assert.deepEqual(resolveLayoutChildren(tree, "hero-utility-row", "desktop"), ["live-status-column", "quick-navigation-column"]);
+  assert.deepEqual(resolveLayoutChildren(tree, "hero-utility-row", "desktop"), ["live-status-column"]);
   assert.equal(tree.nodes["hero-section"].immutable, true);
   assert.equal(tree.nodes["portrait-image"].defaultPosition?.parentId, "portrait");
 });
@@ -92,7 +92,7 @@ test("immutable Public V3 layout models the approved homepage hierarchy", () => 
 test("layout compatibility rejects invalid nesting, cycles, and unsafe column capabilities", () => {
   const tree = createDefaultLayoutTree();
   assert.equal(canPlaceLayoutNode(tree, "hero-heading", "hero-introduction-column", "desktop"), true);
-  assert.equal(canPlaceLayoutNode(tree, "hero-heading", "start-introduction-column", "desktop"), true);
+  assert.equal(canPlaceLayoutNode(tree, "hero-heading", "feature-column", "desktop"), true);
   assert.equal(canPlaceLayoutNode(tree, "portrait-image", "latest-drop-column", "desktop"), false);
   assert.equal(canPlaceLayoutNode(tree, "portrait", "hero-utility-row", "desktop"), true);
   assert.equal(canPlaceLayoutNode(tree, "hero-heading", "portrait-column", "desktop"), false);
@@ -102,8 +102,8 @@ test("layout compatibility rejects invalid nesting, cycles, and unsafe column ca
 
 test("moving a registered element preserves its stable ID without duplicate placement", () => {
   const tree = createDefaultLayoutTree();
-  const moved = moveLayoutNode(tree, "hero-body", "start-introduction-column", 1, "desktop");
-  assert.equal(resolveLayoutPlacement(moved, "hero-body", "desktop")?.parentId, "start-introduction-column");
+  const moved = moveLayoutNode(tree, "hero-body", "feature-column", 1, "desktop");
+  assert.equal(resolveLayoutPlacement(moved, "hero-body", "desktop")?.parentId, "feature-column");
   assert.equal(resolveLayoutChildren(moved, "hero-introduction", "desktop").includes("hero-body"), false);
   const occurrences = Object.keys(moved.nodes).filter((id) => id === "hero-body").length;
   assert.equal(occurrences, 1);
@@ -189,12 +189,12 @@ test("canvas cross-host drops update parent and order without duplicates or orph
   let state = createInitialEditorState();
   state = editorReducer(state, { type: "select", id: "hero-body" });
   const payload = createCanvasDragPayload(state.present.layout, state.selectedId, "desktop")!;
-  const drop = resolveCanvasDropMove(state.present.layout, payload, "start-introduction", "inside")!;
+  const drop = resolveCanvasDropMove(state.present.layout, payload, "featured-content", "inside")!;
   state = editorReducer(state, { type: "layout-move", id: payload.nodeId, parentId: drop.parentId, index: drop.index, breakpoint: payload.breakpoint });
-  assert.equal(resolveLayoutPlacement(state.present.layout, "hero-body", "desktop")?.parentId, "start-introduction");
-  assert.equal(resolveLayoutChildren(state.present.layout, "start-introduction", "desktop").at(-1), "hero-body");
+  assert.equal(resolveLayoutPlacement(state.present.layout, "hero-body", "desktop")?.parentId, "featured-content");
+  assert.equal(resolveLayoutChildren(state.present.layout, "featured-content", "desktop").at(-1), "hero-body");
   const placements = Object.keys(state.present.layout.nodes).filter((parentId) => resolveLayoutChildren(state.present.layout, parentId, "desktop").includes("hero-body"));
-  assert.deepEqual(placements, ["start-introduction"]);
+  assert.deepEqual(placements, ["featured-content"]);
   for (const node of Object.values(state.present.layout.nodes)) {
     if (node.id === state.present.layout.rootId) continue;
     const parentId = resolveLayoutPlacement(state.present.layout, node.id, "desktop")?.parentId;
@@ -236,15 +236,15 @@ test("hero heading movement changes effective rendered sibling order and can mov
 
 test("cross-container child moves and undo redo preserve parent, order, and uniqueness", () => {
   let state = createInitialEditorState();
-  state = editorReducer(state, { type: "layout-move", id: "hero-body", parentId: "start-introduction", index: 1, breakpoint: "desktop" });
-  assert.equal(resolveLayoutPlacement(state.present.layout, "hero-body", "desktop")?.parentId, "start-introduction");
-  assert.equal(resolveLayoutChildren(state.present.layout, "start-introduction", "desktop")[1], "hero-body");
+  state = editorReducer(state, { type: "layout-move", id: "hero-body", parentId: "featured-content", index: 1, breakpoint: "desktop" });
+  assert.equal(resolveLayoutPlacement(state.present.layout, "hero-body", "desktop")?.parentId, "featured-content");
+  assert.equal(resolveLayoutChildren(state.present.layout, "featured-content", "desktop")[1], "hero-body");
   state = editorReducer(state, { type: "undo" });
   assert.equal(resolveLayoutPlacement(state.present.layout, "hero-body", "desktop")?.parentId, "hero-introduction");
   state = editorReducer(state, { type: "redo" });
-  assert.equal(resolveLayoutPlacement(state.present.layout, "hero-body", "desktop")?.parentId, "start-introduction");
+  assert.equal(resolveLayoutPlacement(state.present.layout, "hero-body", "desktop")?.parentId, "featured-content");
   const placed = Object.keys(state.present.layout.nodes).filter((parentId) => resolveLayoutChildren(state.present.layout, parentId, "desktop").includes("hero-body"));
-  assert.deepEqual(placed, ["start-introduction"]);
+  assert.deepEqual(placed, ["featured-content"]);
   for (const node of Object.values(state.present.layout.nodes)) {
     if (node.id === state.present.layout.rootId) continue;
     const parentId = resolveLayoutPlacement(state.present.layout, node.id, "desktop")?.parentId;
@@ -336,7 +336,7 @@ test("hero columns, hero rows, and homepage sections reorder at their own struct
   state = editorReducer(state, { type: "layout-move", id: "hero-utility-row", parentId: "hero-section", index: 0, breakpoint: "desktop" });
   assert.deepEqual(resolveLayoutChildren(state.present.layout, "hero-section", "desktop"), ["hero-utility-row", "hero-main-row"]);
   state = editorReducer(state, { type: "layout-move", id: "feature-section", parentId: "homepage", index: 0, breakpoint: "desktop" });
-  assert.deepEqual(resolveLayoutChildren(state.present.layout, "homepage", "desktop"), ["feature-section", "hero-section", "start-section"]);
+  assert.deepEqual(resolveLayoutChildren(state.present.layout, "homepage", "desktop"), ["feature-section", "hero-section"]);
 });
 
 test("generated containers are stable and removable only while empty", () => {
@@ -429,7 +429,7 @@ test("block ordering is restricted to each registered parent group", () => {
   assert.deepEqual(state.present.order.stage.slice(0, 2), ["portrait", "hero-introduction"]);
   const unchanged = editorReducer(state, { type: "move", id: "featured-content", direction: -1 });
   assert.deepEqual(unchanged.present.order.features, ["featured-content"]);
-  assert.equal(state.present.order.start.includes("portrait"), false);
+  assert.equal(state.present.order.features.includes("portrait"), false);
   state = editorReducer(state, { type: "reset-block", id: "portrait" });
   assert.deepEqual(state.present.order.stage.slice(0, 2), ["hero-introduction", "portrait"]);
 });
@@ -590,4 +590,13 @@ test("container selection and outline movement expose one structural level at a 
   assert.match(editorStyles, /\.layoutMode \.editableSection \{ outline-color: transparent; \}/);
   assert.match(editorStyles, /\.selectedContainerBoundary \{ outline-color:/);
   assert.doesNotMatch(editorSource, /className=\{styles\.containerBoundaries\}/);
+});
+
+test("mobile header navigation has a native hydration-independent toggle", async () => {
+  const headerSource = await readFile(new URL("../src/components/layout/header-navigation.tsx", import.meta.url), "utf8");
+  assert.match(headerSource, /id="mobile-navigation-toggle" type="checkbox"/);
+  assert.match(headerSource, /htmlFor="mobile-navigation-toggle"/);
+  assert.match(headerSource, /peer-checked:flex/);
+  assert.match(headerSource, /id="mobile-navigation" role="dialog"/);
+  assert.doesNotMatch(headerSource, /createPortal/);
 });

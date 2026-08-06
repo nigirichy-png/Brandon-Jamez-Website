@@ -2,8 +2,7 @@ export const editorBreakpoints = ["desktop", "tablet", "mobile"] as const;
 export type EditorBreakpoint = (typeof editorBreakpoints)[number];
 
 export const homepageBlockGroups = {
-  stage: ["hero-introduction", "portrait", "latest-drop", "live-status", "quick-navigation"],
-  start: ["start-introduction", "start-links"],
+  stage: ["hero-introduction", "portrait", "latest-drop", "live-status"],
   features: ["featured-content"],
 } as const;
 
@@ -11,10 +10,8 @@ export type HomepageBlockId = (typeof homepageBlockGroups)[keyof typeof homepage
 export type HomepageElementId =
   | "hero-eyebrow" | "hero-heading" | "hero-heading-accent" | "hero-body" | "hero-youtube" | "hero-guide"
   | "portrait-image" | "portrait-badge"
-  | "latest-label" | "latest-date" | "latest-media" | "latest-provider" | "latest-title" | "latest-watch"
+  | "latest-label" | "latest-date" | "latest-media" | "latest-provider" | "latest-title" | "latest-intro" | "latest-watch" | "latest-all"
   | "status-label" | "status-time" | "status-link"
-  | "quick-guide" | "quick-videos" | "quick-subscriber"
-  | "start-eyebrow" | "start-heading" | "start-body" | "start-watch" | "start-guide" | "start-subscriber"
   | "guide-image" | "guide-kicker" | "guide-heading" | "guide-body" | "guide-link"
   | "subscriber-kicker" | "subscriber-heading" | "subscriber-body" | "subscriber-link";
 export type HomepageTargetId = HomepageBlockId | HomepageElementId;
@@ -89,9 +86,6 @@ const blockDefinitions: TargetDefinition[] = [
   { id: "portrait", label: "Portrait", kind: "block", group: "stage" },
   { id: "latest-drop", label: "Latest drop", kind: "block", group: "stage" },
   { id: "live-status", label: "Live status", kind: "block", group: "stage" },
-  { id: "quick-navigation", label: "Quick navigation", kind: "block", group: "stage" },
-  { id: "start-introduction", label: "Start-here introduction", kind: "block", group: "start" },
-  { id: "start-links", label: "Start-here links", kind: "block", group: "start" },
   { id: "featured-content", label: "Guide and subscriber features", kind: "block", group: "features" },
 ];
 
@@ -99,11 +93,8 @@ const element = (id: HomepageElementId, label: string, kind: TargetKind, parentI
 const elementDefinitions: TargetDefinition[] = [
   element("hero-eyebrow", "Eyebrow", "text", "hero-introduction"), element("hero-heading", "Heading", "text", "hero-introduction"), element("hero-heading-accent", "Heading accent", "text", "hero-introduction"), element("hero-body", "Body text", "text", "hero-introduction", { multiline: true }), element("hero-youtube", "YouTube button", "link", "hero-introduction"), element("hero-guide", "Explore button", "link", "hero-introduction"),
   element("portrait-image", "Portrait image", "image", "portrait"), element("portrait-badge", "Portrait badge", "text", "portrait"),
-  element("latest-label", "Latest label", "text", "latest-drop"), element("latest-date", "Latest date", "text", "latest-drop"), element("latest-media", "Latest video", "media", "latest-drop"), element("latest-provider", "Provider label", "text", "latest-drop"), element("latest-title", "Video title", "text", "latest-drop", { multiline: true }), element("latest-watch", "Watch link", "link", "latest-drop", { internalLink: true }),
+  element("latest-label", "Latest label", "text", "latest-drop"), element("latest-date", "Latest date", "text", "latest-drop"), element("latest-media", "Latest video", "media", "latest-drop"), element("latest-provider", "Provider label", "text", "latest-drop"), element("latest-title", "Video title", "text", "latest-drop", { multiline: true }), element("latest-intro", "Videos introduction", "text", "latest-drop", { multiline: true }), element("latest-watch", "Watch link", "link", "latest-drop", { internalLink: true }), element("latest-all", "All videos link", "link", "latest-drop", { internalLink: true }),
   element("status-label", "Status label", "text", "live-status"), element("status-time", "Status time", "text", "live-status"), element("status-link", "Channel link", "link", "live-status"),
-  element("quick-guide", "Guide navigation card", "link", "quick-navigation", { multiline: true, internalLink: true }), element("quick-videos", "Videos navigation card", "link", "quick-navigation", { multiline: true, internalLink: true }), element("quick-subscriber", "Subscriber navigation card", "link", "quick-navigation", { multiline: true, internalLink: true }),
-  element("start-eyebrow", "Eyebrow", "text", "start-introduction"), element("start-heading", "Heading", "text", "start-introduction", { multiline: true }), element("start-body", "Body text", "text", "start-introduction", { multiline: true }),
-  element("start-watch", "Watch row", "link", "start-links", { multiline: true, internalLink: true }), element("start-guide", "Guide row", "link", "start-links", { multiline: true, internalLink: true }), element("start-subscriber", "Subscriber row", "link", "start-links", { multiline: true, internalLink: true }),
   element("guide-image", "Guide image", "image", "featured-content"), element("guide-kicker", "Guide label", "text", "featured-content"), element("guide-heading", "Guide heading", "text", "featured-content"), element("guide-body", "Guide body", "text", "featured-content", { multiline: true }), element("guide-link", "Guide link", "link", "featured-content", { internalLink: true }),
   element("subscriber-kicker", "Subscriber label", "text", "featured-content"), element("subscriber-heading", "Subscriber heading", "text", "featured-content", { multiline: true }), element("subscriber-body", "Subscriber body", "text", "featured-content", { multiline: true }), element("subscriber-link", "Subscriber button", "link", "featured-content", { internalLink: true }),
 ];
@@ -236,19 +227,14 @@ const layoutNode = (id: string, label: string, type: LayoutNodeType, parentId: s
 export function createDefaultLayoutTree(): LayoutTree {
   const nodes: Record<string, LayoutNode> = {};
   const add = (node: LayoutNode) => { nodes[node.id] = node; };
-  add(layoutNode("homepage", "Homepage", "page", null, ["hero-section", "start-section", "feature-section"]));
+  add(layoutNode("homepage", "Homepage", "page", null, ["hero-section", "feature-section"]));
   add(layoutNode("hero-section", "Hero section", "section", "homepage", ["hero-main-row", "hero-utility-row"]));
   add(layoutNode("hero-main-row", "Hero main row", "row", "hero-section", ["hero-introduction-column", "portrait-column", "latest-drop-column"]));
   add(layoutNode("hero-introduction-column", "Hero introduction column", "column", "hero-main-row", ["hero-introduction"], { capability: "content" }));
   add(layoutNode("portrait-column", "Portrait column", "column", "hero-main-row", ["portrait"], { capability: "media" }));
   add(layoutNode("latest-drop-column", "Latest drop column", "column", "hero-main-row", ["latest-drop"], { capability: "general" }));
-  add(layoutNode("hero-utility-row", "Hero utility row", "row", "hero-section", ["live-status-column", "quick-navigation-column"]));
+  add(layoutNode("hero-utility-row", "Hero utility row", "row", "hero-section", ["live-status-column"]));
   add(layoutNode("live-status-column", "Live status area", "column", "hero-utility-row", ["live-status"], { capability: "utility" }));
-  add(layoutNode("quick-navigation-column", "Quick navigation area", "column", "hero-utility-row", ["quick-navigation"], { capability: "utility" }));
-  add(layoutNode("start-section", "Start-here section", "section", "homepage", ["start-row"]));
-  add(layoutNode("start-row", "Start-here row", "row", "start-section", ["start-introduction-column", "start-links-column"]));
-  add(layoutNode("start-introduction-column", "Introduction column", "column", "start-row", ["start-introduction"], { capability: "content" }));
-  add(layoutNode("start-links-column", "Start-here links column", "column", "start-row", ["start-links"], { capability: "action" }));
   add(layoutNode("feature-section", "Guide / subscriber feature section", "section", "homepage", ["feature-row"]));
   add(layoutNode("feature-row", "Guide / subscriber row", "row", "feature-section", ["feature-column"]));
   add(layoutNode("feature-column", "Guide / subscriber features", "column", "feature-row", ["featured-content"], { capability: "general" }));
@@ -318,7 +304,7 @@ export function layoutValueSource<K extends keyof LayoutResponsiveOverride>(tree
 }
 
 function nodeCapability(node: LayoutNode): LayoutCapability {
-  if (node.type === "block") return ["live-status", "quick-navigation"].includes(node.id) ? "utility" : "general";
+  if (node.type === "block") return node.id === "live-status" ? "utility" : "general";
   const target = homepageTargetById[node.id as HomepageTargetId];
   if (target?.kind === "image" || target?.kind === "media") return "media";
   if (target?.kind === "link") return "action";
