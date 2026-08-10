@@ -1,6 +1,6 @@
 # Future integration architecture
 
-This document describes the connected authentication and administration foundation and remaining integration direction. Supabase Auth, account administration, and audit events are connected; content and entitlement-provider workflows remain mock or planned.
+This document describes the connected authentication and administration foundation and remaining integration direction. Supabase Auth, account administration, and audit events are connected; additional content, moderation, subscriber, and entitlement workflows are locally prepared but not yet deployed.
 
 ## Implemented authentication flow
 
@@ -32,7 +32,7 @@ Query parameters remain visitor-controlled development previews and are never tr
 
 The moderator, content-manager, and admin routes use a separate allowlisted `?staffDemo=` query parameter. It is parsed in Server Components, never persisted, and deliberately independent from the subscriber `?demo=` parameter. The seven scenarios model guest, subscriber-only, authorized staff, admin, and blocked staff states without creating users, sessions, cookies, or database records.
 
-Every internal Page calls its own server-only evaluator before rendering operations records. The shared shell and hidden navigation are organizational UI only and are never treated as authorization. Evaluation order is authenticated identity, unblocked account, required trusted role, then allowed. Moderator routes accept moderator or admin; content routes accept content manager or admin; admin routes accept only admin. An admin is not automatically modeled as age-verified or subscribed, and a subscriber has no staff permission.
+Every internal Page calls its own server-only evaluator before rendering operations records. The shared shell and hidden navigation are organizational UI only and are never treated as authorization. Evaluation order is authenticated identity, unblocked account, required trusted role, then allowed. Moderator routes accept moderator or admin. Content reads accept moderator, content manager, or admin; content writes accept only content manager or admin. Admin routes accept only admin. An admin is not automatically modeled as age-verified or subscribed, and a subscriber has no staff permission.
 
 The architecture maintains seven distinct boundaries:
 
@@ -58,13 +58,13 @@ Display-name self-service uses the cookie-backed authenticated client and `updat
 
 ### Internal workflow boundaries
 
-The moderation preview processes only safe fictional records already submitted to this website's internal workflow. It performs no reports, bans, mass actions, account actions, or API calls against YouTube, Facebook, Discord, Instagram, or any other external service.
+The locally prepared moderation workflow stores website-internal cases and append-only status transitions in Supabase. Active moderators and administrators can create and edit cases, claim unassigned work, release permitted assignments, and record allowlisted status changes with optional notes. Only active administrators can permanently delete an archived case; the data-minimized deletion audit reference remains. Every mutation uses an optimistic version check and an atomic audit insert. Development preview roles never access persistent moderation data, and the workflow performs no reports, bans, mass actions, account actions, or API calls against external platforms.
 
-The `/content` routes remain non-persistent content-manager previews. Real video management lives under `/admin/content/videos` and uses only active-admin-checked RPCs through the request-scoped authenticated client. Server Actions repeat authentication, active-admin validation, field validation, and optimistic-version handling; the database performs the mutation and audit insert atomically. The CMS stores supported external link metadata only and provides no upload, hosted playback, Storage, or media-library operation.
+The local migration 012 turns `/content` into a persistent, role-checked video/event workspace. Active moderators can list records but cannot mutate them; active content managers and administrators can create, edit, publish, unpublish, feature/order videos, archive events, and delete through narrow audited RPCs with optimistic versions. Server Actions repeat authorization and validation, while RPC/RLS checks enforce the final boundary. The video CMS still stores external link metadata only and provides no upload, hosted playback, Storage, or media-library operation.
 
 The admin preview shows data-minimized fictional account summaries and safe integration labels only. It exposes no environment variables, secret names, credentials, contact data, identity-document data, payment data, IP addresses, or precise locations. Role and blocking controls are disabled demonstrations; browser-side role mutation is never security.
 
-Future audit events must be server-written, append-oriented, protected from direct browser insertion, limited to non-sensitive metadata, and readable only through trusted staff authorization plus RLS. They should cover role changes, restrictions, publication changes, moderation escalations, and configuration reviews.
+Future audit events must remain server-written, append-oriented, protected from direct browser insertion, limited to non-sensitive metadata, and readable only through trusted staff authorization plus RLS. Existing events cover role changes, restrictions, publication changes, and moderation case mutations; configuration-review events remain future work.
 
 ## Application modes
 
@@ -122,11 +122,11 @@ The intended playback flow is:
 5. The server checks subscription status.
 6. The user requests playback.
 7. The server repeats every entitlement check.
-8. The server requests or generates a short-lived signed playback URL or token.
-9. The browser receives only temporary playback authorization.
-10. A professional streaming provider delivers the stream.
+8. For small private files, the server generates a 60-second Supabase Storage URL and consumes it internally.
+9. The same-origin gateway proxies the response with private no-store headers and byte-range support; the signed Storage URL never reaches HTML or browser code.
+10. Large or adaptive video should later use a professional provider with equivalent short-lived playback authorization.
 
-Private subscriber video must never use permanent public MP4 URLs, local filesystem paths, hidden frontend buttons as access control, secrets in browser code, or permanent unsigned playback links. Possible providers include Cloudflare Stream, Mux, or another professional service; no provider is selected or connected yet.
+Private subscriber video must never use permanent public MP4 URLs, local filesystem paths, hidden frontend buttons as access control, secrets in browser code, or permanent unsigned playback links. The local implementation accepts private MP4/WebM clips up to 10 MB in the non-public `subscriber-media` bucket. Subscriber post RPCs return media-availability flags rather than bucket or object paths. Every gateway request repeats account, blocking, publication, and paid-entitlement checks before a separate server-only path lookup and server-only signing. Admin draft previews repeat real active-admin checks. YouTube, Vimeo, direct video URLs, and external image URLs are explicitly labeled external and are not made private by the subscriber page. See `PROTECTED_SUBSCRIBER_MEDIA.md` for limits and rollout requirements.
 
 ## Professional age verification
 
@@ -149,7 +149,7 @@ Authenticated server actions create fixed-price Stripe-hosted Checkout and Custo
 
 Supabase Auth establishes user identity while server-side code validates sessions. PostgreSQL stores the minimum required account, role, entitlement, and integration-reference data. Row Level Security policies enforce least-privilege access independently of application UI.
 
-`supabase/migrations` contains six applied migrations: the initial account model, admin/audit operations, audited-profile hardening, narrow trusted read grants, the account-security audit action, and the videos-only CMS foundation. Migration 006 adds validated YouTube, Rumble, and Kick link metadata, published-only public reads, active-admin CMS RPCs, optimistic concurrency, restrictive table grants/RLS, and resource-targeted audit events. The public page and normal CMS operations never use the service secret or query `cms_videos` directly. Events CMS, moderation persistence, uploaded media, hosted playback, thumbnails, and Storage remain future reviewed work.
+`supabase/migrations` contains six applied foundation migrations. Migrations 007-012 are local, unapplied rollout artifacts for trusted Stripe entitlement, subscriber posts, private subscriber media, persistent website-internal moderation, and role-checked video/event operations. The browser has no Storage read policy; the service credential is confined to the reauthorizing media gateway and admin upload cleanup. External provider streaming, large-video transcoding, thumbnails, and external-platform moderation remain future reviewed work.
 
 `src/lib/supabase/database.types.ts` is generated from the linked project. `types.ts` remains a stable re-export boundary for existing imports.
 
@@ -159,7 +159,7 @@ Service-role credentials must remain server-only. Webhooks must verify signature
 
 Vercel hosts the production Next.js application. Production receives the public site URL, public Supabase URL and anon key, and a server-only Supabase secret. Preview receives no server secret and must fail closed for trusted administrative directory reads. Public variables may be bundled for browsers; the secret may be read only by the lazy `server-only` admin client after normal authenticated admin authorization.
 
-Supabase owns authentication and the database. Its production Site URL points to the canonical Vercel origin, with exact production and localhost allowlist entries for `/auth/confirm` and `/auth/recovery`. The application validates continuation paths independently and never trusts an arbitrary callback destination.
+Supabase owns authentication and the database. After domain registration and verification, its production Site URL will be `https://brandonjamezofficial.com`, with exact production and required localhost allowlist entries for `/auth/confirm` and `/auth/recovery`. Those production settings are not active yet. The application validates continuation paths independently and never trusts an arbitrary callback destination. The separate `auth.brandonjamezofficial.com` subdomain is reserved only for authentication mail.
 
 Deployments currently use the authenticated Vercel CLI because GitHub integration lacks repository access. This prevents automatic Git-triggered deployments but does not weaken runtime authorization. A future integration must grant only the required repository access and must not broaden Production secret scope to Preview.
 

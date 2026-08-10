@@ -6,6 +6,7 @@ const copy = {
   not_authenticated: { title: "Staff sign-in is required", description: "This public development route has no authenticated staff session. Use the selector only to preview the planned interface." },
   account_blocked: { title: "Internal access is unavailable", description: "The simulated account is not eligible for internal access. No internal blocking reason or operations data is shown." },
   moderator_role_required: { title: "Moderator role required", description: "Subscriber or content access does not grant moderation permission. A future trusted database role must authorize this area." },
+  content_viewer_role_required: { title: "Backend content role required", description: "This area requires a trusted moderator, content-manager, or administrator role. Subscriber access does not grant backend visibility." },
   content_manager_role_required: { title: "Content-manager role required", description: "This area requires a trusted content-manager or admin role. Subscriber and moderator roles are separate." },
   admin_role_required: { title: "Administrator role required", description: "Administrative permission is distinct from moderation, content management, and subscriber entitlement." },
 };

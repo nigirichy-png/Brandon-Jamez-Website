@@ -190,6 +190,204 @@ export type Database = {
         }
         Relationships: []
       }
+      live_chat_messages: {
+        Row: {
+          author_display_name: string
+          author_key: string
+          body: string
+          created_at: string
+          id: number
+          session_id: string
+          status: Database["public"]["Enums"]["live_chat_message_status"]
+          updated_at: string
+        }
+        Insert: {
+          author_display_name: string
+          author_key: string
+          body: string
+          created_at?: string
+          id?: never
+          session_id: string
+          status?: Database["public"]["Enums"]["live_chat_message_status"]
+          updated_at?: string
+        }
+        Update: {
+          author_display_name?: string
+          author_key?: string
+          body?: string
+          created_at?: string
+          id?: never
+          session_id?: string
+          status?: Database["public"]["Enums"]["live_chat_message_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      live_sessions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          direct_playback_provider: string | null
+          direct_playback_reference: string | null
+          id: string
+          is_current: boolean
+          source: Database["public"]["Enums"]["live_source"]
+          status: Database["public"]["Enums"]["live_status"]
+          title: string
+          updated_at: string
+          updated_by: string | null
+          youtube_video_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          direct_playback_provider?: string | null
+          direct_playback_reference?: string | null
+          id?: string
+          is_current?: boolean
+          source: Database["public"]["Enums"]["live_source"]
+          status?: Database["public"]["Enums"]["live_status"]
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          youtube_video_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          direct_playback_provider?: string | null
+          direct_playback_reference?: string | null
+          id?: string
+          is_current?: boolean
+          source?: Database["public"]["Enums"]["live_source"]
+          status?: Database["public"]["Enums"]["live_status"]
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          youtube_video_id?: string | null
+        }
+        Relationships: []
+      }
+      cms_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          location: string
+          published_at: string | null
+          starts_at: string
+          status: Database["public"]["Enums"]["cms_event_status"]
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          location?: string
+          published_at?: string | null
+          starts_at: string
+          status?: Database["public"]["Enums"]["cms_event_status"]
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          location?: string
+          published_at?: string | null
+          starts_at?: string
+          status?: Database["public"]["Enums"]["cms_event_status"]
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      moderation_case_status_history: {
+        Row: {
+          case_id: string
+          changed_at: string
+          changed_by: string | null
+          from_status: Database["public"]["Enums"]["moderation_case_status"] | null
+          id: number
+          note: string | null
+          to_status: Database["public"]["Enums"]["moderation_case_status"]
+        }
+        Insert: {
+          case_id: string
+          changed_at?: string
+          changed_by?: string | null
+          from_status?: Database["public"]["Enums"]["moderation_case_status"] | null
+          id?: never
+          note?: string | null
+          to_status: Database["public"]["Enums"]["moderation_case_status"]
+        }
+        Update: {
+          case_id?: string
+          changed_at?: string
+          changed_by?: string | null
+          from_status?: Database["public"]["Enums"]["moderation_case_status"] | null
+          id?: never
+          note?: string | null
+          to_status?: Database["public"]["Enums"]["moderation_case_status"]
+        }
+        Relationships: []
+      }
+      moderation_cases: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          created_at: string
+          created_by: string | null
+          evidence_reference: string | null
+          id: string
+          severity: Database["public"]["Enums"]["moderation_case_severity"]
+          source_type: string
+          status: Database["public"]["Enums"]["moderation_case_status"]
+          summary: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          category: string
+          created_at?: string
+          created_by?: string | null
+          evidence_reference?: string | null
+          id?: string
+          severity: Database["public"]["Enums"]["moderation_case_severity"]
+          source_type: string
+          status?: Database["public"]["Enums"]["moderation_case_status"]
+          summary: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          evidence_reference?: string | null
+          id?: string
+          severity?: Database["public"]["Enums"]["moderation_case_severity"]
+          source_type?: string
+          status?: Database["public"]["Enums"]["moderation_case_status"]
+          summary?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       subscriber_posts: {
         Row: {
           body: string
@@ -207,6 +405,7 @@ export type Database = {
           status: Database["public"]["Enums"]["cms_content_status"]
           title: string
           updated_at: string
+          video_path: string | null
         }
         Insert: {
           body: string
@@ -224,6 +423,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["cms_content_status"]
           title: string
           updated_at?: string
+          video_path?: string | null
         }
         Update: {
           body?: string
@@ -241,6 +441,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["cms_content_status"]
           title?: string
           updated_at?: string
+          video_path?: string | null
         }
         Relationships: []
       }
@@ -442,7 +643,60 @@ export type Database = {
       }
       admin_list_subscriber_posts: {
         Args: never
-        Returns: Database["public"]["Tables"]["subscriber_posts"]["Row"][]
+        Returns: {
+          body: string
+          bunny_video_file_name: string | null
+          bunny_video_file_size: number | null
+          bunny_video_id: string | null
+          bunny_video_status: Database["public"]["Enums"]["bunny_video_status"] | null
+          content_image_path: string | null
+          cover_image_path: string | null
+          cover_image_url: string | null
+          created_at: string
+          created_by: string | null
+          excerpt: string | null
+          id: string
+          media_type: Database["public"]["Enums"]["subscriber_media_type"] | null
+          media_url: string | null
+          published_at: string | null
+          slug: string
+          status: Database["public"]["Enums"]["cms_content_status"]
+          title: string
+          updated_at: string
+          video_path: string | null
+        }[]
+      }
+      admin_list_subscriber_bunny_videos: {
+        Args: never
+        Returns: {
+          created_at: string
+          description: string | null
+          file_name: string
+          file_size: number
+          id: string
+          mime_type: string
+          provider_status: number | null
+          provider_video_id: string
+          publication_status: Database["public"]["Enums"]["cms_content_status"]
+          published_at: string | null
+          ready_at: string | null
+          slug: string
+          status: Database["public"]["Enums"]["bunny_video_status"]
+          title: string
+          updated_at: string
+        }[]
+      }
+      admin_create_subscriber_bunny_video: {
+        Args: { p_description: string; p_file_name: string; p_file_size: number; p_mime_type: string; p_provider_video_id: string; p_title: string }
+        Returns: string
+      }
+      admin_update_subscriber_bunny_video: {
+        Args: { p_description: string; p_expected_updated_at: string; p_publish: boolean; p_title: string; p_video_id: string }
+        Returns: boolean
+      }
+      admin_delete_subscriber_bunny_video: {
+        Args: { p_expected_updated_at: string; p_video_id: string }
+        Returns: string
       }
       admin_remove_role: {
         Args: {
@@ -535,6 +789,127 @@ export type Database = {
         Args: { p_stripe_customer_id: string }
         Returns: boolean
       }
+      content_create_cms_event: {
+        Args: {
+          p_description: string
+          p_location: string
+          p_starts_at: string
+          p_title: string
+        }
+        Returns: string
+      }
+      content_create_cms_video: {
+        Args: {
+          p_category?: string | null
+          p_platform: Database["public"]["Enums"]["cms_video_platform"]
+          p_short_description: string
+          p_title: string
+          p_video_url: string
+        }
+        Returns: string
+      }
+      content_delete_cms_event: {
+        Args: { p_event_id: string; p_expected_updated_at: string }
+        Returns: boolean
+      }
+      content_delete_cms_video: {
+        Args: { p_expected_updated_at: string; p_video_id: string }
+        Returns: boolean
+      }
+      content_list_cms_events: {
+        Args: never
+        Returns: {
+          created_at: string
+          description: string
+          id: string
+          location: string
+          published_at: string | null
+          starts_at: string
+          status: Database["public"]["Enums"]["cms_event_status"]
+          title: string
+          updated_at: string
+        }[]
+      }
+      content_list_cms_videos: {
+        Args: never
+        Returns: {
+          category: string | null
+          created_at: string
+          display_order: number
+          featured: boolean
+          id: string
+          platform: Database["public"]["Enums"]["cms_video_platform"]
+          published_at: string | null
+          short_description: string
+          status: Database["public"]["Enums"]["cms_content_status"]
+          title: string
+          updated_at: string
+          video_url: string
+        }[]
+      }
+      content_reorder_cms_video: {
+        Args: {
+          p_display_order: number
+          p_expected_updated_at: string
+          p_video_id: string
+        }
+        Returns: boolean
+      }
+      content_set_cms_event_archived: {
+        Args: {
+          p_archive: boolean
+          p_event_id: string
+          p_expected_updated_at: string
+        }
+        Returns: boolean
+      }
+      content_set_cms_event_publication: {
+        Args: {
+          p_event_id: string
+          p_expected_updated_at: string
+          p_publish: boolean
+        }
+        Returns: boolean
+      }
+      content_set_cms_video_featured: {
+        Args: {
+          p_expected_updated_at: string
+          p_featured: boolean
+          p_video_id: string
+        }
+        Returns: boolean
+      }
+      content_set_cms_video_publication: {
+        Args: {
+          p_expected_updated_at: string
+          p_publish: boolean
+          p_video_id: string
+        }
+        Returns: boolean
+      }
+      content_update_cms_event: {
+        Args: {
+          p_description: string
+          p_event_id: string
+          p_expected_updated_at: string
+          p_location: string
+          p_starts_at: string
+          p_title: string
+        }
+        Returns: boolean
+      }
+      content_update_cms_video: {
+        Args: {
+          p_category: string | null
+          p_expected_updated_at: string
+          p_platform: Database["public"]["Enums"]["cms_video_platform"]
+          p_short_description: string
+          p_title: string
+          p_video_id: string
+          p_video_url: string
+        }
+        Returns: boolean
+      }
       get_own_stripe_billing_context: {
         Args: never
         Returns: {
@@ -549,10 +924,12 @@ export type Database = {
         Args: { p_slug: string }
         Returns: {
           body: string
-          content_image_path: string | null
-          cover_image_path: string | null
           cover_image_url: string | null
           excerpt: string | null
+          has_content_image: boolean
+          has_cover_image: boolean
+          has_bunny_video: boolean
+          has_private_video: boolean
           id: string
           media_type: Database["public"]["Enums"]["subscriber_media_type"] | null
           media_url: string | null
@@ -583,14 +960,185 @@ export type Database = {
         Args: never
         Returns: {
           cover_image_url: string | null
-          cover_image_path: string | null
           excerpt: string | null
+          has_cover_image: boolean
           id: string
           published_at: string | null
           slug: string
           status: Database["public"]["Enums"]["cms_content_status"]
           title: string
         }[]
+      }
+      list_published_subscriber_bunny_videos: {
+        Args: never
+        Returns: {
+          description: string | null
+          id: string
+          published_at: string | null
+          slug: string
+          title: string
+        }[]
+      }
+      list_published_cms_events: {
+        Args: never
+        Returns: {
+          description: string
+          id: string
+          location: string
+          published_at: string | null
+          starts_at: string
+          title: string
+          updated_at: string
+        }[]
+      }
+      moderator_create_case: {
+        Args: {
+          p_category: string
+          p_evidence_reference: string | null
+          p_severity: Database["public"]["Enums"]["moderation_case_severity"]
+          p_source_type: string
+          p_summary: string
+          p_title: string
+        }
+        Returns: string
+      }
+      moderator_delete_case: {
+        Args: { p_case_id: string; p_expected_updated_at: string }
+        Returns: boolean
+      }
+      moderator_list_case_history: {
+        Args: never
+        Returns: {
+          case_id: string
+          changed_at: string
+          changed_by_label: string
+          from_status: Database["public"]["Enums"]["moderation_case_status"] | null
+          id: number
+          note: string | null
+          to_status: Database["public"]["Enums"]["moderation_case_status"]
+        }[]
+      }
+      moderator_list_cases: {
+        Args: never
+        Returns: {
+          assigned_to_current_user: boolean
+          assigned_to_label: string | null
+          category: string
+          created_at: string
+          evidence_reference: string | null
+          id: string
+          severity: Database["public"]["Enums"]["moderation_case_severity"]
+          source_type: string
+          status: Database["public"]["Enums"]["moderation_case_status"]
+          summary: string
+          title: string
+          updated_at: string
+        }[]
+      }
+      moderator_set_case_assignment: {
+        Args: {
+          p_assign_to_self: boolean
+          p_case_id: string
+          p_expected_updated_at: string
+        }
+        Returns: boolean
+      }
+      moderator_set_case_status: {
+        Args: {
+          p_case_id: string
+          p_expected_updated_at: string
+          p_note: string | null
+          p_status: Database["public"]["Enums"]["moderation_case_status"]
+        }
+        Returns: boolean
+      }
+      moderator_update_case: {
+        Args: {
+          p_case_id: string
+          p_category: string
+          p_evidence_reference: string | null
+          p_expected_updated_at: string
+          p_severity: Database["public"]["Enums"]["moderation_case_severity"]
+          p_source_type: string
+          p_summary: string
+          p_title: string
+        }
+        Returns: boolean
+      }
+      admin_configure_live_session: {
+        Args: {
+          p_direct_provider: string | null
+          p_direct_reference: string | null
+          p_expected_updated_at: string | null
+          p_session_id: string | null
+          p_source: Database["public"]["Enums"]["live_source"]
+          p_title: string
+          p_youtube_video_id: string | null
+        }
+        Returns: string
+      }
+      admin_set_live_status: {
+        Args: { p_expected_updated_at: string; p_session_id: string; p_status: Database["public"]["Enums"]["live_status"] }
+        Returns: boolean
+      }
+      get_current_live_session: {
+        Args: never
+        Returns: {
+          direct_playback_provider: string | null
+          direct_playback_reference: string | null
+          id: string
+          source: Database["public"]["Enums"]["live_source"]
+          status: Database["public"]["Enums"]["live_status"]
+          title: string
+          updated_at: string
+          youtube_video_id: string | null
+        }[]
+      }
+      list_live_chat_messages: {
+        Args: { p_before_id?: number | null; p_limit?: number; p_session_id: string }
+        Returns: {
+          author_display_name: string
+          author_key: string
+          body: string
+          created_at: string
+          id: number
+          session_id: string
+          status: Database["public"]["Enums"]["live_chat_message_status"]
+          updated_at: string
+        }[]
+      }
+      is_current_live_session: { Args: { p_session_id: string }; Returns: boolean }
+      moderator_delete_live_chat_message: { Args: { p_message_id: number }; Returns: boolean }
+      moderator_restrict_live_chat_user: {
+        Args: { p_author_key: string; p_duration_seconds?: number | null; p_kind: string; p_session_id: string }
+        Returns: boolean
+      }
+      moderator_unrestrict_live_chat_user: { Args: { p_author_key: string; p_session_id: string }; Returns: boolean }
+      send_live_chat_message: { Args: { p_body: string; p_session_id: string }; Returns: number }
+      record_youtube_moderation_action: {
+        Args: { p_action: string; p_live_chat_id: string; p_metadata?: Json; p_target_label: string }
+        Returns: boolean
+      }
+      resolve_subscriber_media_path: {
+        Args: {
+          p_allow_draft?: boolean
+          p_kind: string
+          p_post_id: string
+          p_slug: string
+        }
+        Returns: string | null
+      }
+      resolve_subscriber_bunny_video: {
+        Args: { p_allow_draft?: boolean; p_slug: string; p_video_id: string }
+        Returns: string | null
+      }
+      service_update_subscriber_bunny_video_status: {
+        Args: {
+          p_provider_status: number
+          p_provider_video_id: string
+          p_status: Database["public"]["Enums"]["bunny_video_status"]
+        }
+        Returns: boolean
       }
       process_stripe_subscription_event: {
         Args: {
@@ -625,8 +1173,20 @@ export type Database = {
         | "expired"
         | "revoked"
       app_role: "subscriber" | "moderator" | "content_manager" | "admin"
+      bunny_video_status: "pending" | "uploading" | "processing" | "ready" | "failed"
       cms_content_status: "draft" | "published"
+      cms_event_status: "draft" | "published" | "archived"
       cms_video_platform: "youtube" | "rumble" | "kick"
+      live_chat_message_status: "visible" | "deleted"
+      live_source: "youtube" | "direct"
+      live_status: "offline" | "scheduled" | "live" | "ended"
+      moderation_case_severity: "low" | "medium" | "high"
+      moderation_case_status:
+        | "pending"
+        | "in_review"
+        | "escalated"
+        | "reviewed"
+        | "archived"
       subscriber_media_type: "image" | "video" | "embed"
       subscription_status:
         | "inactive"
@@ -777,6 +1337,7 @@ export const Constants = {
         "revoked",
       ],
       app_role: ["subscriber", "moderator", "content_manager", "admin"],
+      bunny_video_status: ["pending", "uploading", "processing", "ready", "failed"],
       cms_content_status: ["draft", "published"],
       cms_video_platform: ["youtube", "rumble", "kick"],
       subscriber_media_type: ["image", "video", "embed"],

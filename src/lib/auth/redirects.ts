@@ -6,7 +6,10 @@ export function getSiteOrigin(): string {
   const configured = process.env.NEXT_PUBLIC_SITE_URL;
   try {
     const url = new URL(configured ?? fallbackOrigin);
-    return url.protocol === "http:" || url.protocol === "https:" ? url.origin : fallbackOrigin;
+    const localHttp = url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname);
+    const validOrigin = url.protocol === "https:" || localHttp;
+    if (!validOrigin || url.username || url.password || url.pathname !== "/" || url.search || url.hash) return fallbackOrigin;
+    return url.origin;
   } catch {
     return fallbackOrigin;
   }

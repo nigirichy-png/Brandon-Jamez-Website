@@ -1,8 +1,8 @@
 import type { SubscriberMediaType, SubscriberPostStatus } from "./model";
 
 export type NormalizedSubscriberMedia =
-  | { kind: "video"; url: string }
-  | { kind: "embed"; provider: "YouTube" | "Vimeo"; url: string };
+  | { kind: "video"; protection: "external"; url: string }
+  | { kind: "embed"; protection: "external"; provider: "YouTube" | "Vimeo"; url: string };
 
 const mediaControls = /[\s\p{Cc}\p{Cf}]/u;
 const youtubeId = /^[A-Za-z0-9_-]{11}$/;
@@ -21,7 +21,7 @@ function safeHttpsMediaUrl(value: string): URL | null {
 export function normalizeSubscriberExternalMedia(type: "video" | "embed", value: string): NormalizedSubscriberMedia | null {
   const url = safeHttpsMediaUrl(value);
   if (!url) return null;
-  if (type === "video") return { kind: "video", url: url.toString() };
+  if (type === "video") return { kind: "video", protection: "external", url: url.toString() };
 
   const hostname = url.hostname.toLowerCase();
   let id: string | null = null;
@@ -31,11 +31,11 @@ export function normalizeSubscriberExternalMedia(type: "video" | "embed", value:
   } else if (hostname === "youtu.be") {
     id = url.pathname.split("/")[1] ?? null;
   }
-  if (id && youtubeId.test(id)) return { kind: "embed", provider: "YouTube", url: `https://www.youtube-nocookie.com/embed/${id}` };
+  if (id && youtubeId.test(id)) return { kind: "embed", protection: "external", provider: "YouTube", url: `https://www.youtube-nocookie.com/embed/${id}` };
 
   if (["vimeo.com", "www.vimeo.com"].includes(hostname)) id = url.pathname.split("/").filter(Boolean)[0] ?? null;
   else if (hostname === "player.vimeo.com" && url.pathname.startsWith("/video/")) id = url.pathname.split("/")[2] ?? null;
-  if (id && vimeoId.test(id)) return { kind: "embed", provider: "Vimeo", url: `https://player.vimeo.com/video/${id}` };
+  if (id && vimeoId.test(id)) return { kind: "embed", protection: "external", provider: "Vimeo", url: `https://player.vimeo.com/video/${id}` };
   return null;
 }
 

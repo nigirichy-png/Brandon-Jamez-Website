@@ -21,6 +21,14 @@ function requiredEnvironment(name: string): string {
   return value;
 }
 
+function optionalSecret(...names: string[]): string | null {
+  for (const name of names) {
+    const value = Deno.env.get(name)?.trim();
+    if (value && !value.includes("placeholder")) return value;
+  }
+  return null;
+}
+
 function optionalString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
@@ -154,8 +162,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
 
   try {
     const supabaseUrl = requiredEnvironment("SUPABASE_URL");
-    const supabaseSecret = Deno.env.get("SUPABASE_SECRET_KEY")
-      ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabaseSecret = optionalSecret("SUPABASE_SECRET_KEY", "SUPABASE_SERVICE_ROLE_KEY");
     if (!supabaseSecret) throw new Error("missing_supabase_secret");
     const configuredPriceId = requiredEnvironment("STRIPE_SUBSCRIPTION_PRICE_ID");
     const supabase = createClient(supabaseUrl, supabaseSecret, {

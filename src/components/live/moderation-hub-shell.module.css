@@ -1,0 +1,70 @@
+.shell {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 42rem;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 12% -22%, rgba(130, 99, 89, .13), transparent 37%),
+    radial-gradient(circle at 92% 14%, rgba(104, 91, 117, .07), transparent 30%),
+    #111012;
+  color: #f0ecef;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.header {
+  position: relative;
+  z-index: 20;
+  min-height: 4.75rem;
+  padding: .85rem clamp(1.25rem, 2.3vw, 2.75rem);
+  border-bottom: 1px solid rgba(79, 72, 79, .38);
+  background: rgba(24, 22, 24, .92);
+  backdrop-filter: blur(18px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+.brand { display: flex; align-items: center; gap: .8rem; min-width: max-content; }
+.brandMark { width: 2.5rem; height: 2.5rem; border: 1px solid rgba(158, 148, 174, .28); border-radius: .7rem; background: linear-gradient(145deg, rgba(127, 116, 146, .2), rgba(93, 83, 105, .08)); box-shadow: inset 0 1px rgba(255, 255, 255, .055), 0 8px 24px rgba(0, 0, 0, .14); display: grid; place-items: center; }
+.brandMark span { width: 0; height: 0; margin-left: .12rem; border-top: .38rem solid transparent; border-bottom: .38rem solid transparent; border-left: .58rem solid #c1b7ca; }
+.eyebrow { margin: 0 0 .15rem; color: #7e777f; font-size: .56rem; font-weight: 550; }
+.brand h1 { margin: 0; color: #f0ecef; font-size: 1.05rem; font-weight: 650; letter-spacing: -.02em; }
+.headerStatus { display: flex; align-items: center; justify-content: flex-end; gap: .6rem; }
+.pill { min-height: 1.9rem; padding: 0 .7rem; border: 1px solid #39343a; border-radius: .45rem; background: rgba(24, 28, 37, .78); color: #b0b6c2; font-size: .66rem; font-weight: 550; white-space: nowrap; display: inline-flex; align-items: center; gap: .45rem; }
+.pill[data-tone="youtube"] { color: #efc3c6; border-color: rgba(217, 77, 85, .26); background: rgba(161, 51, 58, .13); }
+.pillDot { width: .38rem; height: .38rem; border-radius: 50%; background: #df5159; box-shadow: 0 0 0 .2rem rgba(217, 77, 85, .1); }
+.profile { min-width: 0; padding-left: .7rem; border-left: 1px solid rgba(89, 81, 89, .48); display: flex; align-items: center; gap: .55rem; }
+.avatar { width: 1.95rem; height: 1.95rem; flex: 0 0 auto; border-radius: 50%; background: #383238; color: #d2cad2; font-size: .62rem; font-weight: 750; display: grid; place-items: center; }
+.profileCopy { min-width: 0; display: grid; gap: .12rem; }
+.profileCopy small { color: #7e777f; font-size: .55rem; }
+.profileCopy strong { max-width: 12rem; overflow: hidden; color: #cbd0da; font-size: .68rem; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.previewBadge { color: #c9c1ff; border-color: rgba(139, 124, 246, .35); background: rgba(139, 124, 246, .1); }
+.settings { position: relative; }
+.settings summary { min-height: 1.95rem; padding: 0 .65rem; border-radius: .45rem; background: #302b30; color: #d2ccd2; font-size: .62rem; font-weight: 650; cursor: pointer; list-style: none; display: flex; align-items: center; }
+.settings summary::-webkit-details-marker { display: none; }
+.settings[open] summary { background: #3b353b; color: white; }
+.settingsPanel { position: absolute; top: calc(100% + .7rem); right: 0; width: min(31rem, calc(100vw - 2rem)); max-height: calc(100dvh - 6.5rem); overflow-y: auto; padding: 1.25rem; border: 1px solid #403943; border-radius: .7rem; background: #1d1a1e; box-shadow: 0 24px 70px rgba(0, 0, 0, .6); }
+.workspaceSlot { min-height: 0; overflow: hidden; }
+
+@media (max-width: 900px) {
+  .shell { height: auto; min-height: 100dvh; overflow: visible; }
+  .header { align-items: flex-start; }
+  .headerStatus { flex-wrap: wrap; }
+  .workspaceSlot { overflow: visible; }
+}
+
+@media (max-width: 620px) {
+  .shell { min-height: 100dvh; }
+  .header { min-height: 3.35rem; padding: calc(.45rem + env(safe-area-inset-top)) max(.65rem, env(safe-area-inset-right)) .45rem max(.65rem, env(safe-area-inset-left)); }
+  .brandMark { width: 2rem; height: 2rem; border-radius: .5rem; }
+  .eyebrow, .pill[data-recorder="true"], .profileCopy small { display: none; }
+  .brand h1 { font-size: .78rem; }
+  .headerStatus { gap: .35rem; }
+  .pill { min-height: 1.8rem; padding: 0 .45rem; font-size: .52rem; }
+  .profile { padding-left: 0; border: 0; }
+  .avatar { width: 1.75rem; height: 1.75rem; }
+  .profileCopy strong { max-width: 5.5rem; font-size: .55rem; }
+  .settings summary { min-height: 1.8rem; font-size: .54rem; }
+}

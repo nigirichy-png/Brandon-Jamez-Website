@@ -1,9 +1,8 @@
 export function SummaryCard({ label, value, detail, accent = "text-cyan-200" }: { label: string; value: string | number; detail: string; accent?: string }) {
   return (
-    <article className="rounded-2xl border border-white/10 bg-[#12151c] p-5">
-      <p className="text-xs font-extrabold uppercase tracking-[0.13em] text-zinc-500">{label}</p>
-      <p className={`font-display mt-3 text-3xl font-bold ${accent}`}>{value}</p>
-      <p className="mt-2 text-sm leading-6 text-zinc-400">{detail}</p>
+    <article className="grid min-w-0 grid-cols-[minmax(7rem,0.7fr)_minmax(0,1.3fr)] items-center gap-4 border-b border-white/10 py-3">
+      <div><p className="text-xs font-medium text-zinc-500">{label}</p><p className={`mt-0.5 text-xl font-semibold ${accent}`}>{value}</p></div>
+      <p className="text-xs leading-5 text-zinc-500">{detail}</p>
     </article>
   );
 }

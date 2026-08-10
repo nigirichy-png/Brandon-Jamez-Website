@@ -2,7 +2,7 @@
 
 A polished foundation for the Brandon Jamez platform. It combines public previews, real Supabase authentication, server-authorized account administration, append-oriented audit events, and development-only mock entitlement and staff experiences.
 
-Supabase Auth, the RLS-protected account schema, display-name self-service, role management, account restrictions, and administrative audit records are connected. Professional age verification, payments, subscriptions, private streaming, content mutations, and external moderation remain unconnected.
+Supabase Auth, the RLS-protected account schema, display-name self-service, role management, account restrictions, and administrative audit records are connected. Subscriber content, paid entitlement, private Storage media, test-mode Stripe integration, website-internal moderation, and role-checked content/event operations are prepared locally but remain inactive until migrations 007-012 and the provider configuration are reviewed and deployed. Professional age verification and external-platform moderation remain unconnected.
 
 ## Technology
 
@@ -22,7 +22,11 @@ Supabase Auth, the RLS-protected account schema, display-name self-service, role
 | `/` | Public mock UI | Homepage, live status, social placeholders, featured videos, events, Guide, and membership promotions |
 | `/guide` | Public placeholder | Explains the separate Pattaya Guide project and holds a disabled URL placeholder |
 | `/videos` | Public CMS | Published YouTube, Rumble, and Kick links from the safe public video RPC |
-| `/events` | Public mock UI | Upcoming mock events |
+| `/events` | Public data | Published event records from a public, data-minimized RPC |
+| `/support` | Public support | Monitored contact boundary and secure account self-service links |
+| `/privacy` | Public legal | Technical privacy inventory with a fail-closed operator-data warning |
+| `/terms` | Public legal | Honest pre-launch service rules; paid membership terms are not active |
+| `/legal-notice` | Public legal | Configured operator and direct-contact information |
 | `/subscribe` | Public information | Future subscriber requirements; subscriptions are not active |
 | `/login` | Public authentication | Server Action email/password sign-in with safe same-origin continuation |
 | `/signup` | Public authentication | Validated account creation with email confirmation |
@@ -38,16 +42,20 @@ Supabase Auth, the RLS-protected account schema, display-name self-service, role
 | `/verify-age` | Public development plan | Future professional age-verification boundary; no collection or verification |
 | `/member` | Server-authorized | Real RLS state by default; explicit mock scenarios with allowlisted `?demo=` |
 | `/member/videos/[videoId]` | Server-authorized | Repeats identity, entitlement, and video-record checks |
-| `/mod` | Server-rendered development demo | Moderation operations overview |
-| `/mod/review` | Server-rendered development demo | Fictional internal review queue with disabled actions |
-| `/content` | Server-rendered development demo | Content-operations overview |
-| `/content/videos` | Server-rendered development demo | Public and subscriber video-metadata workflow |
-| `/content/events` | Server-rendered development demo | Event publication workflow |
+| `/subscriber` | Paid subscriber | Published subscriber posts after repeated account and paid-entitlement checks |
+| `/subscriber/[slug]` | Paid subscriber | Protected article with private images/video or clearly labeled external media |
+| `/subscriber/media/[slug]/[kind]` | Protected media gateway | Reauthorizes each request, supports ranges, and proxies private Storage without exposing signed URLs |
+| `/mod` | Moderator or admin | Persistent moderation summary from role-checked Supabase RPCs |
+| `/mod/review` | Moderator or admin | Case creation, editing, assignment, status history, archival, and audited admin deletion |
+| `/content` | Role-checked backend | Read-only for moderators; editable for content managers and admins |
+| `/content/videos` | Role-checked backend | Audited video workflow; moderator read-only |
+| `/content/events` | Role-checked backend | Audited event workflow; moderator read-only |
 | `/admin` | Admin-only | Real administrative control-center overview; local previews in development only |
 | `/admin/users` | Admin-only | Paginated, data-minimized real account summaries |
 | `/admin/users/[userId]` | Admin-only | Account detail, confirmed role/restriction actions, and recent audit activity |
 | `/admin/content` | Admin-only | Real video publication summary and content-workspace entry point |
 | `/admin/content/videos` | Admin-only | Audited video creation, editing, publication, featuring, ordering, and deletion |
+| `/admin/subscriber-content` | Admin-only | Subscriber-post CMS with private image and small-video uploads |
 | `/admin/audit` | Admin-only | Paginated real audit-event stream; fictional records only in development preview |
 
 ## Local development
@@ -95,7 +103,7 @@ supabase/
 
 ## Mock-data status
 
-Everything remaining in `src/data/mock-data.ts` is development-only. The public `/videos` route no longer uses its mock records; it reads published metadata through `list_published_cms_videos`. Subscriber and internal content previews still use metadata-only mock records with no files, filesystem paths, playback URLs, real provider asset IDs, credentials, or tokens. Their `mockPlaybackAssetId` fields are deliberately fake internal identifiers. Social destinations and live streaming are not configured.
+Everything remaining in `src/data/mock-data.ts` is development-only. The public `/videos` and `/events` routes read published metadata through data-minimized RPCs. Subscriber entitlement previews still use metadata-only mock records with no files, filesystem paths, playback URLs, real provider asset IDs, credentials, or tokens. Their `mockPlaybackAssetId` fields are deliberately fake internal identifiers. Social destinations and live streaming are not configured.
 
 ## Member access demo
 
@@ -112,7 +120,7 @@ This is a UI and architecture demonstration, not a shortcut around future securi
 - An allowed request receives an in-memory fake playback reference with a five-minute expiry. It is neither a URL nor a JWT and cannot play media.
 - Guest and gated member views do not render the subscriber library metadata.
 
-Real access uses validated server-side session and database state. A future video integration must still re-evaluate entitlement immediately before requesting a short-lived signed playback URL or token from a reviewed streaming provider.
+The locally prepared subscriber-media gateway re-evaluates entitlement on every media request, creates a 60-second Storage URL only on the server, and proxies the result with private no-store headers. It is intended for images and small MP4/WebM clips up to 10 MB; large or adaptive streaming still requires a reviewed private-video provider. See [docs/PROTECTED_SUBSCRIBER_MEDIA.md](docs/PROTECTED_SUBSCRIBER_MEDIA.md).
 
 ## Internal operations demo
 
@@ -124,11 +132,11 @@ Direct preview links:
 - Content manager: `/content?staffDemo=content_manager`
 - Administrator: `/admin?staffDemo=admin`
 
-Each Page independently repeats the appropriate authorization check. Moderator routes require `moderator` or `admin`; content routes require `content_manager` or `admin`; admin routes require `admin`. All require an authenticated, unblocked account. Subscriber entitlement remains separate: a subscriber is not staff, and staff roles are not automatically paid subscribers.
+Each Page independently repeats the appropriate authorization check. Moderator routes require `moderator` or `admin`; content reads accept `moderator`, `content_manager`, or `admin`; content mutations accept only `content_manager` or `admin`; admin routes require `admin`. All require an authenticated, unblocked account. Server Actions and database RPC/RLS checks repeat the same boundary. Subscriber entitlement remains separate: a subscriber is not staff, and staff roles are not automatically paid subscribers.
 
-The records in `src/data/internal-operations.ts` are safe, fictional, server-only development data. Moderation and content previews never contact an external platform. Real admin user and audit pages use server-authorized Supabase reads; mock user and audit records appear only in explicit development preview mode.
+The records in `src/data/internal-operations.ts` are safe, fictional, server-only development data used only by explicit development previews. Real content and moderation pages never read or mutate persistent data in preview mode. The moderation workflow never contacts an external platform.
 
-The explicit preview states remain demonstrations and never read or mutate real staff data. Administrative Server Actions repeat identity, unblocked-admin, target, input, and resulting-state checks. Atomic database functions derive the actor from `auth.uid()`, protect the last active administrator, and append data-minimized audit events. Browser input and navigation visibility are never authorization.
+The explicit preview states remain demonstrations and never read or mutate real staff data. Administrative and moderation Server Actions repeat identity, role, restriction, target, input, and optimistic-version checks. Atomic database functions derive the actor from `auth.uid()`, protect the last active administrator, enforce moderation assignment ownership, and append data-minimized audit events. Browser input and navigation visibility are never authorization.
 
 Missing or obvious placeholder Supabase values still select safe unconfigured operation. Public pages remain static, auth forms disable themselves, and `getCurrentUser()` returns `null` without creating a client. This allows a configuration-cleared build while the connected local environment uses `.env.local`.
 
@@ -148,7 +156,7 @@ The unchanged Supabase `ConfirmationURL` template is supported for local develop
 
 Add `http://localhost:3000/auth/recovery` to the hosted redirect allowlist alongside `/auth/confirm`. Password-reset requests always return the same message, whether or not an account exists. `/auth/recovery` accepts only a recovery `token_hash`, an official PKCE code, or the hosted implicit-fragment handoff. Server callbacks establish a short-lived signed, HttpOnly recovery marker before `/reset-password` can update the password. The unchanged hosted implicit flow is completed by the official Auth SDK on `/auth/recovery/complete`; application code never parses or renders its fragment. Successful recovery and authenticated password changes invalidate all sessions and return to sign-in. Email changes keep Supabase double confirmation enabled and append an email-free audit event through an authenticated, no-argument database function.
 
-If `/auth/recovery` is absent from the hosted allowlist, Supabase may fall back to the Site URL and the implicit recovery fragment cannot be recovered by a server after that navigation. Default Supabase email delivery is best-effort and rate limited, so local delivery tests remain constrained until custom SMTP is configured.
+If `/auth/recovery` is absent from the hosted allowlist, Supabase may fall back to the Site URL and the implicit recovery fragment cannot be recovered by a server after that navigation. Default Supabase email delivery is best-effort and rate limited. Reviewed custom templates now live in `supabase/templates`, while real production delivery remains constrained until custom SMTP is configured.
 
 The project-local `supabase/config.toml` mirrors these local expectations but has not been pushed wholesale to the hosted project because doing so would also overwrite unrelated hosted Auth defaults.
 
@@ -160,14 +168,15 @@ The Next.js 16 `src/proxy.ts` file refreshes cookie-backed sessions when configu
 
 Before production launch, authentication additionally requires:
 
-- A custom SMTP provider; Resend is the likely future provider but is not integrated now
+- Connect the hosted Supabase project to Resend or another reviewed custom SMTP provider
 - A verified sending domain
 - The production Site URL and exact production redirect URLs
-- An editable confirmation template using `token_hash` for the server-side confirmation route
+- Copy the tracked confirmation, recovery, email-change, and security-notification templates into hosted Supabase
 - Email deliverability testing
 - Supabase Auth rate-limit review
-- Password-reset email configuration and end-to-end testing
-- Email-change template review and end-to-end testing
+- Password-reset and double-confirmed email-change end-to-end testing
+
+See [docs/PRODUCTION_EMAIL.md](docs/PRODUCTION_EMAIL.md) for the exact provider, DNS, hosted-template, and launch-test checklist.
 
 Production security must also include:
 
@@ -180,6 +189,12 @@ Production security must also include:
 - Short-lived signed authorization for subscriber video playback
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the planned flows.
+
+## Legal and support readiness
+
+The footer permanently links the public legal notice, privacy policy, pre-launch terms, and support page. Required operator identity and contact values are server-configured and fail visibly when incomplete; the application does not invent legal details. A monitored support mailbox, verified operator data, jurisdiction-specific professional review, final retention schedule, provider-contract review, and live-subscription terms remain required before launch.
+
+See [docs/LEGAL_AND_SUPPORT.md](docs/LEGAL_AND_SUPPORT.md) for the exact operator inputs, technical inventory, and review checklist.
 
 ## Environment variables and secrets
 
@@ -196,11 +211,11 @@ Copy `.env.example` to the Git-ignored `.env.local` only when an integration is 
 
 Supabase Auth and all six reviewed migrations are applied to the dedicated Brandon Jamez Website project. Migration 006 adds a videos-only CMS for validated YouTube, Rumble, and Kick HTTPS links, a published-only public RPC, active-admin RPC mutations, optimistic version checks, restrictive grants/RLS, and data-minimized audit events. The application uses the request-scoped authenticated client for routine CMS operations; it does not use the server secret for CMS reads or writes. CLI-generated database types live in `src/lib/supabase/database.types.ts`.
 
-Stripe subscription foundation code is documented in `docs/STRIPE_SUBSCRIPTIONS.md`, but billing remains inactive until the migration, test-mode configuration, signed webhook, Checkout, and Portal gates are explicitly completed. Professional providers for age verification and private streaming remain unselected and unconnected.
+Stripe subscription foundation code is documented in `docs/STRIPE_SUBSCRIPTIONS.md`, but billing remains inactive until migration 007, test-mode configuration, signed webhook, Checkout, and Portal gates are explicitly completed. Migrations 008-010 locally prepare subscriber posts and private media. Migration 011 prepares moderation. Migration 012 prepares role-checked video/event operations and audit extensions. Migrations 007-012 are not applied remotely. Professional age verification and a scalable private-streaming provider remain unselected and unconnected.
 
 ## Production deployment
 
-The application is deployed from the dedicated Vercel project `brandon-jamez-website` at [https://brandon-jamez-website.vercel.app](https://brandon-jamez-website.vercel.app). The repository-local `.vercel` directory is ignored. Deploy from this repository root with:
+The application is currently deployed from the dedicated Vercel project `brandon-jamez-website` at [https://brandon-jamez-website.vercel.app](https://brandon-jamez-website.vercel.app). The selected canonical production domain is `https://brandonjamezofficial.com`; it must replace the Vercel origin in production configuration after registration and DNS verification. The repository-local `.vercel` directory is ignored. Deploy from this repository root with:
 
 ```powershell
 npx vercel@latest
@@ -209,11 +224,11 @@ npx vercel@latest --prod
 
 Vercel Production contains only these application variables: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and the server-only `SUPABASE_SECRET_KEY`. Preview has no Supabase server secret and is not an authenticated staging environment. Never copy the secret into a `NEXT_PUBLIC_` variable or expose it through a Client Component, response, log, or build artifact.
 
-Supabase Authentication URL Configuration must use the production origin as its Site URL and allow the exact `/auth/confirm` and `/auth/recovery` production callbacks. Keep the equivalent localhost callbacks for development. Callback code accepts only fixed or validated same-origin paths.
+After domain registration and verification, Supabase Authentication URL Configuration must switch to `https://brandonjamezofficial.com` as its Site URL and allow the exact `https://brandonjamezofficial.com/auth/confirm` and `https://brandonjamezofficial.com/auth/recovery` callbacks. Keep the equivalent localhost callbacks where development requires them. Callback code accepts only fixed or validated same-origin paths.
 
 The Vercel project is not connected to GitHub because the Vercel GitHub integration does not currently have access to this repository. CLI deployments work; automatic deployments require a future repository-permission review. Before each production deployment, run the local quality commands, review the diff, confirm the Production/Preview environment scopes, and rerun guest, protected-route, callback, mock-bypass, responsive, and secret-leak checks after deployment.
 
-A custom domain is future work. Production email still requires custom SMTP, a verified sending domain, deliverability tests, and rate-limit review; Resend is the planned likely provider but is not integrated. Google and Discord authentication are planned but not connected. Cloudflare may be evaluated later for hosting or video capabilities.
+The selected custom domain is `brandonjamezofficial.com`, with `auth.brandonjamezofficial.com` reserved for authentication email. Registration, DNS, Vercel verification, and the canonical redirect switch remain external work. Production email templates are prepared in the repository, but delivery still requires the Resend/Supabase connection, verified DNS, hosted-project configuration, deliverability tests, and rate-limit review. Google and Discord authentication are planned but not connected. Cloudflare may be evaluated later for hosting or video capabilities.
 
 ## Project separation
 

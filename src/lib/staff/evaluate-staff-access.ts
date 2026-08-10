@@ -11,5 +11,6 @@ function evaluate(state: StaffAccessState, acceptedRoles: Role[], missingRoleRea
 }
 
 export const evaluateModeratorAccess = (state: StaffAccessState) => evaluate(state, ["moderator", "admin"], "moderator_role_required");
+export const evaluateContentViewerAccess = (state: StaffAccessState) => evaluate(state, ["moderator", "content_manager", "admin"], "content_viewer_role_required");
 export const evaluateContentManagerAccess = (state: StaffAccessState) => evaluate(state, ["content_manager", "admin"], "content_manager_role_required");
 export const evaluateAdminAccess = (state: StaffAccessState) => evaluate(state, ["admin"], "admin_role_required");

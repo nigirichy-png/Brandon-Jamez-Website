@@ -87,7 +87,7 @@ function formatDate(value: string | null): string {
   return new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(value));
 }
 
-export function CmsVideoRecord({ video }: { video: CmsVideo }) {
+export function CmsVideoRecord({ video, readOnly = false }: { video: CmsVideo; readOnly?: boolean }) {
   const identity = videoPlatformIdentities[video.platform];
   const publishAction = setCmsVideoPublicationAction.bind(null, video.id, video.updated_at, video.status === "draft");
   const featureAction = setCmsVideoFeaturedAction.bind(null, video.id, video.updated_at, !video.featured);
@@ -105,12 +105,12 @@ export function CmsVideoRecord({ video }: { video: CmsVideo }) {
       <div><dt className="text-zinc-500">Published</dt><dd className="mt-1 font-bold text-zinc-200">{formatDate(video.published_at)}</dd></div>
       <div><dt className="text-zinc-500">Updated</dt><dd className="mt-1 font-bold text-zinc-200">{formatDate(video.updated_at)}</dd></div>
     </dl>
-    <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    {readOnly ? null : <><div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       <MutationForm action={publishAction} label={video.status === "draft" ? "Publish video" : "Return to draft"} pendingLabel="Updating visibility…" confirmation={video.status === "draft" ? `Publish “${video.title}” on the public Videos page?` : `Unpublish “${video.title}” and remove it from the public Videos page?`} tone="accent" />
       <MutationForm action={featureAction} label={video.featured ? "Remove featured" : "Make featured"} pendingLabel="Updating featured state…" confirmation={`Change featured placement for “${video.title}”?`} disabled={video.status !== "published"} />
       <div className="flex flex-wrap gap-2"><MutationForm action={moveUpAction} label="Move up" pendingLabel="Moving…" disabled={video.display_order === 0} /><MutationForm action={moveDownAction} label="Move down" pendingLabel="Moving…" disabled={video.display_order === 1_000_000} /></div>
     </div>
     <div className="mt-4"><EditCmsVideoForm video={video} /></div>
-    <div className="mt-4 border-t border-white/10 pt-4"><MutationForm action={deleteAction} label="Delete video" pendingLabel="Deleting…" confirmation={`Permanently delete “${video.title}”? Its audit reference will be retained.`} tone="danger" /></div>
+    <div className="mt-4 border-t border-white/10 pt-4"><MutationForm action={deleteAction} label="Delete video" pendingLabel="Deleting…" confirmation={`Permanently delete “${video.title}”? Its audit reference will be retained.`} tone="danger" /></div></>}
   </article>;
 }

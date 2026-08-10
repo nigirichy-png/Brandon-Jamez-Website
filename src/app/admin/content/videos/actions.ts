@@ -2,10 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 
-import { requireRealAdmin } from "@/lib/admin/data";
 import { isUuid } from "@/lib/admin/validation";
 import type { CmsVideoPlatform } from "@/lib/cms/video-model";
 import { isSupportedVideoUrl } from "@/lib/cms/video-links";
+import { requireRealContentEditor } from "@/lib/content/access";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type CmsActionState = {
@@ -57,8 +57,8 @@ function validVersion(value: string): boolean {
 }
 
 async function authorize(): Promise<CmsActionState | null> {
-  const authorization = await requireRealAdmin("/admin/content/videos");
-  return authorization.allowed ? null : { tone: "error", message: "An active administrator account is required." };
+  const authorization = await requireRealContentEditor("/content/videos");
+  return authorization.allowed ? null : { tone: "error", message: "An active content manager or administrator account is required." };
 }
 
 function resultForError(error: { message: string } | null): CmsActionState {
@@ -72,8 +72,8 @@ function resultForError(error: { message: string } | null): CmsActionState {
   if (message.includes("published_video_required")) {
     return { tone: "error", message: "Only a published video can be featured." };
   }
-  if (message.includes("active_admin_required") || message.includes("permission denied")) {
-    return { tone: "error", message: "An active administrator account is required." };
+  if (message.includes("active_content_editor_required") || message.includes("permission denied")) {
+    return { tone: "error", message: "An active content manager or administrator account is required." };
   }
   return { tone: "error", message: "The video change could not be completed safely. Please try again." };
 }
@@ -82,6 +82,8 @@ function refreshVideoPaths() {
   revalidatePath("/");
   revalidatePath("/admin/content");
   revalidatePath("/admin/content/videos");
+  revalidatePath("/content");
+  revalidatePath("/content/videos");
   revalidatePath("/videos");
 }
 
@@ -91,7 +93,7 @@ export async function createCmsVideoAction(_previous: CmsActionState, formData: 
   const fields = parseVideoFields(formData);
   if (!fields.ok) return fields.state;
   const supabase = await createServerSupabaseClient();
-  const { error } = await supabase.rpc("admin_create_cms_video", {
+  const { error } = await supabase.rpc("content_create_cms_video", {
     p_title: fields.title,
     p_short_description: fields.description,
     p_platform: fields.platform,
@@ -110,7 +112,7 @@ export async function updateCmsVideoAction(videoId: string, expectedUpdatedAt: s
   const fields = parseVideoFields(formData);
   if (!fields.ok) return fields.state;
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.rpc("admin_update_cms_video", {
+  const { data, error } = await supabase.rpc("content_update_cms_video", {
     p_video_id: videoId,
     p_expected_updated_at: expectedUpdatedAt,
     p_title: fields.title,
@@ -131,7 +133,7 @@ export async function setCmsVideoPublicationAction(videoId: string, expectedUpda
   const denied = await authorize();
   if (denied) return denied;
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.rpc("admin_set_cms_video_publication", {
+  const { data, error } = await supabase.rpc("content_set_cms_video_publication", {
     p_video_id: videoId,
     p_publish: publish,
     p_expected_updated_at: expectedUpdatedAt,
@@ -148,7 +150,7 @@ export async function setCmsVideoFeaturedAction(videoId: string, expectedUpdated
   const denied = await authorize();
   if (denied) return denied;
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.rpc("admin_set_cms_video_featured", {
+  const { data, error } = await supabase.rpc("content_set_cms_video_featured", {
     p_video_id: videoId,
     p_featured: featured,
     p_expected_updated_at: expectedUpdatedAt,
@@ -167,7 +169,7 @@ export async function reorderCmsVideoAction(videoId: string, expectedUpdatedAt: 
   const denied = await authorize();
   if (denied) return denied;
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.rpc("admin_reorder_cms_video", {
+  const { data, error } = await supabase.rpc("content_reorder_cms_video", {
     p_video_id: videoId,
     p_display_order: displayOrder,
     p_expected_updated_at: expectedUpdatedAt,
@@ -184,7 +186,7 @@ export async function deleteCmsVideoAction(videoId: string, expectedUpdatedAt: s
   const denied = await authorize();
   if (denied) return denied;
   const supabase = await createServerSupabaseClient();
-  const { error } = await supabase.rpc("admin_delete_cms_video", {
+  const { error } = await supabase.rpc("content_delete_cms_video", {
     p_video_id: videoId,
     p_expected_updated_at: expectedUpdatedAt,
   });

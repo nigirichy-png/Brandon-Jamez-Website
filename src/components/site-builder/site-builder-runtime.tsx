@@ -6,7 +6,7 @@ import { publicV3SiteDefinition, siteBuilderBreakpoints, type SiteBuilderBreakpo
 import styles from "./site-builder-runtime.module.css";
 
 function routeKey(pathname: string): string { return /^\/subscriber\/[^/]+$/.test(pathname) ? "/subscriber/[slug]" : pathname; }
-function isOperationalRoute(pathname: string): boolean { return /^\/(admin|cms|mod)(\/|$)/.test(pathname); }
+function isOperationalRoute(pathname: string): boolean { return /^\/(admin|cms|mod)(\/|$)/.test(pathname) || pathname === "/moderation-hub"; }
 
 export function SiteBuilderRegion({ id, label, kind = "presentation", children, as: Tag = "div", className }: { id: string; label: string; kind?: "presentation" | "functional" | "dynamic"; children: ReactNode; as?: "div" | "section" | "header" | "footer" | "main"; className?: string }) {
   return <Tag className={className} data-site-builder-node={id} data-site-builder-label={label} data-site-builder-kind={kind}>{children}</Tag>;

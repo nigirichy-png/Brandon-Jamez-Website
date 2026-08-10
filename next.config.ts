@@ -1,6 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async headers() {
+    const privatePageHeaders = [
+      { key: "Cache-Control", value: "private, no-store, max-age=0, must-revalidate" },
+      { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+    ];
+    return [
+      { source: "/subscriber/:path*", headers: privatePageHeaders },
+      { source: "/admin/subscriber-content/:path*", headers: privatePageHeaders },
+    ];
+  },
   allowedDevOrigins: ["127.0.0.1", "192.168.178.29"],
   experimental: {
     serverActions: {

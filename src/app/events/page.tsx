@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 
 import { creatorLinks, creatorSocialLinks } from "@/data/public-links";
+import { listPublishedCmsEvents } from "@/lib/events/data";
 
 export const metadata: Metadata = { title: "Updates" };
+export const dynamic = "force-dynamic";
 
 const externalActionClass = "inline-flex min-h-12 w-fit items-center justify-center rounded-full px-6 py-3 text-sm font-extrabold text-white transition-colors duration-[var(--transition-fast)]";
 
 const updateChannels = creatorSocialLinks.filter(({ label }) => ["YouTube", "Instagram", "Facebook"].includes(label));
 
-export default function EventsPage() {
+export default async function EventsPage() {
+  const events = await listPublishedCmsEvents().catch(() => []);
   return (
     <main id="main-content" className="flex-1">
       <section className="relative overflow-hidden border-b border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.025),transparent)]">
@@ -27,8 +30,8 @@ export default function EventsPage() {
           <div className="absolute -bottom-24 -left-16 size-48 rounded-full border-[28px] border-cyan-300/[0.05]" aria-hidden="true" />
           <div className="relative max-w-3xl">
             <p className="eyebrow text-fuchsia-300">Upcoming</p>
-            <h2 id="upcoming-title" className="font-display mt-4 text-[clamp(2.25rem,6vw,4rem)] font-bold leading-[1] tracking-[-0.05em] text-white">Nothing announced right now.</h2>
-            <p className="mt-5 max-w-2xl leading-8 text-zinc-300">Follow Brandon&apos;s official channels for the latest livestreams, meetups and updates.</p>
+            <h2 id="upcoming-title" className="font-display mt-4 text-[clamp(2.25rem,6vw,4rem)] font-bold leading-[1] tracking-[-0.05em] text-white">{events.length ? "Upcoming announcements." : "Nothing announced right now."}</h2>
+            {events.length ? <div className="mt-7 divide-y divide-white/10 border-y border-white/10">{events.map((event) => <article key={event.id} className="py-6"><p className="text-xs font-extrabold uppercase tracking-[0.12em] text-fuchsia-300">{new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(event.starts_at))}</p><h3 className="font-display mt-2 text-2xl font-bold text-white">{event.title}</h3><p className="mt-2 text-sm font-bold text-zinc-300">{event.location}</p>{event.description ? <p className="mt-3 whitespace-pre-wrap leading-7 text-zinc-400">{event.description}</p> : null}</article>)}</div> : <p className="mt-5 max-w-2xl leading-8 text-zinc-300">Follow Brandon&apos;s official channels for the latest livestreams, meetups and updates.</p>}
             <div className="mt-7 flex flex-wrap gap-3" aria-label="Official channels for Brandon Jamez updates">
               {updateChannels.map((channel) => (
                 <a key={channel.label} href={channel.href} target="_blank" rel="noopener noreferrer" aria-label={`${channel.label} (opens in a new tab)`} className={`${externalActionClass} border border-cyan-300/25 bg-cyan-300/[0.06] text-cyan-100 hover:bg-cyan-300/[0.12]`}>

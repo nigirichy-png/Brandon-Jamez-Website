@@ -21,7 +21,7 @@ export default async function AdminVideosPage({ searchParams }: { searchParams: 
     try { videos = await listAdminCmsVideos(); } catch { loadFailed = true; }
   }
 
-  return <InternalShell state={state} decision={decision} currentPath="/admin/content/videos" eyebrow="Administration · video CMS" title="Publish deliberately, one record at a time." description="Manage supported external video links through authenticated, audited database operations. No uploads, hosted playback, Storage, or media library is connected.">
+  return <InternalShell state={state} decision={decision} currentPath="/admin/content/videos" eyebrow="Administration · video CMS" title="Video CMS" description="Manage supported external video links. Changes are authenticated and audited.">
     {!decision.allowed ? <StaffAccessGate decision={decision} area="admin" /> : state.developmentPreview ? <section className="rounded-2xl border border-amber-300/20 bg-amber-300/[0.05] p-6"><StatusLabel tone="warning">Real session required</StatusLabel><h2 className="font-display mt-4 text-2xl font-bold text-white">CMS mutations are unavailable in preview mode.</h2><p className="mt-2 max-w-2xl leading-7 text-zinc-400">Sign in with a real active administrator account to load or change video records. Preview roles never authorize database access.</p></section> : <div className="space-y-8">
       <CreateCmsVideoForm />
       <section aria-labelledby="video-inventory-title">

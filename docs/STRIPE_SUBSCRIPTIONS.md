@@ -2,7 +2,7 @@
 
 ## Status and entitlement
 
-The repository contains a Stripe subscription foundation, but deploying code alone does not activate billing. Subscriber-video and private-media functionality remain separate future work.
+The repository contains a Stripe subscription foundation, but deploying code alone does not activate billing. Subscriber content and private media are prepared locally in migrations 008-010 and remain inactive until the complete migration sequence and provider configuration are explicitly approved.
 
 Paid access is granted only when `private.has_active_paid_subscription(user_id)` confirms an unrestricted account, provider `stripe`, complete customer/subscription/Price identifiers, local status exactly `active`, `current_period_end` strictly later than the database statement timestamp, and internally consistent verified-webhook timestamps.
 
@@ -65,12 +65,14 @@ Never use live mode for local tests.
 
 ## Dashboard and deployment checklist
 
-Before test deployment:
+Before a controlled test deployment:
 
 - create the recurring test Product/Price;
 - configure the test Customer Portal;
 - add Vercel test variables securely;
-- deploy migration 007 only after preflight confirms it is the sole pending migration;
+- inspect the remote migration table and the exact local pending set;
+- approve migrations 007-010 as one ordered rollout (`007 → 008 → 009 → 010`) when subscriber content is included;
+- do not run a broad migration push when any pending file is outside the approved set;
 - deploy `stripe-webhook` with JWT verification disabled for that function only;
 - add Edge Function test secrets securely;
 - register the function URL as a Stripe test webhook destination;

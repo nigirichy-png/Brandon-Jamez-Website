@@ -11,14 +11,14 @@ import styles from "./header-navigation.module.css";
 
 const navigation = [{ href: "/", label: "Home" }, { href: "/guide", label: "Guide" }, { href: "/videos", label: "Videos" }];
 
-export function HeaderNavigation({ authenticated, subscriberAccess }: { authenticated: boolean; subscriberAccess: boolean }) {
+export function HeaderNavigation({ authenticated, subscriberAccess, moderationHubPreview }: { authenticated: boolean; subscriberAccess: boolean; moderationHubPreview: boolean }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const accountHref = authenticated ? "/account" : "/login";
   const accountLabel = authenticated ? "Account" : "Sign in";
-  const visibleNavigation = subscriberAccess ? [...navigation, { href: "/subscriber", label: "Subscriber" }] : navigation;
+  const visibleNavigation = [...navigation, ...(moderationHubPreview ? [{ href: "/moderation-hub", label: "Mod Hub" }] : []), ...(subscriberAccess ? [{ href: "/subscriber", label: "Subscriber" }] : [])];
   const closeMenu = (restoreFocus = false) => { setMenuOpen(false); if (restoreFocus) window.requestAnimationFrame(() => triggerRef.current?.focus()); };
   useEffect(() => {
     if (!menuOpen) return;
@@ -39,6 +39,8 @@ export function HeaderNavigation({ authenticated, subscriberAccess }: { authenti
     return () => { document.body.style.overflow = previousOverflow; window.removeEventListener("keydown", handleKeyDown); };
   }, [menuOpen]);
   const isActive = (href: string) => href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const isInternal = ["/admin", "/mod", "/content"].some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)) || pathname === "/moderation-hub";
+  if (isInternal) return null;
   return <>
     <input ref={triggerRef} id="mobile-navigation-toggle" type="checkbox" checked={menuOpen} onChange={(event) => setMenuOpen(event.target.checked)} aria-expanded={menuOpen} aria-controls="mobile-navigation" aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"} className="peer sr-only lg:hidden" />
     <header className={`${styles.header} sticky top-0 z-50 border-b pt-[env(safe-area-inset-top)] text-[var(--public-paper)] backdrop-blur-md`}>

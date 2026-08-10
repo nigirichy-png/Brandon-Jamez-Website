@@ -10,7 +10,16 @@ import { creatorSocialLinks } from "@/data/public-links";
 
 import styles from "./footer.module.css";
 
-const links = [{ href: "/", label: "Home", external: false }, { href: "/guide", label: "Pattaya Guide", external: false }, { href: "/videos", label: "Videos", external: false }, { href: "/account", label: "Account", external: false }] as const;
+const links = [
+  { href: "/", label: "Home", external: false },
+  { href: "/guide", label: "Pattaya Guide", external: false },
+  { href: "/videos", label: "Videos", external: false },
+  { href: "/account", label: "Account", external: false },
+  { href: "/support", label: "Support", external: false },
+  { href: "/privacy", label: "Privacy", external: false },
+  { href: "/terms", label: "Terms", external: false },
+  { href: "/legal-notice", label: "Legal notice", external: false },
+] as const;
 
 type SocialKey = (typeof creatorSocialLinks)[number]["key"];
 
@@ -22,7 +31,8 @@ function SocialIcon({ platform }: { platform: SocialKey }) {
 
 export function Footer() {
   const pathname = usePathname();
-  if (pathname === "/guide") return null;
+  const isInternal = ["/admin", "/mod", "/content"].some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)) || pathname === "/moderation-hub";
+  if (pathname === "/guide" || isInternal) return null;
 
   return <footer className={styles.footer}>
     <div className={styles.shell}>

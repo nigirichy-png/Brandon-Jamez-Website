@@ -6,6 +6,7 @@ type InternalNavItem = { href: string; label: string; group: string };
 
 const moderatorItems: InternalNavItem[] = [
   { href: "/mod", label: "Moderation overview", group: "Moderation" },
+  { href: "/mod/live", label: "Live moderation", group: "Moderation" },
   { href: "/mod/review", label: "Review queue", group: "Moderation" },
 ];
 const contentItems: InternalNavItem[] = [
@@ -25,7 +26,7 @@ const adminItems: InternalNavItem[] = [
 export function getInternalNavigation(state: StaffAccessState): InternalNavItem[] {
   if (!state.authenticated || state.accountBlocked) return [];
   if (state.roles.includes("admin")) return [...moderatorItems, ...contentItems, ...adminItems];
-  if (state.roles.includes("moderator")) return moderatorItems;
+  if (state.roles.includes("moderator")) return [...moderatorItems, ...contentItems];
   if (state.roles.includes("content_manager")) return contentItems;
   return [];
 }

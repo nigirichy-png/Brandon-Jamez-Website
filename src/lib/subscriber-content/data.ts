@@ -1,7 +1,7 @@
 import "server-only";
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import type { AdminSubscriberPost, SubscriberPostDetail, SubscriberPostSummary } from "./model";
+import type { AdminSubscriberPost, AdminSubscriberVideo, SubscriberPostDetail, SubscriberPostSummary, SubscriberVideoSummary } from "./model";
 import { findPublishedSubscriberPost, publishedSubscriberPosts } from "./visibility";
 
 export async function listPublishedSubscriberPosts(): Promise<SubscriberPostSummary[]> {
@@ -27,4 +27,18 @@ export async function listAdminSubscriberPosts(): Promise<AdminSubscriberPost[]>
 
 export async function getAdminSubscriberPost(postId: string): Promise<AdminSubscriberPost | null> {
   return (await listAdminSubscriberPosts()).find((post) => post.id === postId) ?? null;
+}
+
+export async function listPublishedSubscriberVideos(): Promise<SubscriberVideoSummary[]> {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("list_published_subscriber_bunny_videos");
+  if (error) throw new Error("subscriber_videos_unavailable");
+  return (data ?? []) as SubscriberVideoSummary[];
+}
+
+export async function listAdminSubscriberVideos(): Promise<AdminSubscriberVideo[]> {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("admin_list_subscriber_bunny_videos");
+  if (error) throw new Error("admin_subscriber_videos_unavailable");
+  return (data ?? []) as AdminSubscriberVideo[];
 }

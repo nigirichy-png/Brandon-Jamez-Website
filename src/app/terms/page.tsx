@@ -1,0 +1,26 @@
+import type { Metadata } from "next";
+
+import { LegalPage, LegalSection } from "@/components/legal/legal-page";
+import { getPublicLegalConfig } from "@/lib/site/legal-config";
+
+export const metadata: Metadata = { title: "Terms of service", robots: { index: false, follow: true } };
+export const dynamic = "force-dynamic";
+
+export default function TermsPage() {
+  const legal = getPublicLegalConfig();
+
+  return <LegalPage eyebrow="Service rules" title="Terms of service" description="International pre-launch framework for public pages, accounts and the planned paid membership." incomplete={!legal.complete}>
+    <LegalSection title="Current service status"><p>The website is under development. Public information and account functions may change. Live subscriptions, professional age verification, and private video delivery are not active, so no paid membership contract can currently be concluded through this service.</p></LegalSection>
+    <LegalSection title="Eligibility and accounts"><p>Users must satisfy the minimum age shown at signup and any additional legal age requirement in their location. They must provide accurate account information, protect access credentials and promptly report suspected compromise. Accounts may not be shared, automated, sold or used to bypass restrictions, age controls, payment status or staff authorization.</p></LegalSection>
+    <LegalSection title="Acceptable use"><p>Do not attack, scrape beyond ordinary indexing, reverse engineer access controls, upload malicious material, impersonate others, infringe rights, or use the service unlawfully. Security research must avoid accessing or changing other users&apos; data and should be reported privately.</p></LegalSection>
+    <LegalSection title="Content and external services"><p>Branding and original website content remain protected by applicable intellectual-property law. Embedded or linked content can belong to external providers and remains subject to their terms. A link does not make this website responsible for an external service.</p></LegalSection>
+    <LegalSection title="Membership, prices and billing"><p>Paid membership is not active. Before activation, the checkout must show the exact price, currency, included taxes or tax treatment, billing interval, renewal terms and service scope before an order is placed. The planned payment processor is Stripe. Recurring charges may begin only after the user gives the required order and payment authorization.</p></LegalSection>
+    <LegalSection title="Renewal and cancellation"><p>The final checkout and account area must explain whether membership renews automatically and how to cancel. Unless a more protective mandatory rule applies, cancellation of a recurring plan is intended to stop future renewal while access continues through the already-paid billing period. Any immediate termination, refund or access change must be disclosed before purchase.</p></LegalSection>
+    <LegalSection title="Digital content and withdrawal rights"><p>Member access may include digital articles, images and video. Before launch, the purchase flow must be reviewed for any mandatory pre-contract information, cooling-off or withdrawal right, and any legally valid request or acknowledgement needed before immediate digital performance begins. Nothing in these terms waives a consumer right that cannot lawfully be waived.</p></LegalSection>
+    <LegalSection title="Suspension and termination"><p>The operator may restrict or suspend access where reasonably necessary for account security, payment failure, fraud, unlawful use, serious breach, protection of others or legal compliance. Where appropriate and legally required, the user will receive notice and an opportunity to appeal. Blocking status takes priority over role or subscription state.</p></LegalSection>
+    <LegalSection title="Availability and liability"><p>The service may be maintained, updated or interrupted, and particular posts or third-party media may change or become unavailable. No uninterrupted availability is promised. Liability limitations will apply only to the extent permitted by the law governing the specific user and claim; they do not exclude liability or remedies that cannot legally be limited.</p></LegalSection>
+    <LegalSection title="Governing law and disputes"><p>The final operator&apos;s establishment, target markets and consumer rules must be reviewed before a governing-law or court clause is published. Any future clause must preserve mandatory protections and competent forums available to consumers under applicable law rather than declaring one country&apos;s law exclusive in every case.</p></LegalSection>
+    <LegalSection title="Launch information still required"><p>Before Stripe live mode is enabled, these terms require the verified operator identity, price and tax treatment, billing interval, contract-formation wording, renewal and cancellation mechanics, refund and withdrawal information, complaint route, governing-law review and effective date.</p></LegalSection>
+    <LegalSection title="Contact"><p>Questions about these rules can be sent to {legal.supportEmail ? <a href={`mailto:${legal.supportEmail}`}>{legal.supportEmail}</a> : "the support address once it is configured"}.</p></LegalSection>
+  </LegalPage>;
+}

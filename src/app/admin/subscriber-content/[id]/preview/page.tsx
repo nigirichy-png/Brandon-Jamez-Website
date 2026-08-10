@@ -7,6 +7,7 @@ import { getAdminSubscriberPost } from "@/lib/subscriber-content/data";
 import { resolveAdminSubscriberPostsMedia } from "@/lib/subscriber-content/media";
 
 export const metadata: Metadata = { title: "Admin Subscriber Post Preview", robots: { index: false, follow: false } };
+export const dynamic = "force-dynamic";
 
 export default async function AdminSubscriberPostPreviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -15,7 +16,7 @@ export default async function AdminSubscriberPostPreviewPage({ params }: { param
   if (!authorization.allowed) notFound();
   const rawPost = await getAdminSubscriberPost(id);
   if (!rawPost) notFound();
-  const [post] = await resolveAdminSubscriberPostsMedia([rawPost]);
+  const [post] = resolveAdminSubscriberPostsMedia([rawPost], authorization.allowed);
   if (!post) notFound();
   return <main id="main-content" className="flex-1 bg-[#090b10]"><SubscriberPostPresentation post={post} backHref="/admin/subscriber-content" backLabel="Subscriber content admin" preview /></main>;
 }

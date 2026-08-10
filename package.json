@@ -4,19 +4,29 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:youtube-live": "node --watch-path=services/youtube-live services/youtube-live/server.mjs",
+    "check:youtube-live": "node scripts/check-youtube-live-config.mjs",
     "build": "next build",
     "start": "next start",
+    "start:youtube-live": "node services/youtube-live/server.mjs",
     "lint": "eslint",
-    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test --experimental-strip-types tests/member-access-policy.test.mts tests/subscriber-content.test.mts tests/homepage-editor.test.mts tests/site-builder.test.mts tests/guide-integration.test.mts"
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test --experimental-strip-types tests/member-access-policy.test.mts tests/subscriber-content.test.mts tests/homepage-editor.test.mts tests/site-builder.test.mts tests/guide-integration.test.mts tests/auth-email-templates.test.mts tests/legal-pages.test.mts tests/moderation-workflow.test.mts tests/content-operations.test.mts tests/live-integration.test.mts tests/bunny-stream.test.mts"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.14.4",
+    "@grpc/proto-loader": "^0.8.1",
+    "@next/env": "^16.3.0",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.111.0",
+    "dotenv": "^17.4.2",
+    "googleapis": "^174.0.1",
+    "hls.js": "^1.6.16",
     "mapbox-gl": "^3.27.0",
-    "next": "16.2.12",
+    "next": "16.3.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "stripe": "^22.4.0"
+    "stripe": "^22.4.0",
+    "tus-js-client": "^4.3.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -24,7 +34,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.12",
+    "eslint-config-next": "16.3.0",
     "supabase": "^2.111.0",
     "tailwindcss": "^4",
     "typescript": "^5"

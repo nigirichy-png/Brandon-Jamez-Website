@@ -31,6 +31,7 @@ export type StaffAccessReason =
   | "not_authenticated"
   | "account_blocked"
   | "moderator_role_required"
+  | "content_viewer_role_required"
   | "content_manager_role_required"
   | "admin_role_required"
   | "allowed";

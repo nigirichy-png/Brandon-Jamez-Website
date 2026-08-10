@@ -47,7 +47,12 @@ export default async function Home() {
         <HomepageEditableSection id="hero-introduction">
         <div className={styles.identityBlock}>
           <HomepageLayoutItem id="hero-eyebrow"><p className={styles.eyebrow}><span aria-hidden="true" /><HomepageEditableText id="hero-eyebrow" defaultValue="Live creator · Pattaya" /></p></HomepageLayoutItem>
-          <HomepageLayoutItem id="hero-heading"><h1 id="homepage-title" className={styles.identityTitle}><HomepageEditableText id="hero-heading" defaultValue="Brandon" /> <HomepageEditableText id="hero-heading-accent" as="strong" defaultValue="Jamez" /></h1></HomepageLayoutItem>
+          <HomepageLayoutItem id="hero-heading"><div className={styles.identityLockup}>
+            <div className={styles.heroEmblem} role="img" aria-label="Number one Boom Boom, all Pattaya">
+              <span className={styles.heroEmblemInner} aria-hidden="true"><strong>#1</strong><b>Boom<br />Boom</b><small>All Pattaya</small></span>
+            </div>
+            <h1 id="homepage-title" className={styles.identityTitle}><HomepageEditableText id="hero-heading" defaultValue="Brandon" /> <HomepageEditableText id="hero-heading-accent" as="strong" defaultValue="Jamez" /></h1>
+          </div></HomepageLayoutItem>
           <HomepageLayoutItem id="hero-body"><HomepageEditableText id="hero-body" as="p" className={styles.identityIntro} defaultValue="Livestreams, local perspective and unfiltered moments from life in Pattaya." /></HomepageLayoutItem>
         </div>
         </HomepageEditableSection>
