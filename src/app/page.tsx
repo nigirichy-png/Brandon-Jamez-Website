@@ -34,7 +34,7 @@ export default async function Home() {
   const latestDisplayTitle = videoLoadFailed ? "Video feed unavailable" : latestTitle;
   const editorDefaults: HomepageEditorDefaults = {
     "hero-eyebrow": { text: "Live creator · Pattaya" }, "hero-heading": { text: "Brandon" }, "hero-heading-accent": { text: "Jamez" }, "hero-body": { text: "Livestreams, local perspective and unfiltered moments from life in Pattaya." },
-    "portrait-image": { imageSrc: "/brandon-nightlife-hero-v4.png", alt: "Brandon Jamez in the Pattaya nightlife" }, "portrait-badge": { text: "BJ · Pattaya" },
+    "portrait-image": { imageSrc: "/brandon-nightlife-hero-v6.png", alt: "Brandon Jamez smiling in the Pattaya nightlife" }, "portrait-badge": { text: "BJ · Pattaya" },
     "latest-label": { text: "Latest drop" }, "latest-date": { text: latestVideo ? formatPublishedDate(latestVideo.published_at) : "Soon" }, "latest-media": { url: latestUrl }, "latest-provider": { text: latestProvider }, "latest-title": { text: latestDisplayTitle }, "latest-intro": { text: "Find Brandon's newest videos, livestream highlights and fresh stories from Pattaya." }, "latest-watch": { text: `${latestWatchLabel} ↗`, url: latestUrl }, "latest-all": { text: "Browse all videos ↗", url: "/videos" },
     "guide-image": { imageSrc: "/pattaya-guide-map.png", alt: "Illustrated nightlife guide map of Pattaya" }, "guide-kicker": { text: "Pattaya guide" }, "guide-heading": { text: "Places worth knowing." }, "guide-body": { text: "Bars, restaurants, nightlife and local stops Brandon actually recommends." }, "guide-link": { text: "Open the guide ↗", url: "/guide" },
     "subscriber-kicker": { text: "Member area" }, "subscriber-heading": { text: "Raw. Unfiltered. After dark." }, "subscriber-body": { text: "Paid access to private videos, selected images, special events and exclusive Pattaya moments." }, "subscriber-link": { text: "Unlock member access", url: "/subscriber" },
@@ -59,7 +59,7 @@ export default async function Home() {
 
         <HomepageEditableSection id="portrait">
         <div className={styles.portraitBlock}><div className={styles.portraitFrame}>
-          <HomepageEditableImage id="portrait-image" defaultSrc="/brandon-nightlife-hero-v4.png" defaultAlt="Brandon Jamez in the Pattaya nightlife" priority sizes="100vw" className={styles.portraitImage} />
+          <HomepageEditableImage id="portrait-image" defaultSrc="/brandon-nightlife-hero-v6.png" defaultAlt="Brandon Jamez smiling in the Pattaya nightlife" priority sizes="100vw" className={styles.portraitImage} />
           <HomepageEditableText id="portrait-badge" defaultValue="BJ · Pattaya" className={styles.portraitBadge} />
         </div></div>
         </HomepageEditableSection>
