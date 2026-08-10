@@ -629,6 +629,26 @@ html[data-homepage-editor-active="true"][data-editor-header-active-style="accent
 .platform-subscriber-page .platform-post-list article { border-bottom-color: rgba(50, 216, 255, .14); }
 .platform-subscriber-page .platform-post-list article > span { color: var(--night-cyan); }
 .platform-subscriber-page .platform-post-list a { text-decoration-color: var(--night-pink); }
+.platform-subscriber-page .platform-post-list article > div { min-width: 0; }
+.platform-subscriber-page .platform-post-list h3,
+.platform-subscriber-page .platform-post-list small,
+.platform-subscriber-video-title { overflow-wrap: anywhere; }
+
+.platform-subscriber-content-notice {
+  display: grid;
+  max-width: 48rem;
+  gap: .35rem;
+  margin-top: 1.25rem;
+  padding: .9rem 1rem;
+  border: 1px solid rgba(255, 79, 154, .34);
+  border-left: 3px solid var(--night-pink);
+  background: linear-gradient(110deg, rgba(255, 79, 154, .12), rgba(50, 216, 255, .05));
+  color: rgba(222, 239, 250, .78);
+  font-size: .8rem;
+  line-height: 1.55;
+}
+.platform-subscriber-content-notice strong { color: #fff; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+.platform-subscriber-video-player { display: block; border: 1px solid rgba(50, 216, 255, .22); box-shadow: 0 24px 70px rgba(0, 0, 0, .32); }
 
 .platform-subscriber-page.platform-page,
 .platform-subscriber-post.platform-page,
@@ -730,7 +750,15 @@ html[data-homepage-editor-active="true"][data-editor-header-active-style="accent
   .platform-member-status { padding: 1.2rem; }
   .platform-subscriber-library .platform-list-heading { align-items: start; }
   .platform-subscriber-feature { padding: .8rem; }
+  .platform-subscriber-video-detail { padding-block: 1.5rem 2.75rem; }
+  .platform-subscriber-content-notice { padding: .8rem; }
   .platform-auth { align-items: start; padding-block: 1rem 2.5rem; }
   .platform-auth-grid > header,
   .platform-auth-form { padding: 1.4rem; }
+}
+
+@media (max-width: 480px) {
+  .platform-subscriber-library .platform-list-heading { flex-direction: column; gap: .55rem; }
+  .platform-post-list article { grid-template-columns: 1.6rem 4rem minmax(0, 1fr); gap: .65rem; }
+  .platform-post-list article > a { grid-column: 3; }
 }

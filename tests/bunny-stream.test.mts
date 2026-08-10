@@ -35,7 +35,7 @@ test("large upload validation accepts multi-GB video metadata but rejects oversi
 });
 
 test("standalone subscriber videos are detached from posts and keep provider references server-only", async () => {
-  const [migration, auditTargetMigration, auditReferenceMigration, subscriberPage, subscriberVideoPage, subscriberVideoCard, adminPage] = await Promise.all([
+  const [migration, auditTargetMigration, auditReferenceMigration, subscriberPage, subscriberVideoPage, subscriberVideoCard, adminPage, globalStyles] = await Promise.all([
     readFile(new URL("../supabase/migrations/202608070015_standalone_subscriber_videos.sql", import.meta.url), "utf8"),
     readFile(new URL("../supabase/migrations/202608070016_subscriber_video_audit_target.sql", import.meta.url), "utf8"),
     readFile(new URL("../supabase/migrations/202608070017_subscriber_video_audit_reference.sql", import.meta.url), "utf8"),
@@ -43,6 +43,7 @@ test("standalone subscriber videos are detached from posts and keep provider ref
     readFile(new URL("../src/app/subscriber/videos/[slug]/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../src/components/subscriber/subscriber-video-card.tsx", import.meta.url), "utf8"),
     readFile(new URL("../src/app/admin/subscriber-content/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/app/globals.css", import.meta.url), "utf8"),
   ]);
   assert.match(migration, /update private\.subscriber_bunny_videos set post_id = null/);
   assert.match(migration, /list_published_subscriber_bunny_videos/);
@@ -50,13 +51,19 @@ test("standalone subscriber videos are detached from posts and keep provider ref
   assert.match(auditTargetMigration, /'subscriber_video'/);
   assert.match(auditReferenceMigration, /target_type in \([^)]*'subscriber_video'/);
   assert.match(subscriberPage, /Member videos/);
+  assert.match(subscriberPage, /Subscriber-only videos/);
+  assert.doesNotMatch(subscriberPage, /Private Storage files require/);
   assert.match(subscriberPage, /SubscriberVideoCard/);
   assert.match(subscriberVideoPage, /BunnyHlsPlayer/);
+  assert.match(subscriberVideoPage, /Subscriber-only content/);
+  assert.match(subscriberVideoPage, /platform-subscriber-content-notice/);
   assert.match(subscriberVideoCard, /onMouseEnter/);
   assert.match(subscriberVideoCard, /muted loop playsInline/);
   assert.match(subscriberVideoCard, /startLevel: 0/);
   assert.match(subscriberVideoCard, /\?asset=poster/);
   assert.match(adminPage, /BunnyVideoManager videos=/);
+  assert.match(globalStyles, /@media \(max-width: 480px\)/);
+  assert.match(globalStyles, /\.platform-subscriber-video-player/);
 });
 
 test("Bunny integration keeps video bytes off the application and enforces role boundaries", async () => {

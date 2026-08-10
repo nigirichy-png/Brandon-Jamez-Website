@@ -22,14 +22,14 @@ export function SubscriberPostPresentation({ post, backHref, backLabel, preview 
     {mainImageSrc ? <figure className="platform-article-image"><img src={mainImageSrc} alt="" /></figure> : null}
     <div className="platform-reading-column">{paragraphs.map((paragraph, index) => <p key={index} className="whitespace-pre-line">{paragraph}</p>)}</div>
     {post.bunny_video_playback_src ? <>
-      <p className="platform-media-boundary platform-media-private"><strong>Private streaming video</strong><span>Adaptive HLS playback is authorized by the server and delivered directly by the video CDN.</span></p>
+      <p className="platform-media-boundary platform-media-private"><strong>Subscriber-only video</strong><span>This exclusive video is available to active subscribers. Please keep it within the member area.</span></p>
       <BunnyHlsPlayer playbackEndpoint={post.bunny_video_playback_src} title={post.title} className="platform-article-media" />
     </> : null}
     {post.private_video_src ? <>
-      <p className="platform-media-boundary platform-media-private"><strong>Private Storage video</strong><span>This file is delivered through a short-lived, server-authorized media request.</span></p>
+      <p className="platform-media-boundary platform-media-private"><strong>Subscriber-only video</strong><span>This exclusive video is available to active subscribers. Please keep it within the member area.</span></p>
       <video src={post.private_video_src} controls preload="metadata" className="platform-article-media">Your browser does not support video playback.</video>
     </> : !post.bunny_video_playback_src && externalMedia ? <>
-      <p className="platform-media-boundary platform-media-external"><strong>External media</strong><span>Subscriber page access does not make this provider or a known external URL private.</span></p>
+      <p className="platform-media-boundary platform-media-external"><strong>Subscriber post with external media</strong><span>This media opens through an external provider and follows that provider&apos;s playback rules.</span></p>
       {externalMedia.kind === "video"
         ? <video src={externalMedia.url} controls preload="metadata" className="platform-article-media">Your browser does not support video playback.</video>
         : <div className="platform-article-embed"><iframe src={externalMedia.url} title={`${post.title} — ${externalMedia.provider} video`} loading="lazy" allow="encrypted-media; picture-in-picture" allowFullScreen referrerPolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation" /></div>}
