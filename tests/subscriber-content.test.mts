@@ -428,6 +428,7 @@ test("public YouTube cards build a short muted hover preview without affecting o
   assert.equal(url.searchParams.get("mute"), "1");
   assert.equal(url.searchParams.get("controls"), "0");
   assert.equal(url.searchParams.get("disablekb"), "1");
+  assert.equal(url.searchParams.get("enablejsapi"), "1");
   assert.equal(url.searchParams.get("fs"), "0");
   assert.equal(url.searchParams.get("start"), "12");
   assert.equal(url.searchParams.get("end"), "24");
@@ -448,6 +449,8 @@ test("public video collection uses a scalable card grid and interaction-gated pr
   assert.match(hoverPreview, /prefers-reduced-motion: reduce/);
   assert.match(hoverPreview, /onMouseEnter=\{startPreview\}/);
   assert.match(hoverPreview, /active && previewUrl/);
+  assert.match(hoverPreview, /playerState === 1/);
+  assert.match(hoverPreview, /playing \? " is-ready"/);
   assert.doesNotMatch(hoverPreview, /Hover to preview|Preview playing|preview-hint/);
   assert.match(css, /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
 });
