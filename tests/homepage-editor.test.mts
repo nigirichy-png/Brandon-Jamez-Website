@@ -489,6 +489,20 @@ test("homepage editor exposes one direct workflow with settings closed by defaul
   assert.match(editorSource, /onClose=\{\(\) => setPanelOpen\(false\)\}/);
 });
 
+test("desktop preview edits the page at its real width while tablet and mobile stay device sized", async () => {
+  const editorStyles = await readFile(new URL("../src/components/home/homepage-editor.module.css", import.meta.url), "utf8");
+  // Desktop is "no constraint", not a device size. A fixed width here would show
+  // a narrower page than the one being edited.
+  assert.match(editorStyles, /\.desktopFrame \{ --editor-preview-width: 100%; \}/);
+  assert.doesNotMatch(editorStyles, /\.desktopFrame \{ --editor-preview-width: [\d.]+rem; \}/);
+  // Tablet and mobile keep real device widths, where a fixed frame is the point.
+  assert.match(editorStyles, /\.tabletFrame \{ --editor-preview-width: 48rem; \}/);
+  assert.match(editorStyles, /\.mobileFrame \{ --editor-preview-width: 24\.375rem; \}/);
+  // Desktop also drops the inset and device chrome so it is a true 1:1.
+  assert.match(editorStyles, /\[data-preview-mode="desktop"\] \.previewArea \{ padding: 0; \}/);
+  assert.match(editorStyles, /\[data-preview-mode="desktop"\] \.previewFrame \{ box-shadow: none; \}/);
+});
+
 test("the block selection overlay never swallows clicks meant for inline editing", async () => {
   const [editorSource, editorStyles] = await Promise.all([
     readFile(new URL("../src/components/home/homepage-editor.tsx", import.meta.url), "utf8"),

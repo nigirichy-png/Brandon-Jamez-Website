@@ -78,6 +78,10 @@
   transition: margin-right 180ms ease;
 }
 .workspacePanelOpen .previewArea { margin-right: var(--property-panel-width); }
+/* Desktop edits the page at its real width, so it also drops the inset and the
+   device-frame chrome that only make sense around a simulated tablet or phone. */
+.editorWorkspace[data-preview-mode="desktop"] .previewArea { padding: 0; }
+.editorWorkspace[data-preview-mode="desktop"] .previewFrame { box-shadow: none; }
 .previewSizer {
   width: max(100%, var(--editor-preview-width));
   min-height: calc(100vh - 5.5rem);
@@ -85,7 +89,11 @@
   justify-content: center;
   align-items: flex-start;
 }
-.desktopFrame { --editor-preview-width: 74rem; }
+/* Desktop is not a device size: it is "no constraint". A fixed width here made
+   the editor show a narrower page than the one being edited, so wide layouts
+   looked squished and column behaviour could not be judged. Tablet and mobile
+   stay pinned to real device widths, where a fixed frame is the point. */
+.desktopFrame { --editor-preview-width: 100%; }
 .tabletFrame { --editor-preview-width: 48rem; }
 .mobileFrame { --editor-preview-width: 24.375rem; }
 .previewFrame {
