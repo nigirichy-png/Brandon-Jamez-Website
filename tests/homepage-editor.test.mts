@@ -489,6 +489,25 @@ test("homepage editor exposes one direct workflow with settings closed by defaul
   assert.match(editorSource, /onClose=\{\(\) => setPanelOpen\(false\)\}/);
 });
 
+test("the block selection overlay never swallows clicks meant for inline editing", async () => {
+  const [editorSource, editorStyles] = await Promise.all([
+    readFile(new URL("../src/components/home/homepage-editor.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/components/home/homepage-editor.module.css", import.meta.url), "utf8"),
+  ]);
+  // The overlay spans the whole block. Public wrappers such as .identityBlock
+  // create their own stacking context, which traps a nested element's z-index
+  // below it, so raising .editableElement is not enough: the overlay must take
+  // no pointer events at all or double-click never reaches the editable span.
+  const overlay = editorStyles.slice(editorStyles.indexOf(".selectionTarget {"));
+  assert.match(overlay.slice(0, 200), /pointer-events:\s*none/);
+  // It stays reachable by keyboard, so block selection is not mouse-only.
+  assert.match(editorSource, /className=\{styles\.selectionTarget\} aria-label=\{`Edit \$\{definition\.label\} block`\}/);
+  // Mouse selection of a block is delegated to the wrapper, and only fires when
+  // the click did not land on a nested editable node.
+  assert.match(editorSource, /onClick=\{selectBlockFromEmptyArea\}/);
+  assert.match(editorSource, /\(event\.target as HTMLElement\)\.closest\("\[data-canvas-node-id\]"\) !== event\.currentTarget/);
+});
+
 test("canvas-first UI keeps one pointer move handle and drag UI out of the public branch", async () => {
   const editorSource = await readFile(new URL("../src/components/home/homepage-editor.tsx", import.meta.url), "utf8");
   const propertyPanel = editorSource.slice(editorSource.indexOf("function PropertyPanel"), editorSource.indexOf("function ContextToolbar"));

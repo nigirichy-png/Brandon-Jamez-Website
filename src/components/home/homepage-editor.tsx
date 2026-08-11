@@ -341,7 +341,15 @@ export function HomepageEditableSection({ id, children }: { id: HomepageBlockId;
   const layoutHostActive = editor.mode === "layout" && blockUsesLayoutHost(editor.snapshot, id, editor.breakpoint);
   const blockPlacement = resolveLayoutPlacement(editor.snapshot.layout, id, editor.breakpoint);
   const draggedAsColumn = editor.canvasDrag ? resolveLayoutChildren(editor.snapshot.layout, editor.canvasDrag.payload.nodeId, editor.breakpoint).includes(id) : false;
-  return <div className={`${styles.editableSection} ${styles[`${id}Block`]} ${selected ? styles.selectedSection : ""} ${editor.canvasDrag?.payload.nodeId === id || draggedAsColumn ? styles.draggedSource : ""} ${!visible ? styles.hiddenSection : ""}`} data-section-id={id} data-canvas-node-id={id} data-flex-direction={responsive.flexDirection} data-layout={target?.global?.layoutPreset} data-layout-row-preset={rowPreset} data-layout-row-direction={rowDirection} data-image-placement={target?.global?.imagePlacement} style={blockStyle}>
+  // Block selection is delegated to this wrapper rather than handled by the
+  // overlay below, which no longer takes pointer events. A click is treated as
+  // selecting the block only when it did not land on a nested editable node, so
+  // inner elements keep their own click and double-click handling.
+  const selectBlockFromEmptyArea = (event: React.MouseEvent<HTMLDivElement>) => {
+    if ((event.target as HTMLElement).closest("[data-canvas-node-id]") !== event.currentTarget) return;
+    editor.dispatch({ type: "select", id });
+  };
+  return <div className={`${styles.editableSection} ${styles[`${id}Block`]} ${selected ? styles.selectedSection : ""} ${editor.canvasDrag?.payload.nodeId === id || draggedAsColumn ? styles.draggedSource : ""} ${!visible ? styles.hiddenSection : ""}`} data-section-id={id} data-canvas-node-id={id} data-flex-direction={responsive.flexDirection} data-layout={target?.global?.layoutPreset} data-layout-row-preset={rowPreset} data-layout-row-direction={rowDirection} data-image-placement={target?.global?.imagePlacement} style={blockStyle} onClick={selectBlockFromEmptyArea}>
     {visible ? layoutHostActive && columnId ? <><LayoutHost id={columnId} className={styles.layoutColumnHost}><LayoutHost id={id} className={styles.layoutHost} order={blockPlacement?.index ?? 0} /></LayoutHost><div className={styles.layoutSource}>{children}</div></> : children : <div className={styles.hiddenPlaceholder}><span>Hidden block</span><strong>{definition.label}</strong><small>Select to restore visibility</small></div>}
     <button type="button" className={styles.selectionTarget} aria-label={`Edit ${definition.label} block`} aria-pressed={selected} onClick={() => editor.dispatch({ type: "select", id })} />
     <span className={styles.sectionTag} aria-hidden="true">{definition.label}</span>

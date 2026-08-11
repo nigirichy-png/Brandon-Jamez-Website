@@ -107,7 +107,12 @@
 .layoutMode .editableSection:hover { outline-color: rgba(103,232,249,.75); }
 .selectedSection { outline: 2px solid #67e8f9; outline-offset: -2px; }
 .selectedSection:hover { outline-color: #67e8f9; }
-.selectionTarget { position: absolute; inset: 0; z-index: 20; cursor: pointer; border: 0; background: transparent; }
+/* Keyboard and assistive-technology affordance only. It must not take pointer
+   events: it spans the whole block, and public CSS wrappers such as
+   .identityBlock create their own stacking context, which traps a nested
+   element's z-index below this overlay and swallows clicks meant for inline
+   editing. Mouse selection of the block is delegated to the block wrapper. */
+.selectionTarget { position: absolute; inset: 0; z-index: 20; cursor: pointer; border: 0; background: transparent; pointer-events: none; }
 .selectionTarget:focus-visible { outline: 3px solid #67e8f9; outline-offset: -5px; }
 .sectionTag {
   position: absolute;
