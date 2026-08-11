@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import { VideoPlatformBadge, VideoPlatformIcon, videoPlatformIdentities } from "@/components/video/video-platform-identity";
+import { VideoPlatformIcon, videoPlatformIdentities } from "@/components/video/video-platform-identity";
 import type { PublicVideoPlatform } from "@/lib/public-bunny-video/model";
 import { getVideoThumbnailUrl } from "@/lib/cms/video-links";
 
@@ -27,6 +27,5 @@ export function CmsVideoPreview({ title, platform, videoUrl, priority = false, c
       </div>
     </div>}
     {!editorial ? <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/10" aria-hidden="true" /> : null}
-    <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4"><VideoPlatformBadge platform={platform} className="border-white/25 bg-black/60 text-white backdrop-blur-sm" /></div>
   </div>;
 }
