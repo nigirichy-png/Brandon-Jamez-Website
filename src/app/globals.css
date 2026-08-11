@@ -568,6 +568,20 @@ html[data-homepage-editor-active="true"][data-editor-header-active-style="accent
 }
 
 .platform-video-page .platform-video-grid { gap: 1.35rem; }
+.platform-video-groups { display: grid; gap: clamp(3rem, 6vw, 5.5rem); }
+.platform-video-group-nav { display: flex; flex-wrap: wrap; gap: .65rem; margin-bottom: -1rem; }
+.platform-video-group-nav a { display: inline-flex; min-height: 2.65rem; align-items: center; gap: .7rem; padding: .6rem .85rem; border: 1px solid rgba(50,216,255,.22); background: rgba(7,20,38,.76); color: #f4f8ff; font-size: .72rem; font-weight: 850; letter-spacing: .035em; text-decoration: none; }
+.platform-video-group-nav a:hover { border-color: rgba(255,79,154,.58); background: rgba(255,79,154,.08); }
+.platform-video-group-nav span { display: grid; min-width: 1.35rem; height: 1.35rem; place-items: center; border-radius: 999px; background: rgba(50,216,255,.12); color: var(--night-cyan); font-size: .62rem; }
+.platform-video-group { scroll-margin-top: 5rem; }
+.platform-video-group-header { display: flex; align-items: end; justify-content: space-between; gap: 1.5rem; margin-bottom: 1.35rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(50,216,255,.2); }
+.platform-video-group-header p { margin-bottom: .4rem; color: var(--night-cyan); font-size: .6rem; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
+.platform-video-group-header h2 { color: #f8fbff; font: 800 clamp(1.8rem,4vw,3rem)/1 var(--font-display-face); letter-spacing: -.04em; }
+.platform-video-group-header div > span { display: block; margin-top: .55rem; color: rgba(223,234,247,.64); font-size: .8rem; line-height: 1.5; }
+.platform-video-group-header > strong { display: grid; width: 2.8rem; height: 2.8rem; flex: 0 0 2.8rem; place-items: center; border: 1px solid rgba(255,79,154,.38); border-radius: 50%; color: #ff82b6; font-size: .75rem; }
+.platform-video-group-empty { display: grid; min-height: 9rem; place-content: center; gap: .4rem; border: 1px dashed rgba(50,216,255,.2); background: rgba(7,20,38,.48); padding: 1.5rem; text-align: center; }
+.platform-video-group-empty strong { color: #f8fbff; font-family: var(--font-display-face); font-size: 1.1rem; }
+.platform-video-group-empty span { color: rgba(223,234,247,.6); font-size: .78rem; line-height: 1.5; }
 .platform-video-page .platform-video-card {
   border-color: rgba(50, 216, 255, .18);
   border-radius: 0;

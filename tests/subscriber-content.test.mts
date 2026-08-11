@@ -443,6 +443,12 @@ test("public video collection uses a scalable card grid and interaction-gated pr
   ]);
   assert.match(collection, /videos\.map/);
   assert.match(collection, /platform-video-grid/);
+  assert.match(collection, /Videos &amp; Livestreams/);
+  assert.match(collection, /Clips &amp; Shorts/);
+  assert.match(collection, /shorts\?\|clips\?/);
+  assert.match(collection, /video\.category/);
+  assert.match(css, /platform-video-group-nav/);
+  assert.match(css, /platform-video-group-empty/);
   assert.doesNotMatch(collection, /platform-featured-video|platform-video-row/);
   assert.match(hoverPreview, /^"use client"/);
   assert.match(hoverPreview, /\(hover: hover\) and \(pointer: fine\)/);
