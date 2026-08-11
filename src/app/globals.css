@@ -486,6 +486,8 @@ html[data-homepage-editor-active="true"][data-editor-header-active-style="accent
   gap: clamp(2rem, 6vw, 5rem);
   align-items: center;
 }
+.platform-video-header-grid > *,
+.platform-subscriber-header-grid > * { min-width: 0; }
 
 .platform-video-page-header .platform-kicker,
 .platform-subscriber-header .platform-kicker,
@@ -758,8 +760,12 @@ html[data-homepage-editor-active="true"][data-editor-header-active-style="accent
 @media (max-width: 759px) {
   .platform-video-page-header,
   .platform-subscriber-header { padding-block: 2.75rem; }
+  .platform-video-header-grid,
+  .platform-subscriber-header-grid { grid-template-columns: minmax(0, 1fr); }
   .platform-video-page-header .platform-title,
-  .platform-subscriber-header .platform-title { font-size: clamp(2.7rem, 13vw, 4rem); }
+  .platform-subscriber-header .platform-title { width: 100%; max-width: 100%; overflow-wrap: break-word; font-size: clamp(2.7rem, 13vw, 4rem); }
+  .platform-video-page-header .platform-copy,
+  .platform-subscriber-header .platform-copy { width: 100%; max-width: 100%; overflow-wrap: anywhere; }
   .platform-free-access,
   .platform-member-status { padding: 1.2rem; }
   .platform-subscriber-library .platform-list-heading { align-items: start; }
