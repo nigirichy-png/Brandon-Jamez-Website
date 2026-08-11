@@ -1,8 +1,10 @@
 .header {
+  isolation: isolate;
+  contain: paint;
   border-bottom-color: rgba(56, 220, 255, .2);
   background:
     linear-gradient(90deg, rgba(255, 47, 145, .055), transparent 28%, transparent 70%, rgba(31, 203, 255, .07)),
-    rgba(2, 7, 18, .93);
+    #020712;
   box-shadow: 0 1px 0 rgba(255, 255, 255, .025), 0 12px 34px rgba(0, 0, 0, .24);
 }
 

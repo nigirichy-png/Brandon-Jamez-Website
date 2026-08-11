@@ -52,7 +52,7 @@ export function HeaderNavigation({ moderationHubPreview }: { moderationHubPrevie
   if (isInternal) return null;
   return <>
     <input ref={triggerRef} id="mobile-navigation-toggle" type="checkbox" checked={menuOpen} onChange={(event) => setMenuOpen(event.target.checked)} aria-expanded={menuOpen} aria-controls="mobile-navigation" aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"} className="peer sr-only lg:hidden" />
-    <header className={`${styles.header} sticky top-0 z-50 border-b pt-[env(safe-area-inset-top)] text-[var(--public-paper)] backdrop-blur-md`}>
+    <header className={`${styles.header} sticky top-0 z-50 border-b pt-[env(safe-area-inset-top)] text-[var(--public-paper)]`}>
       <div className={`${styles.shell} mx-auto flex min-h-14 items-center gap-4`}>
         <Link href="/" aria-label="Brandon Jamez home" className={styles.brandLink}><BrandMark /></Link>
         <p className={`${styles.location} hidden items-center gap-2 border-l pl-4 text-[.58rem] font-extrabold uppercase tracking-[.12em] sm:flex`}><span className={`${styles.locationDot} size-1.5`} aria-hidden="true" /><PattayaTime /></p>

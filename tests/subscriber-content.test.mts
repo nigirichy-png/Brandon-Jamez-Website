@@ -447,7 +447,8 @@ test("public video collection uses a scalable card grid and interaction-gated pr
   assert.match(hoverPreview, /^"use client"/);
   assert.match(hoverPreview, /\(hover: hover\) and \(pointer: fine\)/);
   assert.match(hoverPreview, /prefers-reduced-motion: reduce/);
-  assert.match(hoverPreview, /onMouseEnter=\{startPreview\}/);
+  assert.match(hoverPreview, /onMouseMove=\{queuePreview\}/);
+  assert.match(hoverPreview, /window\.setTimeout[\s\S]*400/);
   assert.match(hoverPreview, /active && previewUrl/);
   assert.match(hoverPreview, /playerState === 1/);
   assert.match(hoverPreview, /playing \? " is-ready"/);

@@ -18,6 +18,7 @@ export function VideoHoverPreview({ title, platform, videoUrl, priority = false,
   const [active, setActive] = useState(false);
   const [playing, setPlaying] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const hoverTimerRef = useRef<number | null>(null);
   const previewUrl = platform === "youtube" ? getYouTubeHoverPreviewUrl(videoUrl) : null;
 
   useEffect(() => {
@@ -35,12 +36,22 @@ export function VideoHoverPreview({ title, platform, videoUrl, priority = false,
     return () => window.removeEventListener("message", handlePlayerMessage);
   }, [active]);
 
-  const startPreview = () => {
+  useEffect(() => () => {
+    if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
+  }, []);
+
+  const queuePreview = () => {
     if (!previewUrl || !window.matchMedia("(hover: hover) and (pointer: fine)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    setPlaying(false);
-    setActive(true);
+    if (active || hoverTimerRef.current) return;
+    hoverTimerRef.current = window.setTimeout(() => {
+      hoverTimerRef.current = null;
+      setPlaying(false);
+      setActive(true);
+    }, 400);
   };
   const stopPreview = () => {
+    if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = null;
     setActive(false);
     setPlaying(false);
   };
@@ -51,7 +62,7 @@ export function VideoHoverPreview({ title, platform, videoUrl, priority = false,
     target.postMessage(JSON.stringify({ event: "command", func: "playVideo", args: [] }), "https://www.youtube-nocookie.com");
   };
 
-  return <a href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label={`Watch ${title} (opens in a new tab)`} className="platform-video-preview-link group" onMouseEnter={startPreview} onMouseLeave={stopPreview} onFocus={startPreview} onBlur={stopPreview}>
+  return <a href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label={`Watch ${title} (opens in a new tab)`} className="platform-video-preview-link group" onMouseMove={queuePreview} onMouseLeave={stopPreview} onFocus={queuePreview} onBlur={stopPreview}>
     <CmsVideoPreview title={title} platform={platform} videoUrl={videoUrl} priority={priority} sizes={sizes} editorial />
     {active && previewUrl ? <iframe ref={iframeRef} className={`platform-video-hover-frame${playing ? " is-ready" : ""}`} src={previewUrl} title={`Muted preview of ${title}`} allow="autoplay; encrypted-media; picture-in-picture" tabIndex={-1} onLoad={connectPlayer} /> : null}
   </a>;
