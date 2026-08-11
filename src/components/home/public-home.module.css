@@ -107,13 +107,13 @@
   .stageGrid { min-height: 39rem; grid-template-columns: 1fr; align-items: stretch; }
   .identityBlock { grid-column: 1; width: 100%; min-height: 39rem; align-items: flex-start; justify-content: flex-end; padding: 1.35rem .15rem 1.55rem; background: linear-gradient(180deg, transparent 0 47%, rgba(2, 6, 18, .2) 55%, rgba(2, 6, 18, .9) 72%, rgba(2, 6, 18, .98) 100%); text-align: left; transform: none; }
   .eyebrow { position: absolute; top: 1.1rem; left: .15rem; max-width: calc(100% - .3rem); font-size: .58rem; letter-spacing: .24em; }
-  .identityLockup { width: 100%; flex-direction: row; justify-content: flex-start; gap: .8rem; margin-top: 0; }
+  .identityLockup { width: 100%; min-width: 0; flex-direction: row; justify-content: flex-start; gap: .8rem; margin-top: 0; }
   .heroEmblem { width: clamp(4.25rem, 20vw, 5rem); }
-  .identityTitle { width: auto; max-width: 7ch; font-size: clamp(2.3rem, 11.5vw, 3.15rem); line-height: .86; overflow-wrap: normal; }
+  .identityTitle { width: auto; min-width: 0; max-width: none; font-size: clamp(2.15rem, 10.8vw, 3.15rem); line-height: .86; overflow: visible; overflow-wrap: normal; }
   .identityTitle strong { display: block; }
   .identityIntro { max-width: 21rem; margin-top: .9rem; font-size: clamp(.88rem, 4vw, 1rem); line-height: 1.5; }
   .portraitFrame::after { background: linear-gradient(180deg, rgba(1, 4, 14, .08) 0%, transparent 45%, rgba(2, 6, 18, .28) 58%, rgba(2, 6, 18, .92) 82%, #020612 100%); }
-  .portraitImage { bottom: auto !important; height: 72% !important; object-fit: cover; object-position: 74% 8%; }
+  .portraitImage { bottom: auto !important; height: 72% !important; object-fit: cover; object-position: 74% 8% !important; }
   .latestSection { padding-block: 1.7rem; }
   .latestSection::before { top: 44%; font-size: 24vw; }
   .latestSection::after { bottom: -14rem; }
@@ -154,13 +154,13 @@
 .mobilePreview .stageGrid { min-height: 39rem; grid-template-columns: 1fr; align-items: stretch; }
 .mobilePreview .identityBlock { grid-column: 1; width: 100%; min-height: 39rem; align-items: flex-start; justify-content: flex-end; padding: 1.35rem .15rem 1.55rem; background: linear-gradient(180deg, transparent 0 47%, rgba(2, 6, 18, .2) 55%, rgba(2, 6, 18, .9) 72%, rgba(2, 6, 18, .98) 100%); text-align: left; }
 .mobilePreview .eyebrow { position: absolute; top: 1.1rem; left: .15rem; font-size: .58rem; letter-spacing: .24em; }
-.mobilePreview .identityLockup { width: 100%; flex-direction: row; justify-content: flex-start; gap: .8rem; margin-top: 0; }
+.mobilePreview .identityLockup { width: 100%; min-width: 0; flex-direction: row; justify-content: flex-start; gap: .8rem; margin-top: 0; }
 .mobilePreview .heroEmblem { width: clamp(4.25rem, 20vw, 5rem); }
-.mobilePreview .identityTitle { max-width: 7ch; font-size: clamp(2.3rem, 11.5vw, 3.15rem); line-height: .86; }
+.mobilePreview .identityTitle { min-width: 0; max-width: none; font-size: clamp(2.15rem, 10.8vw, 3.15rem); line-height: .86; overflow: visible; }
 .mobilePreview .identityTitle strong { display: block; }
 .mobilePreview .identityIntro { max-width: 21rem; margin-top: .9rem; font-size: clamp(.88rem, 4vw, 1rem); line-height: 1.5; }
 .mobilePreview .portraitFrame::after { background: linear-gradient(180deg, rgba(1, 4, 14, .08) 0%, transparent 45%, rgba(2, 6, 18, .28) 58%, rgba(2, 6, 18, .92) 82%, #020612 100%); }
-.mobilePreview .portraitImage { bottom: auto !important; height: 72% !important; object-fit: cover; object-position: 74% 8%; }
+.mobilePreview .portraitImage { bottom: auto !important; height: 72% !important; object-fit: cover; object-position: 74% 8% !important; }
 .mobilePreview .latestSection { padding-block: 1.7rem; }
 .mobilePreview .videoBlock { display: flex; flex-direction: column; padding: .8rem; }
 .mobilePreview .videoTopline, .mobilePreview .stageVideoMedia, .mobilePreview .stageVideoCopy, .mobilePreview .stageVideoEmpty { grid-column: auto; }

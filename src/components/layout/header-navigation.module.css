@@ -88,6 +88,8 @@
 }
 
 .menuPanel {
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border-left-color: rgba(50, 220, 255, .2);
   background:
     radial-gradient(circle at 100% 0, rgba(29, 210, 255, .1), transparent 15rem),
@@ -103,5 +105,25 @@
 @media (max-width: 640px) {
   .shell {
     width: min(calc(100% - 1.25rem), 92rem);
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 500px) {
+  .menuPanel {
+    padding-top: .75rem;
+    padding-bottom: max(.75rem, env(safe-area-inset-bottom));
+  }
+
+  .menuPanel nav {
+    margin-top: .5rem;
+  }
+
+  .menuPanel nav a {
+    min-height: 2.75rem;
+  }
+
+  .menuPanel > div {
+    margin-top: .75rem;
+    padding-top: .75rem;
   }
 }

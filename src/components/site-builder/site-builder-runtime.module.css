@@ -1,4 +1,4 @@
-.launch { position: fixed; right: 1rem; bottom: 1rem; z-index: 9998; border: 1px solid rgba(216,179,90,.7); background: #111; color: #fff; padding: .65rem .9rem; font: 700 .78rem/1 var(--font-body); }
+.launch { position: fixed; top: calc(4.5rem + env(safe-area-inset-top)); right: 1rem; z-index: 9998; border: 1px solid rgba(216,179,90,.7); background: #111; color: #fff; padding: .65rem .9rem; font: 700 .78rem/1 var(--font-body); }
 .bar { position: fixed; inset: 0 0 auto; z-index: 10000; min-height: 3rem; padding: max(.35rem,env(safe-area-inset-top)) .75rem .35rem; background: rgba(12,12,12,.97); color: #fff; border-bottom: 1px solid rgba(216,179,90,.45); display: flex; align-items: center; gap: .45rem; white-space: nowrap; }
 .bar strong { margin-right: auto; overflow: hidden; text-overflow: ellipsis; }
 .bar button { border: 1px solid rgba(255,255,255,.16); padding: .4rem .55rem; background: transparent; color: inherit; font-weight: 700; }

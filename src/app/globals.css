@@ -584,21 +584,27 @@ html[data-homepage-editor-active="true"][data-editor-header-active-style="accent
 .platform-video-group-empty { display: grid; min-height: 9rem; place-content: center; gap: .4rem; border: 1px dashed rgba(50,216,255,.2); background: rgba(7,20,38,.48); padding: 1.5rem; text-align: center; }
 .platform-video-group-empty strong { color: #f8fbff; font-family: var(--font-display-face); font-size: 1.1rem; }
 .platform-video-group-empty span { color: rgba(223,234,247,.6); font-size: .78rem; line-height: 1.5; }
-.platform-video-page .platform-video-card {
+.platform-video-page .platform-video-card,
+.platform-subscriber-page .platform-video-card {
   border-color: rgba(50, 216, 255, .18);
   border-radius: 0;
   background: linear-gradient(155deg, rgba(10, 23, 42, .96), rgba(13, 8, 26, .96));
   box-shadow: 0 22px 58px rgba(0, 0, 0, .25);
 }
 .platform-video-page .platform-video-card:hover,
-.platform-video-page .platform-video-card:focus-within {
+.platform-video-page .platform-video-card:focus-within,
+.platform-subscriber-page .platform-video-card:hover,
+.platform-subscriber-page .platform-video-card:focus-within {
   border-color: rgba(255, 79, 154, .55);
   box-shadow: 0 25px 65px rgba(0, 0, 0, .38), 0 0 28px rgba(255, 79, 154, .09);
 }
-.platform-video-page .platform-video-card-media { border-bottom-color: rgba(50, 216, 255, .18); }
-.platform-video-page .platform-video-card-body h2 { color: #f8fbff; }
+.platform-video-page .platform-video-card-media,
+.platform-subscriber-page .platform-video-card-media { border-bottom-color: rgba(50, 216, 255, .18); }
+.platform-video-page .platform-video-card-body h2,
+.platform-subscriber-page .platform-video-card-body h2 { color: #f8fbff; }
 .platform-video-page .platform-featured-label { color: var(--night-pink); }
-.platform-video-page .platform-text-link { text-decoration-color: var(--night-pink); }
+.platform-video-page .platform-text-link,
+.platform-subscriber-page .platform-text-link { text-decoration-color: var(--night-pink); }
 
 .platform-member-label {
   display: flex;
@@ -639,6 +645,11 @@ html[data-homepage-editor-active="true"][data-editor-header-active-style="accent
 .platform-subscriber-library .platform-list-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; padding-bottom: 1.1rem; border-bottom: 1px solid rgba(50, 216, 255, .18); }
 .platform-subscriber-library .platform-list-heading h2 { color: #fff; font: 800 clamp(2rem, 4vw, 3.4rem)/1 var(--font-display-face); letter-spacing: -.045em; }
 .platform-subscriber-library .platform-list-heading > span { color: rgba(214, 230, 244, .58); font-size: .68rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.platform-subscriber-library .platform-list-heading + .platform-video-grid { margin-top: 1.35rem; }
+.platform-subscriber-video-preview { position: relative; aspect-ratio: 16/9; overflow: hidden; background: #050811; }
+.platform-subscriber-preview-label { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0, 0, 0, .2); color: #fff; font-size: .72rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; transition: opacity .2s ease; }
+.platform-subscriber-page .platform-video-card:hover .platform-subscriber-preview-label,
+.platform-subscriber-page .platform-video-card:focus-within .platform-subscriber-preview-label { opacity: 0; }
 .platform-subscriber-feature { gap: clamp(1.5rem, 4vw, 3.5rem); margin-top: 1.5rem; padding: clamp(1.1rem, 3vw, 2rem); border: 1px solid rgba(50, 216, 255, .18); background: linear-gradient(145deg, rgba(7, 20, 37, .92), rgba(18, 7, 27, .94)); }
 .platform-subscriber-image { border-color: rgba(255, 79, 154, .28); background: #050811; }
 .platform-subscriber-page .platform-button-primary { border-color: #ff4f9a; background: linear-gradient(90deg, #ee2679, #ff785e); box-shadow: 0 14px 34px rgba(255, 44, 129, .2); color: #fff; }

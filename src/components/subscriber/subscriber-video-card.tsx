@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type HlsType from "hls.js";
 
+import { VideoPlatformBadge, VideoPlatformIcon } from "@/components/video/video-platform-identity";
 import type { SubscriberVideoSummary } from "@/lib/subscriber-content/model";
 
 type PlaybackDescriptor = { manifestUrl: string; expiresAt: number };
@@ -13,6 +14,11 @@ function validDescriptor(value: unknown): value is PlaybackDescriptor {
   const descriptor = value as Record<string, unknown>;
   if (typeof descriptor.manifestUrl !== "string" || typeof descriptor.expiresAt !== "number") return false;
   try { return new URL(descriptor.manifestUrl).protocol === "https:"; } catch { return false; }
+}
+
+function formatPublishedDate(value: string | null): string {
+  if (!value) return "Recently published";
+  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(value));
 }
 
 export function SubscriberVideoCard({ video }: { video: SubscriberVideoSummary }) {
@@ -68,13 +74,25 @@ export function SubscriberVideoCard({ video }: { video: SubscriberVideoSummary }
 
   useEffect(() => () => { hlsRef.current?.destroy(); }, []);
 
-  return <article onMouseEnter={() => void startPreview()} onMouseLeave={stopPreview} onFocus={() => void startPreview()} onBlur={stopPreview} className="group overflow-hidden rounded-lg border border-cyan-300/20 bg-black/20 transition-colors hover:border-cyan-300/45">
-    <Link href={`/subscriber/videos/${video.slug}`} prefetch={false} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">
-      <div className="relative aspect-video overflow-hidden bg-black">
-        <video ref={videoRef} poster={`/api/subscriber/bunny/${video.slug}?asset=poster`} muted loop playsInline preload="none" aria-hidden="true" className={`h-full w-full object-cover transition-opacity duration-200 ${previewing ? "opacity-100" : "opacity-70"}`} />
-        <span className="absolute inset-0 grid place-items-center bg-black/20 text-sm font-extrabold uppercase tracking-wider text-white transition-opacity group-hover:opacity-0 group-focus-within:opacity-0">Preview</span>
+  const href = `/subscriber/videos/${video.slug}`;
+
+  return <article onMouseEnter={() => void startPreview()} onMouseLeave={stopPreview} onFocus={() => void startPreview()} onBlur={stopPreview} className="platform-video-card group">
+    <div className="platform-video-card-media">
+      <Link href={href} prefetch={false} aria-label={`Watch ${video.title}`} className="platform-video-preview-link focus-visible:ring-2 focus-visible:ring-cyan-300">
+        <div className="platform-subscriber-video-preview">
+          <video ref={videoRef} poster={`/api/subscriber/bunny/${video.slug}?asset=poster`} muted loop playsInline preload="none" aria-hidden="true" className={`h-full w-full object-cover transition-opacity duration-200 ${previewing ? "opacity-100" : "opacity-70"}`} />
+          <span className="platform-subscriber-preview-label">Preview</span>
+        </div>
+      </Link>
+    </div>
+    <div className="platform-video-card-body">
+      <div className="platform-video-meta"><VideoPlatformBadge platform="bunny" /><span>Subscriber</span></div>
+      <h2>{video.title}</h2>
+      {video.description ? <p>{video.description}</p> : null}
+      <div className="platform-video-card-footer">
+        <time dateTime={video.published_at ?? undefined}>{formatPublishedDate(video.published_at)}</time>
+        <Link href={href} prefetch={false} aria-label={`Watch video: ${video.title}`} className="platform-text-link"><VideoPlatformIcon platform="bunny" className="size-4" />Watch video</Link>
       </div>
-      <div className="p-4"><h3 className="font-display text-xl font-bold text-white">{video.title}</h3>{video.description ? <p className="mt-1.5 line-clamp-2 text-sm text-zinc-300">{video.description}</p> : null}<span className="mt-3 inline-block text-xs font-extrabold uppercase tracking-wider text-cyan-200">Open video →</span></div>
-    </Link>
+    </div>
   </article>;
 }

@@ -1,0 +1,57 @@
+.peek {
+  position: fixed;
+  z-index: 45;
+  bottom: 0;
+  width: clamp(8.5rem, 15vw, 13rem);
+  aspect-ratio: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 1rem 1.5rem rgba(0, 0, 0, .5));
+  opacity: 0;
+  transform: translateY(105%) rotate(var(--peek-rotation));
+  transition:
+    transform .9s cubic-bezier(.2, .78, .2, 1),
+    opacity .3s ease;
+  will-change: transform, opacity;
+}
+
+.peek[data-side="left"] {
+  --peek-rotation: 4deg;
+  left: clamp(-2.2rem, -2vw, -1rem);
+}
+
+.peek[data-side="right"] {
+  --peek-rotation: -4deg;
+  right: clamp(-2.2rem, -2vw, -1rem);
+}
+
+.peek[data-visible="true"] {
+  opacity: 1;
+  transform: translateY(29%) rotate(var(--peek-rotation));
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+html[data-homepage-editor-active="true"] .peek {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .peek {
+    width: clamp(7.5rem, 34vw, 9.5rem);
+  }
+
+  .peek[data-visible="true"] {
+    transform: translateY(34%) rotate(var(--peek-rotation));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .peek {
+    display: none;
+  }
+}

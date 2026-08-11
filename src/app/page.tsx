@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { HomepagePeek } from "@/components/home/homepage-peek";
 import { HomepageEditableImage, HomepageEditableLink, HomepageEditableMedia, HomepageEditableProviderBadge, HomepageEditableSection, HomepageEditableText, HomepageEditor, HomepageLayoutItem } from "@/components/home/homepage-editor";
 import type { HomepageEditorDefaults } from "@/components/home/homepage-editor-model";
 import { videoPlatformIdentities } from "@/components/video/video-platform-identity";
@@ -94,5 +95,6 @@ export default async function Home() {
       <aside className={styles.memberFeature} aria-labelledby="member-feature-title"><span className={styles.ageBadge} aria-label="Adults only">18+</span><HomepageLayoutItem id="subscriber-kicker"><HomepageEditableText id="subscriber-kicker" as="p" className={styles.featureKicker} defaultValue="Member area" /></HomepageLayoutItem><HomepageLayoutItem id="subscriber-heading"><HomepageEditableText id="subscriber-heading" as="h2" defaultValue="Raw. Unfiltered. After dark." defaultChildren={<>Raw.<br />Unfiltered.<br />After dark.</>} /></HomepageLayoutItem><HomepageLayoutItem id="subscriber-body"><HomepageEditableText id="subscriber-body" as="p" defaultValue="Paid access to private videos, selected images, special events and exclusive Pattaya moments." /></HomepageLayoutItem><div className={styles.memberMeta}><span>Raw video</span><span>Private images</span><span>Special events</span></div><HomepageLayoutItem id="subscriber-link"><HomepageEditableLink id="subscriber-link" defaultText="Unlock member access" defaultUrl="/subscriber" className={styles.primaryAction} /></HomepageLayoutItem><p className={styles.memberAccessNote}>Paid membership · Age verification required</p></aside>
     </div></section>
     </HomepageEditableSection>
+    <HomepagePeek />
   </HomepageEditor>;
 }
