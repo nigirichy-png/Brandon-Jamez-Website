@@ -12,7 +12,7 @@
  * and the tests all run the identical code.
  */
 import {
-  canPlaceLayoutNode, createDefaultLayoutTree, createInitialSnapshot, editorBreakpoints, editorSchemaVersion, homepageBlockGroups,
+  canPlaceLayoutNode, createDefaultLayoutTree, createInitialSnapshot, editorBreakpoints, editorSchemaVersion, fontSizePresets, homepageBlockGroups,
   homepageTargetById, isSafeColor, isSafeExternalUrl, isSafeInternalAssetPath, isSafeLinkUrl, normalizeInlineText,
   type EditorBreakpoint, type EditorSnapshot, type GlobalStyle, type HeaderPreviewOverride, type HomepageBlockId,
   type HomepageTargetId, type LayoutNode, type LayoutResponsiveOverride, type LayoutTree, type ResponsiveStyle,
@@ -147,6 +147,7 @@ function sanitizeGlobalStyle(input: unknown): GlobalStyle | undefined {
     buttonStylePreset: literal(input.buttonStylePreset, buttonStylePresets),
     imageSizePreset: literal(input.imageSizePreset, imageSizePresets),
     radiusPreset: literal(input.radiusPreset, radiusPresets),
+    fontSizePreset: literal(input.fontSizePreset, fontSizePresets),
   });
   return Object.keys(result).length ? result : undefined;
 }

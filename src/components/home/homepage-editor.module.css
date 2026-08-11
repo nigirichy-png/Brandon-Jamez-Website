@@ -241,8 +241,27 @@
 .contextToolbar { position: fixed; z-index: 96; display: flex; width: max-content; max-width: calc(100vw - 1rem); min-height: 2.45rem; flex-wrap: nowrap; align-items: center; gap: .2rem; overflow: visible; border: 1px solid rgba(255,255,255,.16); border-radius: .5rem; background: rgba(14,17,23,.97); padding: .25rem; color: #f4f4f5; box-shadow: 0 10px 34px rgba(0,0,0,.38); backdrop-filter: blur(12px); }
 .contextToolbar button, .contextToolbar select { min-height: 1.9rem; border: 1px solid transparent; border-radius: .32rem; background: rgba(255,255,255,.04); padding: .3rem .46rem; color: #d4d4d8; white-space: nowrap; font-size: .6rem; font-weight: 800; }
 .contextToolbar select { max-width: 7rem; }
+.fontScale { font-size: inherit; }
+
+/* Native select chrome ignores the theme: with appearance:auto the control and
+   its options are painted white by the platform, whatever background is set.
+   Suppress it, draw the chevron ourselves, and colour the options explicitly —
+   options are rendered by the OS and do not inherit from the control. */
+.contextToolbar select, .field > select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%2367e8f9' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+.contextToolbar select { background-position: right .38rem center; background-size: .5rem; padding-right: 1.25rem; }
+.field > select { background-position: right .6rem center; background-size: .62rem; padding-right: 1.7rem; }
+.contextToolbar select option, .field > select option { background: #101319; color: #f4f4f5; }
+.contextToolbar select:focus-visible, .field > select:focus-visible { border-color: rgba(103,232,249,.5); }
 .contextToolbar button:hover, .contextToolbar select:hover { border-color: rgba(103,232,249,.32); color: white; }
-.contextToolbar input[type="color"] { width: 1.9rem; height: 1.9rem; border: 0; background: transparent; padding: .12rem; }
+/* The swatch shows the current colour, so on light text it is a bright square.
+   The border keeps it reading as a control rather than a gap in the toolbar. */
+.contextToolbar input[type="color"] { width: 1.9rem; height: 1.9rem; border: 1px solid rgba(255,255,255,.16); border-radius: .32rem; background: rgba(255,255,255,.04); padding: .18rem; cursor: pointer; }
+.contextToolbar input[type="color"]:hover { border-color: rgba(103,232,249,.32); }
 .dragHandle { cursor: grab; color: #cffafe !important; touch-action: none; user-select: none; }
 .dragHandle:active { cursor: grabbing; }
 .dragHandle:disabled { cursor: not-allowed; color: #a1a1aa !important; opacity: .72; }

@@ -11,6 +11,8 @@ import {
   createDirectCanvasDragPayload,
   createDefaultLayoutTree,
   createInitialEditorState,
+  fontSizePresets,
+  fontSizeScale,
   editorReducer,
   finalizeInlineText,
   hasPassedCanvasDragThreshold,
@@ -487,6 +489,42 @@ test("homepage editor exposes one direct workflow with settings closed by defaul
   assert.match(editorSource, /onClickCapture: \(event: React\.MouseEvent\) => \{ event\.preventDefault\(\); event\.stopPropagation\(\); editor\.dispatch\(\{ type: "select", id \}\); \}/);
   assert.match(editorSource, /document\.activeElement\?\.matches\("\[contenteditable='true'\]"\)/);
   assert.match(editorSource, /onClose=\{\(\) => setPanelOpen\(false\)\}/);
+});
+
+test("font size is chosen as four presets that scale relative to each element's own size", async () => {
+  const [model, editorSource] = await Promise.all([
+    readFile(new URL("../src/components/home/homepage-editor-model.ts", import.meta.url), "utf8"),
+    readFile(new URL("../src/components/home/homepage-editor.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.deepEqual(fontSizePresets as readonly string[], ["small", "medium", "large", "xlarge"]);
+  // Multipliers, not pixels: one absolute scale cannot serve a 97px hero and a
+  // 10px kicker, and "medium" must be the neutral shipped size.
+  assert.equal(fontSizeScale.medium, 1);
+  assert.ok(fontSizeScale.small < 1 && fontSizeScale.large > 1 && fontSizeScale.xlarge > fontSizeScale.large);
+  assert.match(model, /fontSizePreset\?: FontSizePreset;/);
+  // The scale goes on a child so `em` resolves against the styled element.
+  assert.match(editorSource, /function FontScale\(\{ scale, children \}/);
+  assert.match(editorSource, /<span className=\{styles\.fontScale\} style=\{\{ fontSize: `\$\{scale\}em` \}\}>/);
+  // The quick toolbar offers presets only; raw pixel entry stays in the advanced panel.
+  const toolbar = editorSource.slice(editorSource.indexOf("function ContextToolbar"));
+  assert.match(toolbar, /aria-label="Font size" value=\{global\.fontSizePreset/);
+  assert.doesNotMatch(toolbar.slice(0, 4000), /<option value="14">/);
+});
+
+test("moving is offered for sections, never for a lone text or image", async () => {
+  const editorSource = await readFile(new URL("../src/components/home/homepage-editor.tsx", import.meta.url), "utf8");
+  assert.match(editorSource, /const movableKind = \["block", "section", "row", "column"\]\.includes\(kind\)/);
+  assert.match(editorSource, /\{movableKind \? <CanvasMoveHandle label=\{targetLabel\} movable=\{Boolean\(safeMovableNode\)\} \/> : null\}/);
+});
+
+test("editor dropdowns are themed rather than left to native platform chrome", async () => {
+  const editorStyles = await readFile(new URL("../src/components/home/homepage-editor.module.css", import.meta.url), "utf8");
+  // appearance:auto lets the platform paint a white control and a white option
+  // list whatever background is set, which is what made these look unstyled.
+  assert.match(editorStyles, /\.contextToolbar select, \.field > select \{[^}]*appearance: none;/);
+  // Options are rendered by the OS and do not inherit from the control.
+  assert.match(editorStyles, /select option[^{]*\{ background: #101319; color: #f4f4f5; \}/);
+  assert.match(editorStyles, /background-image: url\("data:image\/svg\+xml/);
 });
 
 test("desktop preview edits the page at its real width while tablet and mobile stay device sized", async () => {

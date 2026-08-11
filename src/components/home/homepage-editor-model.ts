@@ -116,6 +116,16 @@ export type WidthPreset = "auto" | "third" | "half" | "two-thirds" | "full";
 export type ButtonStylePreset = "primary" | "secondary" | "text";
 export type ImageSizePreset = "small" | "medium" | "large" | "full";
 export type RadiusPreset = "square" | "slightly-rounded" | "rounded";
+export const fontSizePresets = ["small", "medium", "large", "xlarge"] as const;
+export type FontSizePreset = (typeof fontSizePresets)[number];
+/**
+ * Multipliers, not pixel values. A hero heading and a kicker have very
+ * different natural sizes, so one absolute scale cannot serve both; these are
+ * applied relative to whatever size the element already gets from the design
+ * system. "medium" is the shipped size, which is why it is the neutral 1.
+ */
+export const fontSizeScale: Readonly<Record<FontSizePreset, number>> = { small: 0.75, medium: 1, large: 1.5, xlarge: 2 };
+export const fontSizePresetLabels: Readonly<Record<FontSizePreset, string>> = { small: "Small", medium: "Medium", large: "Large", xlarge: "XLarge" };
 export type ContextualTargetType = TargetKind | LayoutNodeType | "header";
 
 export type ResponsiveStyle = {
@@ -159,6 +169,7 @@ export type GlobalStyle = {
   buttonStylePreset?: ButtonStylePreset;
   imageSizePreset?: ImageSizePreset;
   radiusPreset?: RadiusPreset;
+  fontSizePreset?: FontSizePreset;
 };
 
 export const simplePropertyGroups: Readonly<Record<ContextualTargetType, readonly string[]>> = {
