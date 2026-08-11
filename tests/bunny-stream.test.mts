@@ -113,10 +113,14 @@ test("public Bunny uploads stay editor-only while published playback exposes no 
   assert.match(uploadRoute, /content_manager/);
   assert.doesNotMatch(uploadRoute, /request\.formData\(|\.arrayBuffer\(\)/);
   assert.match(mutationRoute, /deleteBunnyVideo/);
+  assert.match(mutationRoute, /getBunnyVideoStatus/);
+  assert.match(mutationRoute, /service_update_public_bunny_video_status/);
   assert.match(playbackRoute, /resolve_public_bunny_video/);
   assert.match(playbackRoute, /createSignedBunnyHlsPlayback/);
   assert.match(manager, /Upload a public video to Bunny/);
   assert.match(manager, /tus\.Upload/);
+  assert.match(manager, /Check Bunny status/);
+  assert.match(manager, /15_000/);
   assert.match(videoPage, /No subscription or member account is required/);
   assert.match(webhook, /service_update_public_bunny_video_status/);
 });

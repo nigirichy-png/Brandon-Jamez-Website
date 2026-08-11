@@ -1,12 +1,17 @@
 import "server-only";
 
 import { requireBunnyStreamConfig } from "./config";
-import type { BunnyUploadCredentials } from "./model";
+import { mapBunnyProviderStatus, type BunnyUploadCredentials, type BunnyVideoStatus } from "./model";
 import { createBunnyHlsTokenUrl, createBunnyTusSignature, verifyBunnyWebhookSignature } from "./signing";
 
 const videoIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-type BunnyVideoResponse = { guid?: unknown; thumbnailFileName?: unknown };
+type BunnyVideoResponse = { guid?: unknown; thumbnailFileName?: unknown; status?: unknown };
+
+export type BunnyVideoStatusResult = {
+  status: BunnyVideoStatus;
+  providerStatus: number;
+};
 
 export async function createBunnyVideo(title: string): Promise<string> {
   const config = requireBunnyStreamConfig();
@@ -31,6 +36,21 @@ export async function deleteBunnyVideo(videoId: string): Promise<boolean> {
     cache: "no-store",
   });
   return response.ok || response.status === 404;
+}
+
+export async function getBunnyVideoStatus(videoId: string): Promise<BunnyVideoStatusResult> {
+  if (!videoIdPattern.test(videoId)) throw new Error("invalid_bunny_video_id");
+  const config = requireBunnyStreamConfig();
+  const response = await fetch(`https://video.bunnycdn.com/library/${config.libraryId}/videos/${videoId}`, {
+    headers: { Accept: "application/json", AccessKey: config.readOnlyApiKey },
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("bunny_video_lookup_failed");
+  const payload = await response.json() as BunnyVideoResponse;
+  const providerStatus = typeof payload.status === "number" ? payload.status : Number.NaN;
+  const status = mapBunnyProviderStatus(providerStatus);
+  if (!status) throw new Error("bunny_video_status_invalid");
+  return { status, providerStatus };
 }
 
 export function createBunnyTusCredentials(videoId: string): BunnyUploadCredentials {

@@ -2,9 +2,10 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { loadRealAccountState } from "@/lib/auth/access-state";
-import { deleteBunnyVideo } from "@/lib/bunny/server";
+import { deleteBunnyVideo, getBunnyVideoStatus } from "@/lib/bunny/server";
 import { requestIsSameOrigin, validBunnyUuid, validBunnyVersion } from "@/lib/bunny/validation";
 import { listStaffPublicBunnyVideos } from "@/lib/public-bunny-video/data";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +26,29 @@ function refreshVideos() {
   revalidatePath("/videos");
   revalidatePath("/content/videos");
   revalidatePath("/admin/content/videos");
+}
+
+export async function POST(request: Request, context: { params: Promise<{ videoId: string }> }) {
+  if (!requestIsSameOrigin(request)) return response({ error: "invalid_origin" }, 403);
+  if (!await authorized()) return response({ error: "active_content_editor_required" }, 403);
+  const { videoId } = await context.params;
+  if (!validBunnyUuid(videoId)) return response({ error: "invalid_video_reference" }, 400);
+  const video = (await listStaffPublicBunnyVideos()).find((item) => item.id === videoId);
+  if (!video) return response({ error: "public_bunny_video_not_found" }, 404);
+  try {
+    const current = await getBunnyVideoStatus(video.provider_video_id);
+    const admin = createAdminSupabaseClient();
+    const { error } = await admin.rpc("service_update_public_bunny_video_status", {
+      p_provider_video_id: video.provider_video_id,
+      p_status: current.status,
+      p_provider_status: current.providerStatus,
+    });
+    if (error) return response({ error: "video_status_update_failed" }, 500);
+    refreshVideos();
+    return response({ status: current.status }, 200);
+  } catch {
+    return response({ error: "bunny_status_unavailable" }, 503);
+  }
 }
 
 export async function PATCH(request: Request, context: { params: Promise<{ videoId: string }> }) {

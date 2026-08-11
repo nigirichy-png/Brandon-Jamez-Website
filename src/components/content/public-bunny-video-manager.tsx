@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as tus from "tus-js-client";
 
@@ -28,9 +28,20 @@ export function PublicBunnyVideoManager({ videos }: { videos: AdminPublicBunnyVi
   const uploadRef = useRef<tus.Upload | null>(null);
   const [progress, setProgress] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [syncingId, setSyncingId] = useState<string | null>(null);
   const [canResume, setCanResume] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const processingVideos = videos.filter((video) => ["pending", "uploading", "processing"].includes(video.status));
+    if (!processingVideos.length) return;
+    const timer = window.setTimeout(async () => {
+      const responses = await Promise.all(processingVideos.map((video) => fetch(`/api/content/bunny/videos/${video.id}`, { method: "POST" }).catch(() => null)));
+      if (responses.some((response) => response?.ok)) router.refresh();
+    }, 15_000);
+    return () => window.clearTimeout(timer);
+  }, [router, videos]);
 
   async function startUpload(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -94,6 +105,21 @@ export function PublicBunnyVideoManager({ videos }: { videos: AdminPublicBunnyVi
     } finally { setBusy(false); }
   }
 
+  async function syncVideoStatus(video: AdminPublicBunnyVideo) {
+    setSyncingId(video.id); setMessage(""); setError("");
+    try {
+      const response = await fetch(`/api/content/bunny/videos/${video.id}`, { method: "POST" });
+      const payload = await response.json().catch(() => null) as { status?: string } | null;
+      if (!response.ok) throw new Error("Bunny's processing status could not be checked right now.");
+      setMessage(payload?.status === "ready"
+        ? "Bunny has finished processing. You can now publish the video."
+        : `Bunny is still ${payload?.status ?? "processing"}. The status will be checked again automatically.`);
+      router.refresh();
+    } catch (statusError) {
+      setError(statusError instanceof Error ? statusError.message : "Bunny's processing status could not be checked right now.");
+    } finally { setSyncingId(null); }
+  }
+
   async function removeVideo(video: AdminPublicBunnyVideo) {
     if (!window.confirm(`Permanently remove “${video.title}” from Bunny and the public website?`)) return;
     setBusy(true); setMessage(""); setError("");
@@ -124,7 +150,8 @@ export function PublicBunnyVideoManager({ videos }: { videos: AdminPublicBunnyVi
         <label className="text-sm font-bold text-zinc-200">Title<input className={field} name="title" defaultValue={video.title} required maxLength={120} /></label>
         <label className="text-sm font-bold text-zinc-200">Short description<textarea className={field} name="description" defaultValue={video.short_description ?? ""} maxLength={500} rows={2} /></label>
         <label className="text-sm font-bold text-zinc-200">Category<input className={field} name="category" defaultValue={video.category ?? ""} maxLength={60} /></label>
-        <div className="flex flex-wrap gap-2.5"><button name="publication" value="keep" disabled={busy} className="min-h-11 rounded-xl border border-white/15 px-4 text-sm font-extrabold text-white disabled:opacity-40">Save changes</button><button name="publication" value={video.publication_status === "published" ? "draft" : "publish"} disabled={busy || (video.status !== "ready" && video.publication_status !== "published")} className="min-h-11 rounded-xl border border-fuchsia-300/30 px-4 text-sm font-extrabold text-fuchsia-100 disabled:opacity-40">{video.publication_status === "published" ? "Return to draft" : "Publish publicly"}</button><button type="button" disabled={busy} onClick={() => void removeVideo(video)} className="min-h-11 rounded-xl border border-rose-300/30 px-4 text-sm font-extrabold text-rose-100 disabled:opacity-40">Remove video</button></div>
+        {video.status !== "ready" ? <p className="text-xs leading-5 text-amber-100/80">Publishing unlocks as soon as Bunny finishes processing. This page checks the status automatically.</p> : null}
+        <div className="flex flex-wrap gap-2.5"><button name="publication" value="keep" disabled={busy} className="min-h-11 rounded-xl border border-white/15 px-4 text-sm font-extrabold text-white disabled:opacity-40">Save changes</button><button name="publication" value={video.publication_status === "published" ? "draft" : "publish"} disabled={busy || (video.status !== "ready" && video.publication_status !== "published")} className="min-h-11 rounded-xl border border-fuchsia-300/30 px-4 text-sm font-extrabold text-fuchsia-100 disabled:opacity-40">{video.publication_status === "published" ? "Return to draft" : "Publish publicly"}</button>{video.status !== "ready" ? <button type="button" disabled={busy || syncingId === video.id} onClick={() => void syncVideoStatus(video)} className="min-h-11 rounded-xl border border-cyan-300/30 px-4 text-sm font-extrabold text-cyan-100 disabled:opacity-40">{syncingId === video.id ? "Checking Bunny..." : "Check Bunny status"}</button> : null}<button type="button" disabled={busy} onClick={() => void removeVideo(video)} className="min-h-11 rounded-xl border border-rose-300/30 px-4 text-sm font-extrabold text-rose-100 disabled:opacity-40">Remove video</button></div>
       </form>
     </article>) : <p className="text-sm text-zinc-500">No public Bunny uploads yet.</p>}</div>
     {message ? <p role="status" className="mt-3 text-sm text-emerald-200">{message}</p> : null}
