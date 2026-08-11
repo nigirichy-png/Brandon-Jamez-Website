@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import { CmsVideoPreview } from "@/components/video/cms-video-preview";
 import { VideoHoverPreview } from "@/components/video/video-hover-preview";
 import { VideoPlatformBadge, VideoPlatformIcon } from "@/components/video/video-platform-identity";
+import { requestBuilderAccess } from "@/components/site-builder/builder-access-client";
 import type { CmsVideoPlatform } from "@/lib/cms/video-model";
 import {
   createCanvasDragPayload, createDirectCanvasDragPayload, createInitialEditorState, editorBreakpoints, editorReducer, finalizeInlineText, hasPassedCanvasDragThreshold, homepageTargetById, homepageTargetRegistry,
@@ -724,7 +725,8 @@ function ContextToolbar({ state, dispatch, onMoreSettings }: { state: ReturnType
   </div>;
 }
 
-export function HomepageEditor({ canEdit, defaults, children }: { canEdit: boolean; defaults: HomepageEditorDefaults; children: ReactNode }) {
+export function HomepageEditor({ canEdit, defaults, children }: { canEdit?: boolean; defaults: HomepageEditorDefaults; children: ReactNode }) {
+  const [authorized, setAuthorized] = useState(canEdit === true);
   const [active, setActive] = useState(false);
   const [state, dispatch] = useReducer(editorReducer, undefined, createInitialEditorState);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -734,6 +736,12 @@ export function HomepageEditor({ canEdit, defaults, children }: { canEdit: boole
   const previewFrameRef = useRef<HTMLDivElement | null>(null);
   const [hosts, setHosts] = useState<ReadonlyMap<string, HTMLDivElement>>(() => new Map());
   const [containerBoundaries, setContainerBoundaries] = useState<CanvasContainerBoundary[]>([]);
+  useEffect(() => {
+    if (canEdit !== undefined) return;
+    let current = true;
+    void requestBuilderAccess().then((allowed) => { if (current) setAuthorized(allowed); });
+    return () => { current = false; };
+  }, [canEdit]);
   const registerHost = useCallback((id: string, node: HTMLDivElement | null) => {
     setHosts((current) => {
       if (current.get(id) === node || (!node && !current.has(id))) return current;
@@ -820,7 +828,7 @@ export function HomepageEditor({ canEdit, defaults, children }: { canEdit: boole
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [active]);
-  if (!canEdit) return <main id="main-content" className={publicStyles.homepage}>{children}</main>;
+  if (!authorized) return <main id="main-content" className={publicStyles.homepage}>{children}</main>;
   if (!active) return <><main id="main-content" className={publicStyles.homepage}>{children}</main><button type="button" className={styles.launchButton} onClick={() => setActive(true)} aria-label="Open homepage editor">Edit page</button></>;
   const previewClass = state.previewMode === "tablet" ? publicStyles.tabletPreview : state.previewMode === "mobile" ? publicStyles.mobilePreview : "";
   const frameClass = state.previewMode === "desktop" ? styles.desktopFrame : state.previewMode === "tablet" ? styles.tabletFrame : styles.mobileFrame;

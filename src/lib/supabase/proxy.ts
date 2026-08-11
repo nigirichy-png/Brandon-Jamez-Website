@@ -12,6 +12,10 @@ export async function refreshSupabaseSession(request: NextRequest) {
   const config = getPublicSupabaseConfig();
 
   if (!config) return NextResponse.next({ request });
+  const hasAuthCookie = request.cookies.getAll().some(({ name }) =>
+    /^sb-.+-auth-token(?:\.\d+)?$/.test(name),
+  );
+  if (!hasAuthCookie) return NextResponse.next({ request });
 
   let response = NextResponse.next({ request });
   const supabase = createServerClient<Database>(config.url, config.anonKey, {

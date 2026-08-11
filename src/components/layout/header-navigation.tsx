@@ -6,19 +6,28 @@ import { useEffect, useRef, useState } from "react";
 
 import { BrandMark } from "@/components/ui/brand-mark";
 import { PattayaTime } from "@/components/ui/pattaya-time";
+import { requestPublicShellAccess } from "@/components/site-builder/builder-access-client";
 
 import styles from "./header-navigation.module.css";
 
 const navigation = [{ href: "/", label: "Home" }, { href: "/guide", label: "Guide" }, { href: "/videos", label: "Videos" }];
 
-export function HeaderNavigation({ authenticated, subscriberAccess, moderationHubPreview }: { authenticated: boolean; subscriberAccess: boolean; moderationHubPreview: boolean }) {
+export function HeaderNavigation({ moderationHubPreview }: { moderationHubPreview: boolean }) {
   const pathname = usePathname();
+  const [access, setAccess] = useState({ authenticated: false, subscriberAccess: false });
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const accountHref = authenticated ? "/account" : "/login";
-  const accountLabel = authenticated ? "Account" : "Sign in";
-  const visibleNavigation = [...navigation, ...(moderationHubPreview ? [{ href: "/moderation-hub", label: "Mod Hub" }] : []), ...(subscriberAccess ? [{ href: "/subscriber", label: "Subscriber" }] : [])];
+  const accountHref = access.authenticated ? "/account" : "/login";
+  const accountLabel = access.authenticated ? "Account" : "Sign in";
+  const visibleNavigation = [...navigation, ...(moderationHubPreview ? [{ href: "/moderation-hub", label: "Mod Hub" }] : []), ...(access.subscriberAccess ? [{ href: "/subscriber", label: "Subscriber" }] : [])];
+  useEffect(() => {
+    let current = true;
+    void requestPublicShellAccess().then((state) => {
+      if (current) setAccess({ authenticated: state.authenticated, subscriberAccess: state.subscriberAccess });
+    });
+    return () => { current = false; };
+  }, []);
   const closeMenu = (restoreFocus = false) => { setMenuOpen(false); if (restoreFocus) window.requestAnimationFrame(() => triggerRef.current?.focus()); };
   useEffect(() => {
     if (!menuOpen) return;

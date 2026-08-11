@@ -1,8 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
 import { normalizeGuideSpots, type GuideSpot } from "./guide-model";
 
 export type GuideLoadResult = { spots: GuideSpot[]; status: "ready" | "unconfigured" | "error" };
-export async function loadPublicGuideSpots(): Promise<GuideLoadResult> {
+const loadCachedPublicGuideSpots = unstable_cache(async (): Promise<GuideLoadResult> => {
   const supabaseUrl = process.env.NEXT_PUBLIC_GUIDE_SUPABASE_URL; const anonKey = process.env.NEXT_PUBLIC_GUIDE_SUPABASE_ANON_KEY;
   if (!supabaseUrl || !anonKey) return { spots: [], status: "unconfigured" };
   try {
@@ -11,4 +12,8 @@ export async function loadPublicGuideSpots(): Promise<GuideLoadResult> {
     if (error) throw error;
     return { spots: normalizeGuideSpots((data ?? []).map((row) => row.data)), status: "ready" };
   } catch { return { spots: [], status: "error" }; }
+}, ["public-guide-spots-v1"], { revalidate: 300, tags: ["guide-spots"] });
+
+export async function loadPublicGuideSpots(): Promise<GuideLoadResult> {
+  return loadCachedPublicGuideSpots();
 }

@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { isUuid } from "@/lib/admin/validation";
 import type { CmsVideoPlatform } from "@/lib/cms/video-model";
@@ -79,6 +79,7 @@ function resultForError(error: { message: string } | null): CmsActionState {
 }
 
 function refreshVideoPaths() {
+  revalidateTag("published-cms-videos", "max");
   revalidatePath("/");
   revalidatePath("/admin/content");
   revalidatePath("/admin/content/videos");

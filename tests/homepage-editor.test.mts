@@ -454,15 +454,14 @@ test("selected target and preview mode are UI state, not persisted page override
   assert.deepEqual(state.present.targets, {});
 });
 
-test("homepage editor visibility uses the canonical real-admin gate and has a clean public branch", async () => {
+test("homepage editor visibility uses a deferred canonical admin gate and has a clean public branch", async () => {
   const [pageSource, editorSource] = await Promise.all([
     readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../src/components/home/homepage-editor.tsx", import.meta.url), "utf8"),
   ]);
-  assert.match(pageSource, /resolveStaffAccessState\(undefined\)/);
-  assert.match(pageSource, /evaluateAdminAccess\(staffState\)\.allowed/);
-  assert.match(pageSource, /!staffState\.developmentPreview/);
-  assert.match(editorSource, /if \(!canEdit\) return <main id="main-content"/);
+  assert.doesNotMatch(pageSource, /resolveStaffAccessState|evaluateAdminAccess|force-dynamic/);
+  assert.match(editorSource, /requestBuilderAccess/);
+  assert.match(editorSource, /if \(!authorized\) return <main id="main-content"/);
   assert.match(editorSource, /if \(!shouldPortal \|\| !placement \|\| !host\) return children/);
   assert.match(pageSource, /HomepageLayoutItem id="hero-heading"/);
   assert.doesNotMatch(editorSource, /localStorage|staffDemo|dangerouslySetInnerHTML/);
@@ -503,8 +502,8 @@ test("canvas-first UI keeps one pointer move handle and drag UI out of the publi
   assert.doesNotMatch(contextToolbar, /draggable|onDragStart|dataTransfer/);
   assert.match(editorSource, /const \[outlineOpen, setOutlineOpen\] = useState\(false\)/);
   assert.match(editorSource, /aria-controls="homepage-outline-drawer" aria-expanded=\{outlineOpen\}/);
-  assert.match(editorSource, /if \(!canEdit\) return <main id="main-content"/);
-  const publicBranch = editorSource.slice(editorSource.indexOf("if (!canEdit)"), editorSource.indexOf("if (!active)"));
+  assert.match(editorSource, /if \(!authorized\) return <main id="main-content"/);
+  const publicBranch = editorSource.slice(editorSource.indexOf("if (!authorized)"), editorSource.indexOf("if (!active)"));
   assert.doesNotMatch(publicBranch, /ContextToolbar|GeneratedLayoutCanvas|OutlineDrawer|dragHandle|layoutHost|canvasDropLayer|data-canvas-move-handle/);
 });
 

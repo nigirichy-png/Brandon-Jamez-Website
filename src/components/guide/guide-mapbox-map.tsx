@@ -35,6 +35,7 @@ export default function GuideMap({ spots, selected, onSelect, visible }: { spots
   const spotsRef = useRef(spots);
   const onSelectRef = useRef(onSelect);
   const [mapReady, setMapReady] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
   const tokenConfigured = Boolean(process.env.NEXT_PUBLIC_MAPBOX_TOKEN);
 
   useEffect(() => { spotsRef.current = spots; }, [spots]);
@@ -44,12 +45,19 @@ export default function GuideMap({ spots, selected, onSelect, visible }: { spots
     const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
     if (!container || !token) return;
     let disposed = false;
+    let initializationFailed = false;
 
     const initializeMap = () => {
-      if (disposed || mapRef.current || container.clientWidth === 0 || container.clientHeight === 0) return;
-      mapboxgl.accessToken = token;
-      const mobile = window.matchMedia("(max-width: 1023px)").matches;
-      const map = new mapboxgl.Map({
+      if (disposed || initializationFailed || mapRef.current || container.clientWidth === 0 || container.clientHeight === 0) return;
+      if (!mapboxgl.supported()) {
+        initializationFailed = true;
+        setMapError("The interactive map is unavailable in this browser. You can still use the place list and Google Maps links.");
+        return;
+      }
+      try {
+        mapboxgl.accessToken = token;
+        const mobile = window.matchMedia("(max-width: 1023px)").matches;
+        const map = new mapboxgl.Map({
         container,
         style: mobile ? "mapbox://styles/mapbox/streets-v12" : "mapbox://styles/mapbox/dark-v11",
         center: [100.883, 12.923],
@@ -58,10 +66,10 @@ export default function GuideMap({ spots, selected, onSelect, visible }: { spots
         maxZoom: 18,
         maxBounds: [[100.75, 12.8], [101, 13.05]],
         attributionControl: true,
-      });
-      mapRef.current = map;
-      map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
-      map.on("load", () => {
+        });
+        mapRef.current = map;
+        map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
+        map.on("load", () => {
         if (disposed) return;
         addCategoryIcons(map);
         map.addSource("guide-spots", { type: "geojson", cluster: true, clusterMaxZoom: 14, clusterRadius: 48, data: { type: "FeatureCollection", features: featuresFor(spotsRef.current) } });
@@ -80,7 +88,7 @@ export default function GuideMap({ spots, selected, onSelect, visible }: { spots
           const feature = event.features?.[0] as unknown as { properties?: { id?: string } } | undefined;
           const spot = spotsRef.current.find((item) => item.id === feature?.properties?.id);
           if (spot) {
-            map.flyTo({ center: [spot.lng, spot.lat], zoom: Math.max(map.getZoom(), 15.7), essential: true });
+            map.flyTo({ center: [spot.lng, spot.lat], zoom: Math.max(map.getZoom(), 15.7), essential: false });
             onSelectRef.current(spot);
           }
         };
@@ -90,8 +98,12 @@ export default function GuideMap({ spots, selected, onSelect, visible }: { spots
           map.on("mouseenter", layer, () => { map.getCanvas().style.cursor = "pointer"; });
           map.on("mouseleave", layer, () => { map.getCanvas().style.cursor = ""; });
         }
-        setMapReady(true);
-      });
+          setMapReady(true);
+        });
+      } catch {
+        initializationFailed = true;
+        setMapError("The interactive map could not start. You can still use the place list and Google Maps links.");
+      }
     };
 
     const observer = new ResizeObserver(() => {
@@ -118,12 +130,12 @@ export default function GuideMap({ spots, selected, onSelect, visible }: { spots
     const map = mapRef.current;
     if (!map) return;
     if (map.getLayer("guide-selected")) map.setFilter("guide-selected", ["==", ["get", "id"], selected?.id ?? "__none__"]);
-    if (selected) map.flyTo({ center: [selected.lng, selected.lat], zoom: 15.4, essential: true });
+    if (selected) map.flyTo({ center: [selected.lng, selected.lat], zoom: 15.4, essential: false });
   }, [selected]);
   useEffect(() => { if (visible) window.setTimeout(() => mapRef.current?.resize(), 0); }, [visible]);
 
   return <div className={styles.mapFrame} aria-label="Interactive Pattaya map">
-    {!tokenConfigured ? <div className={styles.mapState} role="status">Map token is not configured.</div> : !mapReady ? <div className={styles.mapState} role="status">Loading Pattaya mapâ€¦</div> : null}
+    {!tokenConfigured ? <div className={styles.mapState} role="status">Map token is not configured.</div> : mapError ? <div className={styles.mapState} role="status">{mapError}</div> : !mapReady ? <div className={styles.mapState} role="status">Loading Pattaya mapâ€¦</div> : null}
     <div ref={containerRef} className={styles.map} />
   </div>;
 }

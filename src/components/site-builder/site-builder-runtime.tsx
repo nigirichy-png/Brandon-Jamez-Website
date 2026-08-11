@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { requestBuilderAccess } from "./builder-access-client";
 import { publicV3SiteDefinition, siteBuilderBreakpoints, type SiteBuilderBreakpoint } from "./site-builder-model";
 import styles from "./site-builder-runtime.module.css";
 
@@ -12,14 +13,21 @@ export function SiteBuilderRegion({ id, label, kind = "presentation", children, 
   return <Tag className={className} data-site-builder-node={id} data-site-builder-label={label} data-site-builder-kind={kind}>{children}</Tag>;
 }
 
-export function SiteBuilderRuntime({ canEdit, children }: { canEdit: boolean; children: ReactNode }) {
+export function SiteBuilderRuntime({ canEdit, children }: { canEdit?: boolean; children: ReactNode }) {
   const pathname = usePathname();
+  const [authorized, setAuthorized] = useState(canEdit === true);
   const [active, setActive] = useState(false); const [breakpoint, setBreakpoint] = useState<SiteBuilderBreakpoint>("desktop");
   const [selected, setSelected] = useState<HTMLElement | null>(null); const [outline, setOutline] = useState(false); const [panel, setPanel] = useState(false);
   const [revision, setRevision] = useState(0); const [future, setFuture] = useState(0); const [rect, setRect] = useState<DOMRect | null>(null);
   const key = routeKey(pathname); const definition = publicV3SiteDefinition.pages[key];
   const excluded = isOperationalRoute(pathname); const homepageUsesMigratedAdapter = pathname === "/";
   const registered = useMemo(() => definition ? Object.values(definition.nodes).filter((node) => node.id !== definition.rootId) : [], [definition]);
+  useEffect(() => {
+    if (canEdit !== undefined || excluded || homepageUsesMigratedAdapter || !definition) return;
+    let current = true;
+    void requestBuilderAccess().then((allowed) => { if (current) setAuthorized(allowed); });
+    return () => { current = false; };
+  }, [canEdit, definition, excluded, homepageUsesMigratedAdapter]);
   useEffect(() => {
     if (!active) return;
     document.documentElement.dataset.siteBuilderActive = "true"; document.documentElement.dataset.siteBuilderBreakpoint = breakpoint;
@@ -28,7 +36,7 @@ export function SiteBuilderRuntime({ canEdit, children }: { canEdit: boolean; ch
     document.addEventListener("click", click, true); window.addEventListener("resize", refresh); window.addEventListener("scroll", refresh, true);
     return () => { delete document.documentElement.dataset.siteBuilderActive; delete document.documentElement.dataset.siteBuilderBreakpoint; document.removeEventListener("click", click, true); window.removeEventListener("resize", refresh); window.removeEventListener("scroll", refresh, true); };
   }, [active, breakpoint, selected]);
-  if (!canEdit || excluded || homepageUsesMigratedAdapter) return children;
+  if (!authorized || excluded || homepageUsesMigratedAdapter) return children;
   if (!active) return <>{children}<button data-site-builder-ui type="button" className={styles.launch} onClick={() => setActive(true)}>Edit page</button></>;
   const selectById = (id: string) => { const explicit = document.querySelector<HTMLElement>(`[data-site-builder-node="${CSS.escape(id)}"]`); const index = registered.findIndex((node) => node.id === id); const element = explicit ?? (id === "global-header" ? document.querySelector<HTMLElement>("body > header") : id === "global-footer" ? document.querySelector<HTMLElement>("body > footer") : document.querySelectorAll<HTMLElement>("main > section, main > header, main > article")[Math.max(0,index)]); if (element) { if (!element.dataset.siteBuilderLabel) element.dataset.siteBuilderLabel = registered[index]?.label ?? (id === "global-header" ? "Public Header" : "Public Footer"); setSelected(element); setRect(element.getBoundingClientRect()); element.scrollIntoView({ block: "center" }); } };
   return <>

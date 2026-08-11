@@ -3,15 +3,11 @@ import Image from "next/image";
 import { HomepageEditableImage, HomepageEditableLink, HomepageEditableMedia, HomepageEditableProviderBadge, HomepageEditableSection, HomepageEditableText, HomepageEditor, HomepageLayoutItem } from "@/components/home/homepage-editor";
 import type { HomepageEditorDefaults } from "@/components/home/homepage-editor-model";
 import { videoPlatformIdentities } from "@/components/video/video-platform-identity";
-import { resolveStaffAccessState } from "@/lib/auth/access-state";
 import { selectHomepageVideo } from "@/lib/cms/homepage-video";
 import type { PublicCmsVideo } from "@/lib/cms/video-model";
 import { listPublishedCmsVideos } from "@/lib/cms/videos";
-import { evaluateAdminAccess } from "@/lib/staff/evaluate-staff-access";
 
 import styles from "@/components/home/public-home.module.css";
-
-export const dynamic = "force-dynamic";
 
 function formatPublishedDate(value: string | null): string {
   if (!value) return "New release";
@@ -26,8 +22,6 @@ export default async function Home() {
   const latestVideo = selectHomepageVideo(videos);
   const identity = latestVideo ? videoPlatformIdentities[latestVideo.platform] : null;
   const latestTitle = latestVideo?.title.trim() || "The next Brandon drop is coming soon";
-  const staffState = await resolveStaffAccessState(undefined);
-  const canEditHomepage = !staffState.developmentPreview && evaluateAdminAccess(staffState).allowed;
   const latestUrl = latestVideo?.video_url ?? "/videos";
   const latestProvider = identity?.label ?? "Video";
   const latestWatchLabel = identity?.watchLabel ?? "Open videos";
@@ -40,7 +34,7 @@ export default async function Home() {
     "subscriber-kicker": { text: "Member area" }, "subscriber-heading": { text: "Raw. Unfiltered. After dark." }, "subscriber-body": { text: "Paid access to private videos, selected images, special events and exclusive Pattaya moments." }, "subscriber-link": { text: "Unlock member access", url: "/subscriber" },
   };
 
-  return <HomepageEditor canEdit={canEditHomepage} defaults={editorDefaults}>
+  return <HomepageEditor defaults={editorDefaults}>
     <div className={styles.nightBackdrop}>
     <section className={styles.stage} aria-labelledby="homepage-title">
       <div className={styles.shell}><div className={styles.stageGrid}>

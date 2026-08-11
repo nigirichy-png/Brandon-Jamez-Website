@@ -69,14 +69,18 @@ test("moves support same-container, cross-section, automatic rows, and generated
   const cycle = moveSiteBuilderNode(cross,"b","two","inside","desktop"); assert.equal(cycle, cross);
 });
 
-test("shared runtime has real admin gating, one mode, compact controls, and excludes operational routes", async () => {
-  const [layout, runtime, home, auth] = await Promise.all([
+test("shared runtime defers real admin gating without blocking public rendering", async () => {
+  const [layout, runtime, accessClient, accessRoute, home, auth] = await Promise.all([
     readFile(new URL("../src/app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../src/components/site-builder/site-builder-runtime.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/components/site-builder/builder-access-client.ts", import.meta.url), "utf8"),
+    readFile(new URL("../src/app/api/staff/builder-access/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../src/components/home/homepage-editor.tsx", import.meta.url), "utf8"),
     readFile(new URL("../src/components/auth/auth-shell.tsx", import.meta.url), "utf8"),
   ]);
-  assert.match(layout, /evaluateAdminAccess/); assert.match(layout, /SiteBuilderRuntime canEdit=/);
+  assert.doesNotMatch(layout, /resolveStaffAccessState|evaluateAdminAccess/); assert.match(layout, /<SiteBuilderRuntime>/);
+  assert.match(accessClient, /requestBuilderAccess/); assert.match(accessClient, /sb-.+auth-token/); assert.match(accessClient, /cache: "no-store"/);
+  assert.match(accessRoute, /loadRealAccountState/); assert.match(accessRoute, /roles\.includes\("admin"\)/); assert.match(accessRoute, /private, no-store/);
   assert.match(runtime, /siteBuilderBreakpoints/);
   for (const label of ["Outline","Undo","Redo","Reset preview","More settings","Exit editor"]) assert.match(runtime, new RegExp(label));
   assert.doesNotMatch(runtime, />Content</); assert.doesNotMatch(runtime, />Design</); assert.doesNotMatch(runtime, />Layout</);
