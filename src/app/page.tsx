@@ -53,7 +53,7 @@ export default async function Home() {
 
         <HomepageEditableSection id="portrait">
         <div className={styles.portraitBlock}><div className={styles.portraitFrame}>
-          <HomepageEditableImage id="portrait-image" defaultSrc="/brandon-nightlife-hero-v6.png" defaultAlt="Brandon Jamez smiling in the Pattaya nightlife" priority sizes="100vw" className={styles.portraitImage} />
+          <HomepageEditableImage id="portrait-image" defaultSrc="/brandon-nightlife-hero-v6.png" defaultAlt="Brandon Jamez smiling in the Pattaya nightlife" priority sizes="(min-width: 1920px) 1920px, 100vw" className={styles.portraitImage} />
           <HomepageEditableText id="portrait-badge" defaultValue="BJ · Pattaya" className={styles.portraitBadge} />
         </div></div>
         </HomepageEditableSection>
