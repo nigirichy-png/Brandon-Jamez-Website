@@ -101,6 +101,16 @@ supabase/
   README.md               Migration and RLS review requirements
 ```
 
+## Homepage live edit
+
+An administrator can edit the homepage in place, save a private draft, and publish it. Visitors render the published document; the draft is visible only to the editor, on the live page. Content and styling of every element persist; drag-and-drop layout moves and block-level container styling remain preview-only.
+
+Every write revalidates the Supabase user and the `admin` role in the Server Action and again in the database RPC under RLS, and each stored document is rebuilt by a sanitizer that drops anything it does not recognize. Migration `202608110002_site_content_live_edit.sql` is a local draft and is not applied remotely, so a configured environment currently fails closed to the shipped homepage content.
+
+With no Supabase configuration, `npm run dev` stores documents in the Git-ignored `.local/site-content.json` so the editor is drivable offline. That path requires both a non-production build and an unconfigured Supabase, so it is inert in every deployment.
+
+See [docs/LIVE_EDIT.md](docs/LIVE_EDIT.md) for the boundaries, the render path, and the migration.
+
 ## Mock-data status
 
 Everything remaining in `src/data/mock-data.ts` is development-only. The public `/videos` and `/events` routes read published metadata through data-minimized RPCs. Subscriber entitlement previews still use metadata-only mock records with no files, filesystem paths, playback URLs, real provider asset IDs, credentials, or tokens. Their `mockPlaybackAssetId` fields are deliberately fake internal identifiers. Social destinations and live streaming are not configured.

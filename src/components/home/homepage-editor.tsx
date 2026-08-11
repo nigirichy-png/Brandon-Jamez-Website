@@ -3,8 +3,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, type CSSProperties, type ElementType, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, useTransition, type CSSProperties, type ElementType, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+
+import { discardHomepageDraftAction, publishHomepageDraftAction, saveHomepageDraftAction, type SiteContentResult } from "@/app/actions/site-content";
+import { sanitizeHomepageDocument } from "@/lib/site-content/homepage-document";
 
 import { CmsVideoPreview } from "@/components/video/cms-video-preview";
 import { VideoHoverPreview } from "@/components/video/video-hover-preview";
@@ -12,11 +15,11 @@ import { VideoPlatformBadge, VideoPlatformIcon } from "@/components/video/video-
 import { requestBuilderAccess } from "@/components/site-builder/builder-access-client";
 import type { CmsVideoPlatform } from "@/lib/cms/video-model";
 import {
-  createCanvasDragPayload, createDirectCanvasDragPayload, createInitialEditorState, editorBreakpoints, editorReducer, finalizeInlineText, hasPassedCanvasDragThreshold, homepageTargetById, homepageTargetRegistry,
-  canPlaceLayoutNode, canRemoveLayoutContainer, isSafeColor, isSafeExternalUrl, isSafeLinkUrl, layoutPlacementSource, layoutValueSource,
+  createCanvasDragPayload, createDirectCanvasDragPayload, createInitialEditorState, createInitialSnapshot, editorBreakpoints, editorReducer, finalizeInlineText, hasPassedCanvasDragThreshold, homepageTargetById, homepageTargetRegistry,
+  canPlaceLayoutNode, canRemoveLayoutContainer, fontSizePresetLabels, fontSizePresets, fontSizeScale, isSafeColor, isSafeExternalUrl, isSafeInternalAssetPath, isSafeLinkUrl, layoutPlacementSource, layoutValueSource,
   nearestMovableLayoutParent, normalizeInlineText, resolveCanvasDropMove, resolveLayoutChildren, resolveLayoutPlacement, resolveLayoutValue, resolveResponsiveValue, resolveSafeMovableLayoutNode, responsiveValueSource, sanitizeNumber,
   type CanvasDragPayload, type CanvasDropIntent, type CanvasDropMove,
-  type EditorAction, type EditorBreakpoint, type GlobalStyle, type HomepageBlockId, type HomepageEditorDefaults, type HomepageElementId,
+  type EditorAction, type EditorBreakpoint, type EditorSnapshot, type GlobalStyle, type HomepageBlockId, type HomepageEditorDefaults, type HomepageElementId,
   type HomepageTargetId, type ImagePlacement, type LayoutNode, type LayoutPreset, type LayoutResponsiveOverride,
   type ObjectFit, type ObjectPosition, type ResponsiveStyle, type SpacingPreset, type TargetContentOverride, type TargetOverride, type WidthPreset,
 } from "./homepage-editor-model";
@@ -45,6 +48,29 @@ type CanvasRect = { left: number; top: number; width: number; height: number };
 type CanvasDropZone = CanvasDropMove & { key: string; rect: CanvasRect; visualRect: CanvasRect; destinationRect: CanvasRect | null; sameHost: boolean; sameLevel: boolean };
 type CanvasDragVisualState = { payload: CanvasDragPayload; point: CanvasPoint; zones: CanvasDropZone[]; activeKey: string | null };
 type CanvasContainerBoundary = { id: string; label: string; rect: CanvasRect };
+
+type SaveStatus = { kind: "idle" | "pending" | "saved" | "published" | "discarded" } | { kind: "error"; message: string };
+
+/** Deliberately generic: a failed write must not describe server or account state back to the browser. */
+function saveErrorMessage(result: SiteContentResult): string {
+  if (result.status !== "error") return "Something went wrong.";
+  if (result.reason === "stale") return "This page changed elsewhere. Reload before saving again.";
+  if (result.reason === "not_found") return "There is no saved draft to use.";
+  if (result.reason === "forbidden") return "Your account is no longer allowed to edit this page.";
+  if (result.reason === "invalid") return "Some changes could not be stored.";
+  return "Saving is unavailable right now.";
+}
+
+function saveStatusLabel(status: SaveStatus): string {
+  switch (status.kind) {
+    case "pending": return "Saving…";
+    case "saved": return "Draft saved";
+    case "published": return "Published";
+    case "discarded": return "Draft discarded";
+    case "error": return status.message;
+    default: return "";
+  }
+}
 
 const EditorContext = createContext<EditorContextValue | null>(null);
 const shadowValues = { none: "none", soft: "0 8px 24px rgba(0,0,0,.16)", medium: "0 16px 42px rgba(0,0,0,.26)", strong: "0 24px 64px rgba(0,0,0,.38)" } as const;
@@ -105,7 +131,10 @@ function useEditorTarget(id: HomepageTargetId) {
   if (global.imageSizePreset) style.maxWidth = global.imageSizePreset === "full" ? "100%" : global.imageSizePreset === "large" ? 960 : global.imageSizePreset === "medium" ? 640 : 320;
   if (global.radiusPreset) style.borderRadius = global.radiusPreset === "rounded" ? 24 : global.radiusPreset === "slightly-rounded" ? 8 : 0;
   if (editor?.mode === "layout") style.order = flattenedLayout(editor.snapshot, editor.breakpoint).indexOf(id);
-  return { editor, target, content: { ...editor?.defaults[id], ...target?.content }, global, responsive, style, selected: editor?.selectedId === id, path };
+  // An exact pixel size from the advanced panel still wins; the preset is the
+  // simple control and is expressed as a multiple of the element's own size.
+  const fontScale = global.fontSizePreset && responsive.fontSize === undefined ? fontSizeScale[global.fontSizePreset] : 1;
+  return { editor, target, content: { ...editor?.defaults[id], ...target?.content }, global, responsive, style, fontScale, selected: editor?.selectedId === id, path };
 }
 
 function clipRect(rect: DOMRect, canvas: DOMRect) {
@@ -282,7 +311,12 @@ function CanvasContainerSelectionLayer({ boundaries, selectedId, dispatch }: { b
 
 export function HomepageEditableSection({ id, children }: { id: HomepageBlockId; children: ReactNode }) {
   const { editor, target, responsive, style, selected, path } = useEditorTarget(id);
-  if (!editor?.active) return children;
+  // Outside edit mode a block is deliberately not wrapped in an element. The
+  // editor's wrapper carries its own sizing rules, so emitting it publicly would
+  // shift the untouched layout. Hiding is the one block-level override that
+  // applies without a wrapper, so it is the one honoured here; block padding and
+  // background remain preview-only until the public page renders the layout tree.
+  if (!editor?.active) return responsive.visible === false ? null : children;
   const definition = homepageTargetById[id];
   const legacyOrder = definition.group ? editor.snapshot.order[definition.group].indexOf(id) : 0;
   const layoutOrder = flattenedLayout(editor.snapshot, editor.breakpoint).indexOf(id);
@@ -310,7 +344,15 @@ export function HomepageEditableSection({ id, children }: { id: HomepageBlockId;
   const layoutHostActive = editor.mode === "layout" && blockUsesLayoutHost(editor.snapshot, id, editor.breakpoint);
   const blockPlacement = resolveLayoutPlacement(editor.snapshot.layout, id, editor.breakpoint);
   const draggedAsColumn = editor.canvasDrag ? resolveLayoutChildren(editor.snapshot.layout, editor.canvasDrag.payload.nodeId, editor.breakpoint).includes(id) : false;
-  return <div className={`${styles.editableSection} ${styles[`${id}Block`]} ${selected ? styles.selectedSection : ""} ${editor.canvasDrag?.payload.nodeId === id || draggedAsColumn ? styles.draggedSource : ""} ${!visible ? styles.hiddenSection : ""}`} data-section-id={id} data-canvas-node-id={id} data-flex-direction={responsive.flexDirection} data-layout={target?.global?.layoutPreset} data-layout-row-preset={rowPreset} data-layout-row-direction={rowDirection} data-image-placement={target?.global?.imagePlacement} style={blockStyle}>
+  // Block selection is delegated to this wrapper rather than handled by the
+  // overlay below, which no longer takes pointer events. A click is treated as
+  // selecting the block only when it did not land on a nested editable node, so
+  // inner elements keep their own click and double-click handling.
+  const selectBlockFromEmptyArea = (event: React.MouseEvent<HTMLDivElement>) => {
+    if ((event.target as HTMLElement).closest("[data-canvas-node-id]") !== event.currentTarget) return;
+    editor.dispatch({ type: "select", id });
+  };
+  return <div className={`${styles.editableSection} ${styles[`${id}Block`]} ${selected ? styles.selectedSection : ""} ${editor.canvasDrag?.payload.nodeId === id || draggedAsColumn ? styles.draggedSource : ""} ${!visible ? styles.hiddenSection : ""}`} data-section-id={id} data-canvas-node-id={id} data-flex-direction={responsive.flexDirection} data-layout={target?.global?.layoutPreset} data-layout-row-preset={rowPreset} data-layout-row-direction={rowDirection} data-image-placement={target?.global?.imagePlacement} style={blockStyle} onClick={selectBlockFromEmptyArea}>
     {visible ? layoutHostActive && columnId ? <><LayoutHost id={columnId} className={styles.layoutColumnHost}><LayoutHost id={id} className={styles.layoutHost} order={blockPlacement?.index ?? 0} /></LayoutHost><div className={styles.layoutSource}>{children}</div></> : children : <div className={styles.hiddenPlaceholder}><span>Hidden block</span><strong>{definition.label}</strong><small>Select to restore visibility</small></div>}
     <button type="button" className={styles.selectionTarget} aria-label={`Edit ${definition.label} block`} aria-pressed={selected} onClick={() => editor.dispatch({ type: "select", id })} />
     <span className={styles.sectionTag} aria-hidden="true">{definition.label}</span>
@@ -355,13 +397,30 @@ function EditablePlainValue({ id, field = "text", value, multiline = false, chil
     }}>{editing ? value : children ?? value}</span>;
 }
 
+/**
+ * Applies a font-size preset as a multiple of the element's own size.
+ *
+ * The scale goes on a child rather than on the element itself, because `em`
+ * resolves against the parent: on a child, the parent is the styled element, so
+ * the multiplier lands on the size the design system actually gave it. Setting
+ * `em` on the element would instead measure against *its* parent and silently
+ * discard whatever size its own class defines.
+ */
+function FontScale({ scale, children }: { scale: number; children: ReactNode }) {
+  if (scale === 1) return children;
+  return <span className={styles.fontScale} style={{ fontSize: `${scale}em` }}>{children}</span>;
+}
+
 export function HomepageEditableText({ id, as = "span", className, defaultValue, defaultChildren }: { id: HomepageElementId; as?: ElementType; className?: string; defaultValue: string; defaultChildren?: ReactNode }) {
-  const { editor, content, style, selected } = useEditorTarget(id);
+  const { editor, content, style, fontScale, selected } = useEditorTarget(id);
   const Tag = as;
   const value = content.text ?? defaultValue;
-  if (!editor?.active) return <Tag className={className}>{defaultChildren ?? defaultValue}</Tag>;
+  // Outside edit mode the provider still carries the published document, so the
+  // stored text and style render for anonymous visitors. `defaultChildren` keeps
+  // its shipped markup (line breaks, nested tags) until the text is overridden.
+  if (!editor?.active) return <Tag className={className} style={style}><FontScale scale={fontScale}>{content.text === undefined ? defaultChildren ?? defaultValue : value}</FontScale></Tag>;
   const props = selectionProps(id, selected, editor) as React.HTMLAttributes<HTMLElement> & { className?: string };
-  return <Tag {...props} className={`${className ?? ""} ${props.className}`} style={style}><EditablePlainValue id={id} value={value} multiline={Boolean(homepageTargetById[id].multiline)}>{targetHasTextOverride(editor.snapshot.targets[id]) ? value : defaultChildren ?? value}</EditablePlainValue></Tag>;
+  return <Tag {...props} className={`${className ?? ""} ${props.className}`} style={style}><FontScale scale={fontScale}><EditablePlainValue id={id} value={value} multiline={Boolean(homepageTargetById[id].multiline)}>{targetHasTextOverride(editor.snapshot.targets[id]) ? value : defaultChildren ?? value}</EditablePlainValue></FontScale></Tag>;
 }
 
 type LinkVariant = "plain" | "quick" | "rail";
@@ -378,17 +437,25 @@ export function HomepageEditableLink({ id, defaultText, defaultDescription = "",
   const editableDescription = <EditablePlainValue id={id} field="description" value={description} multiline />;
   const body = variant === "quick" ? <><span>{index}</span><strong>{editableText}</strong><small>{editableDescription}</small></> : variant === "rail" ? <><span className={numberClass}>{index}</span><div><small>{description ? editableDescription : kicker}</small><strong>{editableText}</strong></div><b aria-hidden="true">↗</b></> : <>{platform ? <VideoPlatformIcon platform={platform} className="size-4" /> : null}{editableText}</>;
   const mergedClass = `${className ?? ""} ${props.className ?? ""}`;
-  if (external) return <a {...props} href={safeUrl} target="_blank" rel="noopener noreferrer" className={mergedClass} style={editor?.active ? linkStyle : undefined}>{body}</a>;
-  return <Link {...props} href={safeUrl} className={mergedClass} style={editor?.active ? linkStyle : undefined}>{body}</Link>;
+  if (editor && !editor.active && resolveResponsiveValue(editor.snapshot.targets[id], editor.breakpoint, "visible") === false) return null;
+  if (external) return <a {...props} href={safeUrl} target="_blank" rel="noopener noreferrer" className={mergedClass} style={linkStyle}>{body}</a>;
+  return <Link {...props} href={safeUrl} className={mergedClass} style={linkStyle}>{body}</Link>;
 }
 
 export function HomepageEditableImage({ id, defaultSrc, defaultAlt, className, sizes, fill = true, priority = false }: { id: HomepageElementId; defaultSrc: string; defaultAlt: string; className?: string; sizes: string; fill?: boolean; priority?: boolean }) {
   const { editor, content, responsive, global, selected } = useEditorTarget(id);
-  if (!editor?.active) return <Image src={defaultSrc} alt={defaultAlt} fill={fill} priority={priority} sizes={sizes} className={className} />;
   const candidate = content.imageSrc;
-  const src = candidate && isSafeExternalUrl(candidate, true) ? candidate : defaultSrc;
+  // Absolute sources must be HTTPS; same-origin paths are accepted so an editor
+  // can point at an asset already served by this site.
+  const src = candidate && (isSafeExternalUrl(candidate, true) || isSafeInternalAssetPath(candidate)) ? candidate : defaultSrc;
   const visible = responsive.visible !== false;
   const mediaStyle = { objectFit: global.objectFit ?? "cover", objectPosition: responsive.objectPosition ?? "center" } as CSSProperties;
+  if (!editor?.active) {
+    if (!visible) return null;
+    return src.startsWith("https://")
+      ? <img src={src} alt={content.alt ?? defaultAlt} className={className} style={mediaStyle} />
+      : <Image src={src} alt={content.alt ?? defaultAlt} fill={fill} priority={priority} sizes={sizes} className={className} style={mediaStyle} />;
+  }
   return <span className={`${styles.imageEditor} ${selected ? styles.selectedElement : ""} ${editor.canvasDrag?.payload.nodeId === id ? styles.draggedSource : ""}`} data-canvas-node-id={id}>
     {visible ? src.startsWith("https://") ? <img src={src} alt={content.alt ?? defaultAlt} className={className} style={mediaStyle} /> : <Image src={src} alt={content.alt ?? defaultAlt} fill={fill} priority={priority} sizes={sizes} className={className} style={mediaStyle} /> : <span className={styles.hiddenElement}>Image hidden</span>}
     <button type="button" className={styles.elementSelectionTarget} aria-label={`Edit ${homepageTargetById[id].label}`} aria-pressed={selected} onClick={() => editor.dispatch({ type: "select", id })} />
@@ -399,13 +466,16 @@ export function HomepageEditableMedia({ id, title, platform, defaultUrl, sizes, 
   const { editor, content, responsive, selected } = useEditorTarget(id);
   const candidate = content.url;
   const url = candidate && isSafeExternalUrl(candidate) ? candidate : defaultUrl;
-  if (!editor?.active) return <div className={className}><VideoHoverPreview title={title} platform={platform} videoUrl={defaultUrl} sizes={sizes} /></div>;
+  if (!editor?.active) {
+    if (responsive.visible === false) return null;
+    return <div className={className}><VideoHoverPreview title={title} platform={platform} videoUrl={url} sizes={sizes} /></div>;
+  }
   return <div className={`${className ?? ""} ${styles.mediaEditor} ${selected ? styles.selectedElement : ""} ${editor.canvasDrag?.payload.nodeId === id ? styles.draggedSource : ""}`} data-canvas-node-id={id}>{responsive.visible === false ? <div className={styles.hiddenElement}>Video preview hidden</div> : <CmsVideoPreview title={title} platform={platform} videoUrl={url} sizes={sizes} editorial />}<button type="button" className={styles.elementSelectionTarget} aria-label="Edit latest video preview" aria-pressed={selected} onClick={() => editor.dispatch({ type: "select", id })} /></div>;
 }
 
 export function HomepageEditableProviderBadge({ id, platform, defaultLabel }: { id: HomepageElementId; platform: CmsVideoPlatform; defaultLabel: string }) {
   const { editor, content, selected } = useEditorTarget(id);
-  if (!editor?.active) return <VideoPlatformBadge platform={platform} />;
+  if (!editor?.active) return <VideoPlatformBadge platform={platform} label={content.text ?? defaultLabel} />;
   return <span className={`${styles.badgeEditor} ${selected ? styles.selectedElement : ""} ${editor.canvasDrag?.payload.nodeId === id ? styles.draggedSource : ""}`} data-canvas-node-id={id}><VideoPlatformBadge platform={platform} label={content.text ?? defaultLabel} /><button type="button" className={styles.elementSelectionTarget} aria-label="Edit provider label" aria-pressed={selected} onClick={() => editor.dispatch({ type: "select", id })} /></span>;
 }
 
@@ -580,7 +650,7 @@ function SimpleTargetControls({ selectedId, state, dispatch, defaults }: { selec
   return <div className={styles.simpleControls} data-context-kind={definition.kind}>
     {(isText || isAction) ? <ControlGroup title="Content" open><TextControl label={isAction ? "Label" : "Text"} value={content.text} defaultValue={original.text ?? ""} multiline={definition.multiline} onChange={(value) => updateContent("text", value)} onReset={() => updateContent("text", undefined)} />{original.description !== undefined ? <TextControl label="Description" value={content.description} defaultValue={original.description} multiline onChange={(value) => updateContent("description", value)} onReset={() => updateContent("description", undefined)} /> : null}</ControlGroup> : null}
     {(isAction || isMedia) ? <ControlGroup title={isMedia ? "Media" : "Link"} open><UrlControl key={`${selectedId}-${content.url ?? "default"}`} label={isMedia ? "Video URL" : "URL"} value={content.url} defaultValue={original.url ?? ""} allowInternal={Boolean(definition.internalLink)} onCommit={(value) => updateContent("url", value)} onReset={() => updateContent("url", undefined)} /></ControlGroup> : null}
-    {isText ? <><ControlGroup title="Typography" open><NumberControl label="Font size" value={current.fontSize} min={8} max={160} onChange={(value) => updateResponsive("fontSize", value)} onReset={() => updateResponsive("fontSize", undefined)} /><SelectControl label="Font weight" value={global.fontWeight ? String(global.fontWeight) : undefined} options={["400", "500", "600", "700", "800", "900"]} onChange={(value) => updateGlobal("fontWeight", value ? Number(value) as GlobalStyle["fontWeight"] : undefined)} onReset={() => updateGlobal("fontWeight", undefined)} /><SelectControl label="Alignment" value={current.textAlign} options={["left", "center", "right"]} onChange={(value) => updateResponsive("textAlign", value)} onReset={() => updateResponsive("textAlign", undefined)} /><ColorControl label="Text color" value={global.textColor} onChange={(value) => updateGlobal("textColor", value)} onReset={() => updateGlobal("textColor", undefined)} /><NumberControl label="Maximum text width" value={global.maxTextWidth} min={120} max={1200} onChange={(value) => updateGlobal("maxTextWidth", value)} onReset={() => updateGlobal("maxTextWidth", undefined)} /></ControlGroup></> : null}
+    {isText ? <><ControlGroup title="Typography" open><SelectControl<GlobalStyle["fontSizePreset"] & string> label="Font size" value={global.fontSizePreset} options={[...fontSizePresets]} onChange={(value) => updateGlobal("fontSizePreset", value)} onReset={() => updateGlobal("fontSizePreset", undefined)} /><SelectControl label="Font weight" value={global.fontWeight ? String(global.fontWeight) : undefined} options={["400", "500", "600", "700", "800", "900"]} onChange={(value) => updateGlobal("fontWeight", value ? Number(value) as GlobalStyle["fontWeight"] : undefined)} onReset={() => updateGlobal("fontWeight", undefined)} /><SelectControl label="Alignment" value={current.textAlign} options={["left", "center", "right"]} onChange={(value) => updateResponsive("textAlign", value)} onReset={() => updateResponsive("textAlign", undefined)} /><ColorControl label="Text color" value={global.textColor} onChange={(value) => updateGlobal("textColor", value)} onReset={() => updateGlobal("textColor", undefined)} /><NumberControl label="Maximum text width" value={global.maxTextWidth} min={120} max={1200} onChange={(value) => updateGlobal("maxTextWidth", value)} onReset={() => updateGlobal("maxTextWidth", undefined)} /></ControlGroup></> : null}
     {isAction ? <><ControlGroup title="Style" open><SelectControl label="Button style" value={global.buttonStylePreset} options={["primary", "secondary", "text"]} onChange={(value) => updateGlobal("buttonStylePreset", value)} onReset={() => updateGlobal("buttonStylePreset", undefined)} /><SelectControl label="Alignment" value={current.textAlign} options={["left", "center", "right"]} onChange={(value) => updateResponsive("textAlign", value)} onReset={() => updateResponsive("textAlign", undefined)} /><SelectControl<SpacingPreset> label="Size" value={global.spacingPreset} options={["compact", "normal", "spacious"]} onChange={setSpacing} onReset={() => setSpacing(undefined)} /></ControlGroup><ControlGroup title="Colors"><ColorControl label="Background" value={global.buttonBackground} onChange={(value) => updateGlobal("buttonBackground", value)} onReset={() => updateGlobal("buttonBackground", undefined)} /><ColorControl label="Text" value={global.buttonTextColor} onChange={(value) => updateGlobal("buttonTextColor", value)} onReset={() => updateGlobal("buttonTextColor", undefined)} /></ControlGroup></> : null}
     {isImage ? <><ControlGroup title="Image" open><UrlControl key={`${selectedId}-image-${content.imageSrc ?? "default"}`} label="Safe HTTPS preview URL" value={content.imageSrc} defaultValue={original.imageSrc ?? ""} allowInternal={false} httpsOnly onCommit={(value) => updateContent("imageSrc", value)} onReset={() => updateContent("imageSrc", undefined)} /><TextControl label="Alt text" value={content.alt} defaultValue={original.alt ?? ""} onChange={(value) => updateContent("alt", value)} onReset={() => updateContent("alt", undefined)} /></ControlGroup><ControlGroup title="Display" open><SelectControl<ObjectFit> label="Fit" value={global.objectFit} options={["cover", "contain"]} onChange={(value) => updateGlobal("objectFit", value)} onReset={() => updateGlobal("objectFit", undefined)} /><SelectControl<ObjectPosition> label="Position" value={current.objectPosition} options={["center", "top", "bottom", "left", "right", "left top", "right top", "left bottom", "right bottom"]} onChange={(value) => updateResponsive("objectPosition", value)} onReset={() => updateResponsive("objectPosition", undefined)} /><SelectControl label="Size" value={global.imageSizePreset} options={["small", "medium", "large", "full"]} onChange={(value) => updateGlobal("imageSizePreset", value)} onReset={() => updateGlobal("imageSizePreset", undefined)} /><SelectControl label="Corners" value={global.radiusPreset} options={["square", "slightly-rounded", "rounded"]} onChange={(value) => updateGlobal("radiusPreset", value)} onReset={() => updateGlobal("radiusPreset", undefined)} /></ControlGroup></> : null}
     {isBlock ? <><ControlGroup title="Layout" open><SelectControl<WidthPreset> label="Width" value={global.widthPreset} options={["auto", "third", "half", "two-thirds", "full"]} onChange={(value) => updateGlobal("widthPreset", value)} onReset={() => updateGlobal("widthPreset", undefined)} /><SelectControl label="Alignment" value={global.alignItems} options={["start", "center", "end", "stretch"]} onChange={(value) => updateGlobal("alignItems", value)} onReset={() => updateGlobal("alignItems", undefined)} /></ControlGroup><ControlGroup title="Appearance"><ColorControl label="Background" value={global.backgroundColor} onChange={(value) => updateGlobal("backgroundColor", value)} onReset={() => updateGlobal("backgroundColor", undefined)} /></ControlGroup></> : null}
@@ -710,9 +780,13 @@ function ContextToolbar({ state, dispatch, onMoreSettings }: { state: ReturnType
   const editInline = () => document.querySelector<HTMLElement>(`[data-editor-inline="${state.selectedId}"]`)?.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, cancelable: true }));
   const openSettingsField = (selector: string) => { onMoreSettings(); requestAnimationFrame(() => requestAnimationFrame(() => document.querySelector<HTMLInputElement>(selector)?.focus())); };
   const targetLabel = definition?.label ?? node.label;
+  // Moving rearranges sections, so the handle is offered only when something
+  // section-level is selected. A text or image selection has no handle at all,
+  // rather than one that quietly moves the block around it.
+  const movableKind = ["block", "section", "row", "column"].includes(kind);
   return <div ref={toolbarRef} className={styles.contextToolbar} role="toolbar" aria-label={`${targetLabel} quick controls`} style={position} data-context-kind={kind} data-dragging={Boolean(editor?.canvasDrag)}>
     {(kind === "text" || kind === "link") ? <button type="button" onClick={editInline}>{kind === "link" ? "Edit label" : "Edit text"}</button> : null}
-    {kind === "text" ? <><select aria-label="Font size" value={current.fontSize ?? ""} onChange={(event) => dispatch({ type: "responsive", id: targetId, breakpoint: state.previewMode, key: "fontSize", value: event.target.value ? Number(event.target.value) : undefined })}><option value="">Size</option><option value="14">14</option><option value="18">18</option><option value="24">24</option><option value="36">36</option><option value="56">56</option></select><select aria-label="Font weight" value={global.fontWeight ?? ""} onChange={(event) => dispatch({ type: "global", id: targetId, key: "fontWeight", value: event.target.value ? Number(event.target.value) as GlobalStyle["fontWeight"] : undefined })}><option value="">Weight</option><option value="400">400</option><option value="600">600</option><option value="800">800</option></select></> : null}
+    {kind === "text" ? <><select aria-label="Font size" value={global.fontSizePreset ?? ""} onChange={(event) => dispatch({ type: "global", id: targetId, key: "fontSizePreset", value: (event.target.value || undefined) as GlobalStyle["fontSizePreset"] })}><option value="">Size</option>{fontSizePresets.map((preset) => <option key={preset} value={preset}>{fontSizePresetLabels[preset]}</option>)}</select><select aria-label="Font weight" value={global.fontWeight ?? ""} onChange={(event) => dispatch({ type: "global", id: targetId, key: "fontWeight", value: event.target.value ? Number(event.target.value) as GlobalStyle["fontWeight"] : undefined })}><option value="">Weight</option><option value="400">Light</option><option value="600">Regular</option><option value="800">Bold</option></select></> : null}
     {(kind === "text" || kind === "link") ? <select aria-label="Alignment" value={current.textAlign ?? ""} onChange={(event) => dispatch({ type: "responsive", id: targetId, breakpoint: state.previewMode, key: "textAlign", value: (event.target.value || undefined) as ResponsiveStyle["textAlign"] })}><option value="">Align</option><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select> : null}
     {kind === "text" ? <input type="color" aria-label="Text color" value={global.textColor && isSafeColor(global.textColor) ? global.textColor : "#ffffff"} onChange={(event) => dispatch({ type: "global", id: targetId, key: "textColor", value: event.target.value })} /> : null}
     {kind === "link" ? <><button type="button" onClick={() => openSettingsField("#homepage-property-panel input[type='url']")}>Edit link</button><select aria-label="Button style" value={global.buttonStylePreset ?? ""} onChange={(event) => dispatch({ type: "global", id: targetId, key: "buttonStylePreset", value: (event.target.value || undefined) as GlobalStyle["buttonStylePreset"] })}><option value="">Style</option><option value="primary">Primary</option><option value="secondary">Secondary</option><option value="text">Text link</option></select></> : null}
@@ -720,15 +794,18 @@ function ContextToolbar({ state, dispatch, onMoreSettings }: { state: ReturnType
     {kind === "media" ? <button type="button" onClick={() => openSettingsField("#homepage-property-panel input[type='url']")}>Change media</button> : null}
     {kind === "block" ? <><select aria-label="Block width" value={global.widthPreset ?? ""} onChange={(event) => dispatch({ type: "global", id: targetId, key: "widthPreset", value: (event.target.value || undefined) as WidthPreset | undefined })}><option value="">Width</option><option value="auto">Auto</option><option value="half">Half</option><option value="full">Full</option></select><select aria-label="Block alignment" value={global.alignItems ?? ""} onChange={(event) => dispatch({ type: "global", id: targetId, key: "alignItems", value: (event.target.value || undefined) as GlobalStyle["alignItems"] })}><option value="">Align</option><option value="start">Left</option><option value="center">Center</option><option value="end">Right</option></select><input type="color" aria-label="Block background" value={global.backgroundColor && isSafeColor(global.backgroundColor) ? global.backgroundColor : "#111111"} onChange={(event) => dispatch({ type: "global", id: targetId, key: "backgroundColor", value: event.target.value })} /></> : null}
     {kind === "column" ? <><select aria-label="Column width" value={resolveLayoutValue(state.present.layout, state.selectedId, state.previewMode, "width") ?? ""} onChange={(event) => dispatch({ type: "layout-responsive", id: state.selectedId, breakpoint: state.previewMode, key: "width", value: (event.target.value || undefined) as WidthPreset | undefined })}><option value="">Width</option><option value="auto">Auto</option><option value="third">Third</option><option value="half">Half</option><option value="two-thirds">Two thirds</option><option value="full">Full</option></select><select aria-label="Column alignment" value={resolveLayoutValue(state.present.layout, state.selectedId, state.previewMode, "alignItems") ?? ""} onChange={(event) => dispatch({ type: "layout-responsive", id: state.selectedId, breakpoint: state.previewMode, key: "alignItems", value: (event.target.value || undefined) as LayoutResponsiveOverride["alignItems"] })}><option value="">Align</option><option value="start">Start</option><option value="center">Center</option><option value="end">End</option><option value="stretch">Stretch</option></select></> : null}
-    <CanvasMoveHandle label={targetLabel} movable={Boolean(safeMovableNode)} />
+    {movableKind ? <CanvasMoveHandle label={targetLabel} movable={Boolean(safeMovableNode)} /> : null}
     <button type="button" onClick={reset}>Reset {kind}</button>
   </div>;
 }
 
-export function HomepageEditor({ canEdit, defaults, children }: { canEdit?: boolean; defaults: HomepageEditorDefaults; children: ReactNode }) {
+export function HomepageEditor({ canEdit, defaults, published = null, children }: { canEdit?: boolean; defaults: HomepageEditorDefaults; published?: EditorSnapshot | null; children: ReactNode }) {
   const [authorized, setAuthorized] = useState(canEdit === true);
   const [active, setActive] = useState(false);
-  const [state, dispatch] = useReducer(editorReducer, undefined, createInitialEditorState);
+  const [state, dispatch] = useReducer(editorReducer, published ?? undefined, createInitialEditorState);
+  const [version, setVersion] = useState(0);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>({ kind: "idle" });
+  const [pending, startPersist] = useTransition();
   const [panelOpen, setPanelOpen] = useState(false);
   const [outlineOpen, setOutlineOpen] = useState(false);
   const [canvasDrag, setCanvasDrag] = useState<CanvasDragVisualState | null>(null);
@@ -742,6 +819,24 @@ export function HomepageEditor({ canEdit, defaults, children }: { canEdit?: bool
     void requestBuilderAccess().then((allowed) => { if (current) setAuthorized(allowed); });
     return () => { current = false; };
   }, [canEdit]);
+  /**
+   * Authorized browsers replace the published document with their own draft, so
+   * the live page becomes the draft preview. The response is sanitized again
+   * here because a stored document is untrusted input on the way out too.
+   */
+  useEffect(() => {
+    if (!authorized) return;
+    let current = true;
+    void fetch("/api/staff/site-content/homepage", { cache: "no-store", credentials: "same-origin", headers: { accept: "application/json" } })
+      .then((response) => response.ok ? response.json() as Promise<{ draft: unknown; version: number }> : null)
+      .then((result) => {
+        if (!current || !result?.draft || typeof result.version !== "number") return;
+        dispatch({ type: "load", snapshot: sanitizeHomepageDocument(result.draft) });
+        setVersion(result.version);
+      })
+      .catch(() => undefined);
+    return () => { current = false; };
+  }, [authorized]);
   const registerHost = useCallback((id: string, node: HTMLDivElement | null) => {
     setHosts((current) => {
       if (current.get(id) === node || (!node && !current.has(id))) return current;
@@ -773,6 +868,35 @@ export function HomepageEditor({ canEdit, defaults, children }: { canEdit?: bool
     dispatch({ type: "select", id: current.payload.nodeId });
   }, [calculateCanvasDrag]);
   const context = useMemo<EditorContextValue>(() => ({ active, breakpoint: state.previewMode, defaults, selectedId: state.selectedId, mode: state.mode, snapshot: state.present, dispatch, hosts, registerHost, canvasDrag, startCanvasDrag, updateCanvasDrag, finishCanvasDrag, cancelCanvasDrag }), [active, cancelCanvasDrag, canvasDrag, defaults, finishCanvasDrag, hosts, registerHost, startCanvasDrag, state, updateCanvasDrag]);
+  /**
+   * Read-only context for every render outside edit mode. Visitors resolve the
+   * published document; an authorized editor resolves their own draft, so the
+   * live page doubles as the draft preview. `content` mode is required: `layout`
+   * mode injects CSS order values that only make sense inside the editor frame.
+   */
+  const passiveSnapshot = authorized ? state.present : published;
+  const passiveContext = useMemo<EditorContextValue>(() => ({
+    ...context, active: false, mode: "content", snapshot: passiveSnapshot ?? createInitialSnapshot(),
+  }), [context, passiveSnapshot]);
+  const persist = useCallback((run: () => Promise<SiteContentResult>, describe: (result: SiteContentResult) => SaveStatus) => {
+    setSaveStatus({ kind: "pending" });
+    startPersist(async () => { setSaveStatus(describe(await run())); });
+  }, []);
+  const saveDraft = useCallback(() => persist(() => saveHomepageDraftAction(state.present, version), (result) => {
+    if (result.status !== "saved") return { kind: "error", message: saveErrorMessage(result) };
+    setVersion(result.version);
+    return { kind: "saved" };
+  }), [persist, state.present, version]);
+  const publishDraft = useCallback(() => persist(() => publishHomepageDraftAction(version), (result) =>
+    result.status === "published" ? { kind: "published" } : { kind: "error", message: saveErrorMessage(result) }), [persist, version]);
+  const discardDraft = useCallback(() => persist(discardHomepageDraftAction, (result) => {
+    if (result.status !== "discarded") return { kind: "error", message: saveErrorMessage(result) };
+    setVersion(0);
+    // Return to what is actually live, not to the shipped defaults: discarding a
+    // draft abandons unpublished edits, it does not unpublish anything.
+    dispatch({ type: "load", snapshot: published ?? createInitialSnapshot() });
+    return { kind: "discarded" };
+  }), [persist, published]);
   const canvasDragging = Boolean(canvasDrag);
   useEffect(() => {
     if (!active || state.mode !== "layout" || !previewFrameRef.current) { setContainerBoundaries([]); return; }
@@ -828,14 +952,15 @@ export function HomepageEditor({ canEdit, defaults, children }: { canEdit?: bool
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [active]);
-  if (!authorized) return <main id="main-content" className={publicStyles.homepage}>{children}</main>;
-  if (!active) return <><main id="main-content" className={publicStyles.homepage}>{children}</main><button type="button" className={styles.launchButton} onClick={() => setActive(true)} aria-label="Open homepage editor">Edit page</button></>;
+  if (!authorized) return <EditorContext.Provider value={passiveContext}><main id="main-content" className={publicStyles.homepage}>{children}</main></EditorContext.Provider>;
+  if (!active) return <EditorContext.Provider value={passiveContext}><main id="main-content" className={publicStyles.homepage}>{children}</main><button type="button" className={styles.launchButton} onClick={() => setActive(true)} aria-label="Open homepage editor">Edit page</button></EditorContext.Provider>;
   const previewClass = state.previewMode === "tablet" ? publicStyles.tabletPreview : state.previewMode === "mobile" ? publicStyles.mobilePreview : "";
   const frameClass = state.previewMode === "desktop" ? styles.desktopFrame : state.previewMode === "tablet" ? styles.tabletFrame : styles.mobileFrame;
   const visibleCanvasDropZone = canvasDrag?.activeKey ? canvasDrag.zones.find((zone) => zone.key === canvasDrag.activeKey) ?? null : null;
   const canvasDragLabel = canvasDrag ? state.present.layout.nodes[canvasDrag.payload.nodeId]?.label ?? canvasDrag.payload.nodeId : "";
   return <EditorContext.Provider value={context}><div className={`${styles.editorWorkspace} ${panelOpen ? styles.workspacePanelOpen : ""} ${styles.layoutMode} ${canvasDragging ? styles.canvasDragging : ""}`} data-preview-mode={state.previewMode} data-editor-mode="direct">
-    <div className={styles.editorBar} role="toolbar" aria-label="Homepage editor controls"><div className={styles.editorBarInner}><strong>Homepage editor</strong><div className={styles.previewModes} aria-label="Preview breakpoint">{editorBreakpoints.map((breakpoint) => <button key={breakpoint} type="button" aria-pressed={state.previewMode === breakpoint} onClick={() => dispatch({ type: "preview", breakpoint })}>{breakpoint[0].toUpperCase() + breakpoint.slice(1)}</button>)}</div><div className={styles.barActions}><button type="button" aria-controls="homepage-outline-drawer" aria-expanded={outlineOpen} onClick={() => setOutlineOpen((open) => !open)}>Outline</button><button type="button" disabled={!state.past.length} onClick={() => dispatch({ type: "undo" })}>Undo</button><button type="button" disabled={!state.future.length} onClick={() => dispatch({ type: "redo" })}>Redo</button><button type="button" aria-controls="homepage-property-panel" aria-expanded={panelOpen} onClick={() => setPanelOpen((open) => !open)}>{panelOpen ? "Close settings" : "More settings"}</button><button type="button" onClick={() => dispatch({ type: "reset-page" })}>Reset preview</button><button type="button" onClick={() => setActive(false)}>Exit edit mode</button></div></div></div>
+    <div className={styles.editorBar} role="toolbar" aria-label="Homepage editor controls"><div className={styles.editorBarInner}><strong>Homepage editor</strong><div className={styles.previewModes} aria-label="Preview breakpoint">{editorBreakpoints.map((breakpoint) => <button key={breakpoint} type="button" aria-pressed={state.previewMode === breakpoint} onClick={() => dispatch({ type: "preview", breakpoint })}>{breakpoint[0].toUpperCase() + breakpoint.slice(1)}</button>)}</div><div className={styles.barActions}><button type="button" aria-controls="homepage-outline-drawer" aria-expanded={outlineOpen} onClick={() => setOutlineOpen((open) => !open)}>Outline</button><button type="button" disabled={!state.past.length} onClick={() => dispatch({ type: "undo" })}>Undo</button><button type="button" disabled={!state.future.length} onClick={() => dispatch({ type: "redo" })}>Redo</button><button type="button" aria-controls="homepage-property-panel" aria-expanded={panelOpen} onClick={() => setPanelOpen((open) => !open)}>{panelOpen ? "Close settings" : "More settings"}</button><button type="button" onClick={() => dispatch({ type: "reset-page" })}>Reset preview</button><button type="button" onClick={() => setActive(false)}>Exit edit mode</button></div>
+      <div className={styles.persistActions}><button type="button" disabled={pending} onClick={saveDraft}>Save draft</button><button type="button" disabled={pending || version < 1} onClick={publishDraft}>Publish</button><button type="button" disabled={pending || version < 1} onClick={discardDraft}>Discard draft</button><output className={saveStatus.kind === "error" ? styles.persistError : styles.persistStatus} aria-live="polite">{saveStatusLabel(saveStatus)}</output></div></div></div>
     <div className={styles.previewArea}><div className={`${styles.previewSizer} ${frameClass}`}><div ref={previewFrameRef} className={styles.previewFrame}>{outlineOpen ? <GeneratedLayoutCanvas /> : null}<main id="main-content" className={`${publicStyles.homepage} ${previewClass}`}>{children}</main></div></div></div>
     <CanvasContainerSelectionLayer boundaries={containerBoundaries} selectedId={state.selectedId} dispatch={dispatch} />
     {canvasDrag ? <div className={styles.canvasDropLayer} aria-hidden="true">{visibleCanvasDropZone ? <div className={styles.canvasDropZone} data-drop-intent={visibleCanvasDropZone.intent} style={{ left: visibleCanvasDropZone.visualRect.left, top: visibleCanvasDropZone.visualRect.top, width: visibleCanvasDropZone.visualRect.width, height: visibleCanvasDropZone.visualRect.height }} /> : null}<div className={styles.canvasDragGhost} style={{ left: canvasDrag.point.x + 14, top: canvasDrag.point.y + 14 }}>Moving {canvasDragLabel}</div></div> : null}

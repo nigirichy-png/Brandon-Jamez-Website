@@ -116,6 +116,16 @@ export type WidthPreset = "auto" | "third" | "half" | "two-thirds" | "full";
 export type ButtonStylePreset = "primary" | "secondary" | "text";
 export type ImageSizePreset = "small" | "medium" | "large" | "full";
 export type RadiusPreset = "square" | "slightly-rounded" | "rounded";
+export const fontSizePresets = ["small", "medium", "large", "xlarge"] as const;
+export type FontSizePreset = (typeof fontSizePresets)[number];
+/**
+ * Multipliers, not pixel values. A hero heading and a kicker have very
+ * different natural sizes, so one absolute scale cannot serve both; these are
+ * applied relative to whatever size the element already gets from the design
+ * system. "medium" is the shipped size, which is why it is the neutral 1.
+ */
+export const fontSizeScale: Readonly<Record<FontSizePreset, number>> = { small: 0.75, medium: 1, large: 1.5, xlarge: 2 };
+export const fontSizePresetLabels: Readonly<Record<FontSizePreset, string>> = { small: "Small", medium: "Medium", large: "Large", xlarge: "XLarge" };
 export type ContextualTargetType = TargetKind | LayoutNodeType | "header";
 
 export type ResponsiveStyle = {
@@ -159,6 +169,7 @@ export type GlobalStyle = {
   buttonStylePreset?: ButtonStylePreset;
   imageSizePreset?: ImageSizePreset;
   radiusPreset?: RadiusPreset;
+  fontSizePreset?: FontSizePreset;
 };
 
 export const simplePropertyGroups: Readonly<Record<ContextualTargetType, readonly string[]>> = {
@@ -469,7 +480,8 @@ export const createInitialSnapshot = (): EditorSnapshot => ({
   header: { responsive: {} },
 });
 
-export const createInitialEditorState = (): EditorState => ({ past: [], present: createInitialSnapshot(), future: [], selectedId: "hero-introduction", previewMode: "desktop", mode: "layout" });
+/** `snapshot` seeds the editor from a stored draft. It must already be sanitized; callers never pass raw storage input. */
+export const createInitialEditorState = (snapshot?: EditorSnapshot): EditorState => ({ past: [], present: snapshot ?? createInitialSnapshot(), future: [], selectedId: "hero-introduction", previewMode: "desktop", mode: "layout" });
 
 const clone = <T>(value: T): T => structuredClone(value);
 const snapshotsEqual = (a: EditorSnapshot, b: EditorSnapshot) => JSON.stringify(a) === JSON.stringify(b);
@@ -503,6 +515,7 @@ export type EditorAction =
   | { type: "header-responsive"; breakpoint: EditorBreakpoint; key: "visible" | "navigationLayout"; value: boolean | "full" | "compact" | "hidden" | undefined }
   | { type: "reset-header" }
   | { type: "reset-page" }
+  | { type: "load"; snapshot: EditorSnapshot }
   | { type: "undo" } | { type: "redo" };
 
 function cleanTarget(target: TargetOverride): TargetOverride | undefined {
@@ -515,6 +528,10 @@ function cleanTarget(target: TargetOverride): TargetOverride | undefined {
 
 export function editorReducer(state: EditorState, action: EditorAction): EditorState {
   if (action.type === "select") return { ...state, selectedId: action.id };
+  // Replaces the document wholesale when a stored draft arrives. History is
+  // cleared on purpose: undoing past a loaded draft would silently resurrect
+  // content the editor never saw.
+  if (action.type === "load") return { ...state, past: [], present: clone(action.snapshot), future: [] };
   if (action.type === "mode") return { ...state, mode: action.mode };
   if (action.type === "preview") return { ...state, previewMode: action.breakpoint };
   if (action.type === "undo") {
@@ -740,4 +757,12 @@ export function isSafeLinkUrl(value: string, allowInternal: boolean): boolean {
 
 export function isSafeColor(value: string): boolean {
   return /^#[0-9a-f]{6}$/i.test(value);
+}
+
+/**
+ * Same-origin asset path. A protocol-relative "//host" value would load a
+ * third-party origin, so it is rejected even though it starts with a slash.
+ */
+export function isSafeInternalAssetPath(value: string): boolean {
+  return /^\/[a-zA-Z0-9/_.-]*$/.test(value) && !value.startsWith("//") && !value.includes("..");
 }

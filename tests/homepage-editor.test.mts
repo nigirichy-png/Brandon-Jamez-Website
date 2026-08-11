@@ -11,6 +11,8 @@ import {
   createDirectCanvasDragPayload,
   createDefaultLayoutTree,
   createInitialEditorState,
+  fontSizePresets,
+  fontSizeScale,
   editorReducer,
   finalizeInlineText,
   hasPassedCanvasDragThreshold,
@@ -461,7 +463,10 @@ test("homepage editor visibility uses a deferred canonical admin gate and has a 
   ]);
   assert.doesNotMatch(pageSource, /resolveStaffAccessState|evaluateAdminAccess|force-dynamic/);
   assert.match(editorSource, /requestBuilderAccess/);
-  assert.match(editorSource, /if \(!authorized\) return <main id="main-content"/);
+  // The public branch carries a read-only provider so published content resolves
+  // for visitors. It stays read-only: inactive, and never in layout mode.
+  assert.match(editorSource, /if \(!authorized\) return <EditorContext\.Provider value=\{passiveContext\}><main id="main-content"/);
+  assert.match(editorSource, /\.\.\.context, active: false, mode: "content"/);
   assert.match(editorSource, /if \(!shouldPortal \|\| !placement \|\| !host\) return children/);
   assert.match(pageSource, /HomepageLayoutItem id="hero-heading"/);
   assert.doesNotMatch(editorSource, /localStorage|staffDemo|dangerouslySetInnerHTML/);
@@ -486,6 +491,75 @@ test("homepage editor exposes one direct workflow with settings closed by defaul
   assert.match(editorSource, /onClose=\{\(\) => setPanelOpen\(false\)\}/);
 });
 
+test("font size is chosen as four presets that scale relative to each element's own size", async () => {
+  const [model, editorSource] = await Promise.all([
+    readFile(new URL("../src/components/home/homepage-editor-model.ts", import.meta.url), "utf8"),
+    readFile(new URL("../src/components/home/homepage-editor.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.deepEqual(fontSizePresets as readonly string[], ["small", "medium", "large", "xlarge"]);
+  // Multipliers, not pixels: one absolute scale cannot serve a 97px hero and a
+  // 10px kicker, and "medium" must be the neutral shipped size.
+  assert.equal(fontSizeScale.medium, 1);
+  assert.ok(fontSizeScale.small < 1 && fontSizeScale.large > 1 && fontSizeScale.xlarge > fontSizeScale.large);
+  assert.match(model, /fontSizePreset\?: FontSizePreset;/);
+  // The scale goes on a child so `em` resolves against the styled element.
+  assert.match(editorSource, /function FontScale\(\{ scale, children \}/);
+  assert.match(editorSource, /<span className=\{styles\.fontScale\} style=\{\{ fontSize: `\$\{scale\}em` \}\}>/);
+  // The quick toolbar offers presets only; raw pixel entry stays in the advanced panel.
+  const toolbar = editorSource.slice(editorSource.indexOf("function ContextToolbar"));
+  assert.match(toolbar, /aria-label="Font size" value=\{global\.fontSizePreset/);
+  assert.doesNotMatch(toolbar.slice(0, 4000), /<option value="14">/);
+});
+
+test("moving is offered for sections, never for a lone text or image", async () => {
+  const editorSource = await readFile(new URL("../src/components/home/homepage-editor.tsx", import.meta.url), "utf8");
+  assert.match(editorSource, /const movableKind = \["block", "section", "row", "column"\]\.includes\(kind\)/);
+  assert.match(editorSource, /\{movableKind \? <CanvasMoveHandle label=\{targetLabel\} movable=\{Boolean\(safeMovableNode\)\} \/> : null\}/);
+});
+
+test("editor dropdowns are themed rather than left to native platform chrome", async () => {
+  const editorStyles = await readFile(new URL("../src/components/home/homepage-editor.module.css", import.meta.url), "utf8");
+  // appearance:auto lets the platform paint a white control and a white option
+  // list whatever background is set, which is what made these look unstyled.
+  assert.match(editorStyles, /\.contextToolbar select, \.field > select \{[^}]*appearance: none;/);
+  // Options are rendered by the OS and do not inherit from the control.
+  assert.match(editorStyles, /select option[^{]*\{ background: #101319; color: #f4f4f5; \}/);
+  assert.match(editorStyles, /background-image: url\("data:image\/svg\+xml/);
+});
+
+test("desktop preview edits the page at its real width while tablet and mobile stay device sized", async () => {
+  const editorStyles = await readFile(new URL("../src/components/home/homepage-editor.module.css", import.meta.url), "utf8");
+  // Desktop is "no constraint", not a device size. A fixed width here would show
+  // a narrower page than the one being edited.
+  assert.match(editorStyles, /\.desktopFrame \{ --editor-preview-width: 100%; \}/);
+  assert.doesNotMatch(editorStyles, /\.desktopFrame \{ --editor-preview-width: [\d.]+rem; \}/);
+  // Tablet and mobile keep real device widths, where a fixed frame is the point.
+  assert.match(editorStyles, /\.tabletFrame \{ --editor-preview-width: 48rem; \}/);
+  assert.match(editorStyles, /\.mobileFrame \{ --editor-preview-width: 24\.375rem; \}/);
+  // Desktop also drops the inset and device chrome so it is a true 1:1.
+  assert.match(editorStyles, /\[data-preview-mode="desktop"\] \.previewArea \{ padding: 0; \}/);
+  assert.match(editorStyles, /\[data-preview-mode="desktop"\] \.previewFrame \{ box-shadow: none; \}/);
+});
+
+test("the block selection overlay never swallows clicks meant for inline editing", async () => {
+  const [editorSource, editorStyles] = await Promise.all([
+    readFile(new URL("../src/components/home/homepage-editor.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/components/home/homepage-editor.module.css", import.meta.url), "utf8"),
+  ]);
+  // The overlay spans the whole block. Public wrappers such as .identityBlock
+  // create their own stacking context, which traps a nested element's z-index
+  // below it, so raising .editableElement is not enough: the overlay must take
+  // no pointer events at all or double-click never reaches the editable span.
+  const overlay = editorStyles.slice(editorStyles.indexOf(".selectionTarget {"));
+  assert.match(overlay.slice(0, 200), /pointer-events:\s*none/);
+  // It stays reachable by keyboard, so block selection is not mouse-only.
+  assert.match(editorSource, /className=\{styles\.selectionTarget\} aria-label=\{`Edit \$\{definition\.label\} block`\}/);
+  // Mouse selection of a block is delegated to the wrapper, and only fires when
+  // the click did not land on a nested editable node.
+  assert.match(editorSource, /onClick=\{selectBlockFromEmptyArea\}/);
+  assert.match(editorSource, /\(event\.target as HTMLElement\)\.closest\("\[data-canvas-node-id\]"\) !== event\.currentTarget/);
+});
+
 test("canvas-first UI keeps one pointer move handle and drag UI out of the public branch", async () => {
   const editorSource = await readFile(new URL("../src/components/home/homepage-editor.tsx", import.meta.url), "utf8");
   const propertyPanel = editorSource.slice(editorSource.indexOf("function PropertyPanel"), editorSource.indexOf("function ContextToolbar"));
@@ -502,7 +576,7 @@ test("canvas-first UI keeps one pointer move handle and drag UI out of the publi
   assert.doesNotMatch(contextToolbar, /draggable|onDragStart|dataTransfer/);
   assert.match(editorSource, /const \[outlineOpen, setOutlineOpen\] = useState\(false\)/);
   assert.match(editorSource, /aria-controls="homepage-outline-drawer" aria-expanded=\{outlineOpen\}/);
-  assert.match(editorSource, /if \(!authorized\) return <main id="main-content"/);
+  assert.match(editorSource, /if \(!authorized\) return <EditorContext\.Provider value=\{passiveContext\}><main id="main-content"/);
   const publicBranch = editorSource.slice(editorSource.indexOf("if (!authorized)"), editorSource.indexOf("if (!active)"));
   assert.doesNotMatch(publicBranch, /ContextToolbar|GeneratedLayoutCanvas|OutlineDrawer|dragHandle|layoutHost|canvasDropLayer|data-canvas-move-handle/);
 });
