@@ -6,6 +6,8 @@ import { videoPlatformIdentities } from "@/components/video/video-platform-ident
 import { selectHomepageVideo } from "@/lib/cms/homepage-video";
 import type { PublicCmsVideo } from "@/lib/cms/video-model";
 import { listPublishedCmsVideos } from "@/lib/cms/videos";
+import { usesUnconfiguredDevelopmentEditor } from "@/lib/site-content/development-access";
+import { loadPublishedHomepageDocument } from "@/lib/site-content/store";
 
 import styles from "@/components/home/public-home.module.css";
 
@@ -18,6 +20,15 @@ export default async function Home() {
   let videos: PublicCmsVideo[] = [];
   let videoLoadFailed = false;
   try { videos = await listPublishedCmsVideos(); } catch { videoLoadFailed = true; }
+
+  // Only the published document is read here. It uses the anonymous key and a
+  // cached RPC, so the homepage stays statically renderable; the draft is
+  // fetched separately by authorized browsers through a no-store route.
+  const published = await loadPublishedHomepageDocument();
+  // Undefined keeps the canonical deferred admin gate in the browser. Only an
+  // unconfigured development checkout short-circuits it, and that path reads and
+  // writes the local file store rather than any real content.
+  const developmentEditor = usesUnconfiguredDevelopmentEditor() || undefined;
 
   const latestVideo = selectHomepageVideo(videos);
   const identity = latestVideo ? videoPlatformIdentities[latestVideo.platform] : null;
@@ -34,7 +45,7 @@ export default async function Home() {
     "subscriber-kicker": { text: "Member area" }, "subscriber-heading": { text: "Raw. Unfiltered. After dark." }, "subscriber-body": { text: "Paid access to private videos, selected images, special events and exclusive Pattaya moments." }, "subscriber-link": { text: "Unlock member access", url: "/subscriber" },
   };
 
-  return <HomepageEditor defaults={editorDefaults}>
+  return <HomepageEditor canEdit={developmentEditor} defaults={editorDefaults} published={published?.snapshot ?? null}>
     <div className={styles.nightBackdrop}>
     <section className={styles.stage} aria-labelledby="homepage-title">
       <div className={styles.shell}><div className={styles.stageGrid}>

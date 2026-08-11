@@ -593,6 +593,33 @@ export type Database = {
         Args: { p_reason: string; p_target_user_id: string }
         Returns: boolean
       }
+      admin_discard_site_page_draft: {
+        Args: { p_route_key: string }
+        Returns: boolean
+      }
+      admin_get_site_page: {
+        Args: { p_route_key: string }
+        Returns: {
+          document: Json
+          schema_version: number
+          state: Database["public"]["Enums"]["site_content_state"]
+          updated_at: string
+          version: number
+        }[]
+      }
+      admin_publish_site_page: {
+        Args: { p_expected_version: number; p_route_key: string }
+        Returns: number
+      }
+      admin_save_site_page_draft: {
+        Args: {
+          p_document: Json
+          p_expected_version: number
+          p_route_key: string
+          p_schema_version: number
+        }
+        Returns: number
+      }
       admin_create_cms_video: {
         Args: {
           p_category?: string
@@ -973,6 +1000,15 @@ export type Database = {
           title: string
         }[]
       }
+      get_published_site_page: {
+        Args: { p_route_key: string }
+        Returns: {
+          document: Json
+          schema_version: number
+          updated_at: string
+          version: number
+        }[]
+      }
       has_active_paid_subscription: { Args: never; Returns: boolean }
       list_published_cms_videos: {
         Args: never
@@ -1248,6 +1284,7 @@ export type Database = {
         | "escalated"
         | "reviewed"
         | "archived"
+      site_content_state: "draft" | "published"
       subscriber_media_type: "image" | "video" | "embed"
       subscription_status:
         | "inactive"

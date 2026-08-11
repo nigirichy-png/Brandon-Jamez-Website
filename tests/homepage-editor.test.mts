@@ -461,7 +461,10 @@ test("homepage editor visibility uses a deferred canonical admin gate and has a 
   ]);
   assert.doesNotMatch(pageSource, /resolveStaffAccessState|evaluateAdminAccess|force-dynamic/);
   assert.match(editorSource, /requestBuilderAccess/);
-  assert.match(editorSource, /if \(!authorized\) return <main id="main-content"/);
+  // The public branch carries a read-only provider so published content resolves
+  // for visitors. It stays read-only: inactive, and never in layout mode.
+  assert.match(editorSource, /if \(!authorized\) return <EditorContext\.Provider value=\{passiveContext\}><main id="main-content"/);
+  assert.match(editorSource, /\.\.\.context, active: false, mode: "content"/);
   assert.match(editorSource, /if \(!shouldPortal \|\| !placement \|\| !host\) return children/);
   assert.match(pageSource, /HomepageLayoutItem id="hero-heading"/);
   assert.doesNotMatch(editorSource, /localStorage|staffDemo|dangerouslySetInnerHTML/);
@@ -502,7 +505,7 @@ test("canvas-first UI keeps one pointer move handle and drag UI out of the publi
   assert.doesNotMatch(contextToolbar, /draggable|onDragStart|dataTransfer/);
   assert.match(editorSource, /const \[outlineOpen, setOutlineOpen\] = useState\(false\)/);
   assert.match(editorSource, /aria-controls="homepage-outline-drawer" aria-expanded=\{outlineOpen\}/);
-  assert.match(editorSource, /if \(!authorized\) return <main id="main-content"/);
+  assert.match(editorSource, /if \(!authorized\) return <EditorContext\.Provider value=\{passiveContext\}><main id="main-content"/);
   const publicBranch = editorSource.slice(editorSource.indexOf("if (!authorized)"), editorSource.indexOf("if (!active)"));
   assert.doesNotMatch(publicBranch, /ContextToolbar|GeneratedLayoutCanvas|OutlineDrawer|dragHandle|layoutHost|canvasDropLayer|data-canvas-move-handle/);
 });
