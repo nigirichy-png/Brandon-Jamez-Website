@@ -1,4 +1,5 @@
 import type { Database } from "@/lib/supabase/types";
+import type { PublicBunnyVideo } from "@/lib/public-bunny-video/model";
 
 export type CmsVideoPlatform = Database["public"]["Enums"]["cms_video_platform"];
 export type CmsContentStatus = Database["public"]["Enums"]["cms_content_status"];
@@ -19,3 +20,4 @@ export type CmsVideo = {
 };
 
 export type PublicCmsVideo = Omit<CmsVideo, "status">;
+export type PublicVideo = PublicCmsVideo | PublicBunnyVideo;

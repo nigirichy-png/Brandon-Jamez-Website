@@ -258,12 +258,12 @@ content_path = "./supabase/templates/email-change.html"
 [auth.email.notification.password_changed]
 enabled = true
 subject = "Your Brandon Jamez password was changed"
-content_path = "./supabase/templates/password-changed.html"
+content_path = "./templates/password-changed.html"
 
 [auth.email.notification.email_changed]
 enabled = true
 subject = "Your Brandon Jamez email address was changed"
-content_path = "./supabase/templates/email-changed.html"
+content_path = "./templates/email-changed.html"
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.

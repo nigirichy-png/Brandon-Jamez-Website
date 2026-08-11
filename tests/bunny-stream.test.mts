@@ -93,3 +93,30 @@ test("Bunny integration keeps video bytes off the application and enforces role 
   assert.match(migration, /revoke all on table private\.subscriber_bunny_videos/);
   assert.doesNotMatch(env, /NEXT_PUBLIC_BUNNY/);
 });
+
+test("public Bunny uploads stay editor-only while published playback exposes no provider identifier", async () => {
+  const [migration, uploadRoute, mutationRoute, playbackRoute, manager, videoPage, webhook] = await Promise.all([
+    readFile(new URL("../supabase/migrations/202608110001_public_bunny_videos.sql", import.meta.url), "utf8"),
+    readFile(new URL("../src/app/api/content/bunny/videos/upload/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../src/app/api/content/bunny/videos/[videoId]/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../src/app/api/videos/bunny/[videoId]/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../src/components/content/public-bunny-video-manager.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/app/videos/watch/[videoId]/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/app/api/webhooks/bunny/stream/route.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(migration, /create table private\.public_bunny_videos/);
+  assert.match(migration, /private\.is_active_content_editor\(\)/);
+  assert.match(migration, /list_published_public_bunny_videos/);
+  assert.match(migration, /resolve_public_bunny_video/);
+  assert.match(migration, /revoke all on table private\.public_bunny_videos/);
+  assert.doesNotMatch(migration.match(/create function public\.list_published_public_bunny_videos[\s\S]*?\$\$;/)?.[0] ?? "", /provider_video_id/);
+  assert.match(uploadRoute, /content_manager/);
+  assert.doesNotMatch(uploadRoute, /request\.formData\(|\.arrayBuffer\(\)/);
+  assert.match(mutationRoute, /deleteBunnyVideo/);
+  assert.match(playbackRoute, /resolve_public_bunny_video/);
+  assert.match(playbackRoute, /createSignedBunnyHlsPlayback/);
+  assert.match(manager, /Upload a public video to Bunny/);
+  assert.match(manager, /tus\.Upload/);
+  assert.match(videoPage, /No subscription or member account is required/);
+  assert.match(webhook, /service_update_public_bunny_video_status/);
+});

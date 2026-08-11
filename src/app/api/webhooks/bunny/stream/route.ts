@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { requireBunnyStreamConfig } from "@/lib/bunny/config";
@@ -24,13 +24,17 @@ export async function POST(request: Request) {
   if (String(payload.VideoLibraryId) !== config.libraryId || !validBunnyUuid(payload.VideoGuid) || !status) return new NextResponse(null, { status: 400 });
 
   const admin = createAdminSupabaseClient();
-  const { error } = await admin.rpc("service_update_subscriber_bunny_video_status", {
-    p_provider_video_id: payload.VideoGuid,
-    p_status: status,
-    p_provider_status: payload.Status,
-  });
-  if (error) return NextResponse.json({ error: "webhook_update_failed" }, { status: 500, headers: { "Cache-Control": "no-store" } });
+  const rpcInput = { p_provider_video_id: payload.VideoGuid, p_status: status, p_provider_status: payload.Status };
+  const [subscriberUpdate, publicUpdate] = await Promise.all([
+    admin.rpc("service_update_subscriber_bunny_video_status", rpcInput),
+    admin.rpc("service_update_public_bunny_video_status", rpcInput),
+  ]);
+  if (subscriberUpdate.error || publicUpdate.error) return NextResponse.json({ error: "webhook_update_failed" }, { status: 500, headers: { "Cache-Control": "no-store" } });
+  revalidateTag("published-public-bunny-videos", "max");
   revalidatePath("/subscriber");
   revalidatePath("/admin/subscriber-content");
+  revalidatePath("/videos");
+  revalidatePath("/content/videos");
+  revalidatePath("/admin/content/videos");
   return new NextResponse(null, { status: 204 });
 }

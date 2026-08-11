@@ -808,6 +808,10 @@ export type Database = {
         }
         Returns: string
       }
+      content_create_public_bunny_video: {
+        Args: { p_category: string; p_file_name: string; p_file_size: number; p_mime_type: string; p_provider_video_id: string; p_short_description: string; p_title: string }
+        Returns: string
+      }
       content_delete_cms_event: {
         Args: { p_event_id: string; p_expected_updated_at: string }
         Returns: boolean
@@ -815,6 +819,10 @@ export type Database = {
       content_delete_cms_video: {
         Args: { p_expected_updated_at: string; p_video_id: string }
         Returns: boolean
+      }
+      content_delete_public_bunny_video: {
+        Args: { p_expected_updated_at: string; p_video_id: string }
+        Returns: string
       }
       content_list_cms_events: {
         Args: never
@@ -845,6 +853,28 @@ export type Database = {
           title: string
           updated_at: string
           video_url: string
+        }[]
+      }
+      content_list_public_bunny_videos: {
+        Args: never
+        Returns: {
+          category: string | null
+          created_at: string
+          display_order: number
+          featured: boolean
+          file_name: string
+          file_size: number
+          id: string
+          mime_type: string
+          provider_status: number | null
+          provider_video_id: string
+          publication_status: Database["public"]["Enums"]["cms_content_status"]
+          published_at: string | null
+          ready_at: string | null
+          short_description: string | null
+          status: Database["public"]["Enums"]["bunny_video_status"]
+          title: string
+          updated_at: string
         }[]
       }
       content_reorder_cms_video: {
@@ -910,6 +940,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      content_update_public_bunny_video: {
+        Args: { p_category: string; p_expected_updated_at: string; p_publish: boolean; p_short_description: string; p_title: string; p_video_id: string }
+        Returns: boolean
+      }
       get_own_stripe_billing_context: {
         Args: never
         Returns: {
@@ -967,6 +1001,21 @@ export type Database = {
           slug: string
           status: Database["public"]["Enums"]["cms_content_status"]
           title: string
+        }[]
+      }
+      list_published_public_bunny_videos: {
+        Args: never
+        Returns: {
+          category: string | null
+          created_at: string
+          display_order: number
+          featured: boolean
+          id: string
+          published_at: string | null
+          short_description: string
+          title: string
+          updated_at: string
+          video_url: string
         }[]
       }
       list_published_subscriber_bunny_videos: {
@@ -1131,6 +1180,18 @@ export type Database = {
       resolve_subscriber_bunny_video: {
         Args: { p_allow_draft?: boolean; p_slug: string; p_video_id: string }
         Returns: string | null
+      }
+      resolve_public_bunny_video: {
+        Args: { p_allow_draft?: boolean; p_video_id: string }
+        Returns: string | null
+      }
+      service_update_public_bunny_video_status: {
+        Args: {
+          p_provider_status: number
+          p_provider_video_id: string
+          p_status: Database["public"]["Enums"]["bunny_video_status"]
+        }
+        Returns: boolean
       }
       service_update_subscriber_bunny_video_status: {
         Args: {

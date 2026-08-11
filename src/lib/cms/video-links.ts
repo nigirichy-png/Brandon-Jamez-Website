@@ -1,4 +1,5 @@
 import type { CmsVideoPlatform } from "@/lib/cms/video-model";
+import type { PublicVideoPlatform } from "@/lib/public-bunny-video/model";
 
 const platformHosts: Record<CmsVideoPlatform, readonly string[]> = {
   youtube: ["youtube.com", "youtu.be"],
@@ -47,7 +48,11 @@ export function getYouTubeVideoId(input: string): string | null {
   return candidate && youtubeVideoIdPattern.test(candidate) ? candidate : null;
 }
 
-export function getVideoThumbnailUrl(platform: CmsVideoPlatform, input: string): string | null {
+export function getVideoThumbnailUrl(platform: PublicVideoPlatform, input: string): string | null {
+  if (platform === "bunny") {
+    const match = input.match(/^\/videos\/watch\/([0-9a-f-]{36})$/i);
+    return match ? `/api/videos/bunny/${match[1]}?asset=poster` : null;
+  }
   if (platform !== "youtube") return null;
   const videoId = getYouTubeVideoId(input);
   return videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;

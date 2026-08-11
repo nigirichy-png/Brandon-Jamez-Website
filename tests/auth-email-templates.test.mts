@@ -36,10 +36,11 @@ test("local Supabase config references every tracked auth template", async () =>
     "confirmation.html",
     "recovery.html",
     "email-change.html",
-    "password-changed.html",
-    "email-changed.html",
   ]) {
     assert.match(config, new RegExp(`content_path = "\\./supabase/templates/${name}"`));
+  }
+  for (const name of ["password-changed.html", "email-changed.html"]) {
+    assert.match(config, new RegExp(`content_path = "\\./templates/${name}"`));
   }
 });
 

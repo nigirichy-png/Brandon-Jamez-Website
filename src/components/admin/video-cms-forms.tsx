@@ -45,7 +45,7 @@ function FormFields({ video }: { video?: CmsVideo }) {
     </div>
     <label className="text-sm font-bold text-zinc-200">Video URL
       <input className={fieldClass} name="videoUrl" defaultValue={video?.video_url} type="url" inputMode="url" maxLength={2048} required placeholder="https://youtube.com/..." autoComplete="url" />
-      <span className="mt-1.5 block text-xs font-normal leading-5 text-zinc-500">HTTPS links from YouTube, Rumble, or Kick only. The website does not upload or host video files.</span>
+      <span className="mt-1.5 block text-xs font-normal leading-5 text-zinc-500">HTTPS links from YouTube, Rumble, or Kick only. Use the Bunny panel above for direct file uploads.</span>
     </label>
   </div>;
 }
@@ -53,7 +53,7 @@ function FormFields({ video }: { video?: CmsVideo }) {
 export function CreateCmsVideoForm() {
   const [state, action, pending] = useActionState(createCmsVideoAction, initialCmsActionState);
   return <form action={action} className="rounded-2xl border border-white/10 bg-[#12151c] p-5 sm:p-6">
-    <div className="mb-5"><p className="text-xs font-extrabold uppercase tracking-[0.14em] text-cyan-300">New draft</p><h2 className="font-display mt-2 text-2xl font-bold text-white">Add a video</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">Create metadata first. Publishing is a separate confirmed action.</p></div>
+    <div className="mb-5"><p className="text-xs font-extrabold uppercase tracking-[0.14em] text-cyan-300">External link</p><h2 className="font-display mt-2 text-2xl font-bold text-white">Add a linked video</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">Create metadata first. Publishing is a separate confirmed action.</p></div>
     <FormFields />
     <button className="mt-5 min-h-12 rounded-xl bg-fuchsia-500 px-5 py-2.5 text-sm font-extrabold text-white shadow-[var(--shadow-accent)] hover:bg-fuchsia-400 disabled:cursor-not-allowed disabled:bg-zinc-700" type="submit" disabled={pending}>{pending ? "Creating draft…" : "Create draft video"}</button>
     <ActionMessage state={state} />

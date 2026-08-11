@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 
 import type { CmsVideoPlatform } from "@/lib/cms/video-model";
+import type { PublicVideoPlatform } from "@/lib/public-bunny-video/model";
 
 type PlatformIconProps = { className?: string };
 
@@ -34,7 +35,7 @@ function BjVideoIcon({ className = "" }: PlatformIconProps) {
 
 export const currentVideoPlatforms: readonly CmsVideoPlatform[] = ["youtube", "rumble", "kick"];
 
-export const videoPlatformIdentities: Record<CmsVideoPlatform, VideoPlatformIdentity> = {
+export const videoPlatformIdentities: Record<PublicVideoPlatform, VideoPlatformIdentity> = {
   youtube: {
     key: "youtube",
     label: "YouTube",
@@ -65,6 +66,17 @@ export const videoPlatformIdentities: Record<CmsVideoPlatform, VideoPlatformIden
     watchButtonClass: "border-lime-300/50 bg-[#53fc18] text-[#0a1905] shadow-[0_16px_45px_rgba(83,252,24,0.14)] hover:bg-lime-300",
     watchLabel: "Watch on Kick",
   },
+  bunny: {
+    key: "bunny",
+    label: "BJ Video",
+    accessibleLabel: "Brandon Jamez hosted video",
+    icon: BjVideoIcon,
+    badgeClass: "border-cyan-300/35 bg-gradient-to-r from-fuchsia-400/10 to-cyan-300/10 text-cyan-100",
+    previewClass: "from-fuchsia-500/70 via-violet-950 to-cyan-950",
+    watchButtonClass: "border-cyan-300/40 bg-gradient-to-r from-fuchsia-500 to-cyan-400 text-white shadow-[var(--shadow-accent)] hover:brightness-110",
+    watchLabel: "Watch video",
+    sourceLabel: "Exclusive",
+  },
 };
 
 // Dormant extension point only. This is intentionally not part of
@@ -87,11 +99,11 @@ export function VideoIdentityBadge({ identity, className = "", label = identity.
   return <span aria-label={identity.accessibleLabel} className={`inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-extrabold tracking-[0.08em] ${identity.badgeClass} ${className}`}><Icon className="size-4 shrink-0" /><span>{label}</span></span>;
 }
 
-export function VideoPlatformBadge({ platform, className = "", label }: { platform: CmsVideoPlatform; className?: string; label?: string }) {
+export function VideoPlatformBadge({ platform, className = "", label }: { platform: PublicVideoPlatform; className?: string; label?: string }) {
   return <VideoIdentityBadge identity={videoPlatformIdentities[platform]} className={className} label={label} />;
 }
 
-export function VideoPlatformIcon({ platform, className = "" }: { platform: CmsVideoPlatform; className?: string }) {
+export function VideoPlatformIcon({ platform, className = "" }: { platform: PublicVideoPlatform; className?: string }) {
   const Icon = videoPlatformIdentities[platform].icon;
   return <Icon className={className} />;
 }
