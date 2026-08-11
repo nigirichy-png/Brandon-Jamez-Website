@@ -83,8 +83,15 @@
 .memberAccessNote { width: 100%; margin-top: .75rem; color: #95a9b9; font-size: .56rem; font-weight: 750; letter-spacing: .08em; line-height: 1.45; text-align: center; text-transform: uppercase; }
 
 @media (max-width: 980px) {
-  .stageGrid { grid-template-columns: 1fr; }
-  .identityBlock { transform: none; }
+  .stageGrid { min-height: 38rem; grid-template-columns: 1fr; }
+  .identityBlock { width: min(55%, 27rem); align-items: flex-start; padding: 3.5rem 0; text-align: left; transform: none; }
+  .identityLockup { justify-content: flex-start; gap: 1rem; }
+  .heroEmblem { width: 5.6rem; }
+  .identityTitle { max-width: 7ch; font-size: clamp(3rem, 6.6vw, 4.2rem); }
+  .identityTitle strong { display: block; }
+  .identityIntro { max-width: 25rem; }
+  .portraitFrame::after { background: linear-gradient(90deg, rgba(1, 4, 14, .92) 0%, rgba(1, 5, 16, .7) 37%, rgba(2, 6, 17, .16) 62%, transparent 78%); }
+  .portraitImage { object-position: 68% 12%; }
   .videoBlock { grid-template-columns: minmax(0,1fr) minmax(14rem,.82fr); transform: none; }
   .videoTopline { grid-column: 1/3; }
   .stageVideoMedia { grid-column: 1/2; }
@@ -96,12 +103,17 @@
 @media (max-width: 720px) {
   .shell { width: min(calc(100% - 1.25rem), var(--public-width)); }
   .stage { padding: 0; }
-  .stageGrid { min-height: 26rem; grid-template-columns: 1fr; }
-  .identityBlock { grid-column: 1; min-height: auto; padding: 3rem .2rem; transform: none; }
-  .identityLockup { width: 100%; flex-direction: column; gap: .8rem; }
-  .heroEmblem { width: 5.4rem; }
-  .identityTitle { width: 100%; max-width: 100%; font-size: clamp(2.65rem, 13.5vw, 3.8rem); overflow-wrap: anywhere; }
-  .portraitImage { object-fit: cover; object-position: 62% top; }
+  .stage .shell { width: min(calc(100% - 1.25rem), 92rem); }
+  .stageGrid { min-height: 39rem; grid-template-columns: 1fr; align-items: stretch; }
+  .identityBlock { grid-column: 1; width: 100%; min-height: 39rem; align-items: flex-start; justify-content: flex-end; padding: 1.35rem .15rem 1.55rem; background: linear-gradient(180deg, transparent 0 47%, rgba(2, 6, 18, .2) 55%, rgba(2, 6, 18, .9) 72%, rgba(2, 6, 18, .98) 100%); text-align: left; transform: none; }
+  .eyebrow { position: absolute; top: 1.1rem; left: .15rem; max-width: calc(100% - .3rem); font-size: .58rem; letter-spacing: .24em; }
+  .identityLockup { width: 100%; flex-direction: row; justify-content: flex-start; gap: .8rem; margin-top: 0; }
+  .heroEmblem { width: clamp(4.25rem, 20vw, 5rem); }
+  .identityTitle { width: auto; max-width: 7ch; font-size: clamp(2.3rem, 11.5vw, 3.15rem); line-height: .86; overflow-wrap: normal; }
+  .identityTitle strong { display: block; }
+  .identityIntro { max-width: 21rem; margin-top: .9rem; font-size: clamp(.88rem, 4vw, 1rem); line-height: 1.5; }
+  .portraitFrame::after { background: linear-gradient(180deg, rgba(1, 4, 14, .08) 0%, transparent 45%, rgba(2, 6, 18, .28) 58%, rgba(2, 6, 18, .92) 82%, #020612 100%); }
+  .portraitImage { bottom: auto !important; height: 72% !important; object-fit: cover; object-position: 74% 8%; }
   .latestSection { padding-block: 1.7rem; }
   .latestSection::before { top: 44%; font-size: 24vw; }
   .latestSection::after { bottom: -14rem; }
@@ -121,7 +133,15 @@
 }
 
 /* Editor-only preview classes mirror the existing responsive breakpoints inside a constrained frame. */
-.tabletPreview .stageGrid, .mobilePreview .stageGrid { grid-template-columns: 1fr; }
+.tabletPreview .stageGrid, .mobilePreview .stageGrid { min-height: 38rem; grid-template-columns: 1fr; }
+.tabletPreview .identityBlock { width: 55%; align-items: flex-start; padding: 3.5rem 0; text-align: left; transform: none; }
+.tabletPreview .identityLockup { justify-content: flex-start; gap: 1rem; }
+.tabletPreview .heroEmblem { width: 5.6rem; }
+.tabletPreview .identityTitle { max-width: 7ch; font-size: clamp(3rem, 6.6vw, 4.2rem); }
+.tabletPreview .identityTitle strong { display: block; }
+.tabletPreview .identityIntro { max-width: 25rem; }
+.tabletPreview .portraitFrame::after { background: linear-gradient(90deg, rgba(1, 4, 14, .92) 0%, rgba(1, 5, 16, .7) 37%, rgba(2, 6, 17, .16) 62%, transparent 78%); }
+.tabletPreview .portraitImage { object-position: 68% 12%; }
 .tabletPreview .videoBlock, .mobilePreview .videoBlock { display: grid; grid-template-columns: minmax(0,1fr) minmax(14rem,.68fr); }
 .tabletPreview .videoTopline, .mobilePreview .videoTopline { grid-column: 1/3; }
 .tabletPreview .stageVideoMedia, .mobilePreview .stageVideoMedia { grid-column: 1/2; }
@@ -131,12 +151,16 @@
 
 .mobilePreview .shell { width: min(calc(100% - 1.25rem), var(--homepage-section-max-width, var(--public-width))); }
 .mobilePreview .stage { padding: 0; }
-.mobilePreview .stageGrid { min-height: 26rem; grid-template-columns: 1fr; }
-.mobilePreview .identityBlock { grid-column: 1; min-height: auto; padding: 3rem .2rem; }
-.mobilePreview .identityLockup { flex-direction: column; gap: .8rem; }
-.mobilePreview .heroEmblem { width: 5.4rem; }
-.mobilePreview .identityTitle { font-size: clamp(3rem, 16vw, 4.35rem); }
-.mobilePreview .portraitImage { object-fit: cover; object-position: 62% top; }
+.mobilePreview .stageGrid { min-height: 39rem; grid-template-columns: 1fr; align-items: stretch; }
+.mobilePreview .identityBlock { grid-column: 1; width: 100%; min-height: 39rem; align-items: flex-start; justify-content: flex-end; padding: 1.35rem .15rem 1.55rem; background: linear-gradient(180deg, transparent 0 47%, rgba(2, 6, 18, .2) 55%, rgba(2, 6, 18, .9) 72%, rgba(2, 6, 18, .98) 100%); text-align: left; }
+.mobilePreview .eyebrow { position: absolute; top: 1.1rem; left: .15rem; font-size: .58rem; letter-spacing: .24em; }
+.mobilePreview .identityLockup { width: 100%; flex-direction: row; justify-content: flex-start; gap: .8rem; margin-top: 0; }
+.mobilePreview .heroEmblem { width: clamp(4.25rem, 20vw, 5rem); }
+.mobilePreview .identityTitle { max-width: 7ch; font-size: clamp(2.3rem, 11.5vw, 3.15rem); line-height: .86; }
+.mobilePreview .identityTitle strong { display: block; }
+.mobilePreview .identityIntro { max-width: 21rem; margin-top: .9rem; font-size: clamp(.88rem, 4vw, 1rem); line-height: 1.5; }
+.mobilePreview .portraitFrame::after { background: linear-gradient(180deg, rgba(1, 4, 14, .08) 0%, transparent 45%, rgba(2, 6, 18, .28) 58%, rgba(2, 6, 18, .92) 82%, #020612 100%); }
+.mobilePreview .portraitImage { bottom: auto !important; height: 72% !important; object-fit: cover; object-position: 74% 8%; }
 .mobilePreview .latestSection { padding-block: 1.7rem; }
 .mobilePreview .videoBlock { display: flex; flex-direction: column; padding: .8rem; }
 .mobilePreview .videoTopline, .mobilePreview .stageVideoMedia, .mobilePreview .stageVideoCopy, .mobilePreview .stageVideoEmpty { grid-column: auto; }
