@@ -125,6 +125,7 @@
 .difficultyOptions button {
   display: grid;
   min-width: 5.7rem;
+  min-height: 2.75rem;
   gap: 0.08rem;
   padding: 0.38rem 0.55rem;
   border: 1px solid transparent;
@@ -132,6 +133,7 @@
   color: rgba(222, 238, 248, 0.56);
   cursor: pointer;
   font-family: inherit;
+  touch-action: manipulation;
   text-align: left;
   transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
 }
@@ -284,7 +286,7 @@
 .cells { position: absolute; inset: var(--board-padding); display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(6, 1fr); gap: clamp(0.24rem, 0.65vw, 0.48rem); pointer-events: none; }
 .cell { position: relative; display: grid; min-width: 0; place-items: center; overflow: hidden; border: 2px solid rgba(4, 25, 79, 0.72); border-radius: 50%; background: radial-gradient(circle at 44% 42%, #0b1837 0 48%, #050b20 70%); box-shadow: inset 3px 4px 8px rgba(0, 0, 0, 0.65), 0 1px rgba(255, 255, 255, 0.18); }
 
-.columnTarget { position: relative; z-index: 4; grid-row: 1; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 0.35rem; background: transparent; cursor: pointer; }
+.columnTarget { position: relative; z-index: 4; grid-row: 1; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 0.35rem; background: transparent; cursor: pointer; touch-action: manipulation; }
 .columnTarget:disabled { cursor: default; }
 .columnTarget:not(:disabled):hover { background: linear-gradient(rgba(255, 255, 255, 0.05), rgba(68, 240, 228, 0.08)); }
 .columnTarget:focus-visible { outline: 3px solid var(--battle-yellow); outline-offset: -3px; }
@@ -312,7 +314,7 @@
 .matchActions > span,
 .matchActions > strong { color: rgba(221, 239, 249, 0.54); font-size: 0.53rem; font-weight: 900; letter-spacing: 0.12em; text-align: center; }
 .matchActions > strong { color: var(--battle-yellow); text-shadow: 0 0 10px rgba(255, 216, 74, 0.38); }
-.matchActions button { min-height: 2.55rem; border: 1px solid rgba(255, 216, 74, 0.74); border-radius: 0.18rem; background: linear-gradient(180deg, #ffe461, #f3b927); box-shadow: inset 0 2px rgba(255, 255, 255, 0.45), 0 5px 0 #92540c, 0 12px 22px rgba(0, 0, 0, 0.25); color: #171329; cursor: pointer; font-family: inherit; font-size: 0.65rem; font-weight: 950; letter-spacing: 0.08em; transition: filter 120ms ease, transform 120ms ease; }
+.matchActions button { min-height: 2.75rem; border: 1px solid rgba(255, 216, 74, 0.74); border-radius: 0.18rem; background: linear-gradient(180deg, #ffe461, #f3b927); box-shadow: inset 0 2px rgba(255, 255, 255, 0.45), 0 5px 0 #92540c, 0 12px 22px rgba(0, 0, 0, 0.25); color: #171329; cursor: pointer; font-family: inherit; font-size: 0.65rem; font-weight: 950; letter-spacing: 0.08em; touch-action: manipulation; transition: filter 120ms ease, transform 120ms ease; }
 .matchActions button:hover { filter: brightness(1.08); transform: translateY(-1px); }
 .matchActions button:active { box-shadow: inset 0 2px rgba(255, 255, 255, 0.3), 0 2px 0 #92540c; transform: translateY(3px); }
 
@@ -362,7 +364,7 @@
   .fighterInfo::before { top: 0; bottom: auto; left: 0.75rem; width: 2rem; height: 2px; }
   .fighterInfo h2 { font-size: 0.78rem; }
   .fighterInfo p { font-size: 0.43rem; }
-  .avatarImage { object-position: 50% 15%; }
+  .avatarImage { object-position: 50% 7%; }
   .avatarRim { inset: 0; }
   .avatarStateLabel { right: 0.4rem; bottom: 0.38rem; font-size: 0.36rem; }
   .boardStation { margin-top: 0.65rem; }
@@ -371,7 +373,7 @@
   .dialog span { min-width: 5.4rem; padding: 0.55rem; font-size: 0.49rem; }
   .dialog p { padding-left: 0.7rem; }
   .matchActions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(8.5rem, 0.7fr); align-items: center; }
-  .matchActions button { min-height: 2.4rem; }
+  .matchActions button { min-height: 2.75rem; }
 }
 
 @media (max-width: 390px) {
