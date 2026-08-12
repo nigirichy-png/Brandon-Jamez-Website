@@ -10,7 +10,7 @@
     "start": "next start",
     "start:youtube-live": "node services/youtube-live/server.mjs",
     "lint": "eslint",
-    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test --experimental-strip-types tests/member-access-policy.test.mts tests/subscriber-content.test.mts tests/homepage-editor.test.mts tests/site-builder.test.mts tests/guide-integration.test.mts tests/auth-email-templates.test.mts tests/legal-pages.test.mts tests/moderation-workflow.test.mts tests/content-operations.test.mts tests/live-integration.test.mts tests/bunny-stream.test.mts tests/site-content.test.mts"
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test --experimental-strip-types tests/member-access-policy.test.mts tests/subscriber-content.test.mts tests/homepage-editor.test.mts tests/site-builder.test.mts tests/guide-integration.test.mts tests/auth-email-templates.test.mts tests/legal-pages.test.mts tests/moderation-workflow.test.mts tests/content-operations.test.mts tests/live-integration.test.mts tests/bunny-stream.test.mts tests/site-content.test.mts tests/connect-four.test.mts"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.14.4",

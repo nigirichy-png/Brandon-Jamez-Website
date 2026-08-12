@@ -13,6 +13,7 @@ import styles from "./footer.module.css";
 const links = [
   { href: "/", label: "Home", external: false },
   { href: "/guide", label: "Pattaya Guide", external: false },
+  { href: "/games", label: "Games", external: false },
   { href: "/videos", label: "Videos", external: false },
   { href: "/account", label: "Account", external: false },
   { href: "/support", label: "Support", external: false },

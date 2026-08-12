@@ -10,7 +10,7 @@ import { requestPublicShellAccess } from "@/components/site-builder/builder-acce
 
 import styles from "./header-navigation.module.css";
 
-const navigation = [{ href: "/", label: "Home" }, { href: "/guide", label: "Guide" }, { href: "/videos", label: "Videos" }];
+const navigation = [{ href: "/", label: "Home" }, { href: "/guide", label: "Guide" }, { href: "/games", label: "Games" }, { href: "/videos", label: "Videos" }];
 
 export function HeaderNavigation({ moderationHubPreview }: { moderationHubPreview: boolean }) {
   const pathname = usePathname();
